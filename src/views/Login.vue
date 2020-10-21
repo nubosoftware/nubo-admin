@@ -4,10 +4,15 @@
       <v-flex xs12 sm4 elevation-6>
         <v-card>
           <v-card-text class="pt-4">
+            <div v-if="messageText != ''">
+              <v-alert :type="msgType">
+                {{ messageText }}
+              </v-alert>
+            </div>
             <div>
               <v-form v-model="valid" ref="form">
                 <v-text-field
-                  label="Enter your e-mail address"
+                  label="Enter your email address"
                   v-model="email"
                   :rules="emailRules"
                   required
@@ -33,7 +38,7 @@
                     }"
                     >Login</v-btn
                   >
-                  <a href="">Forgot Password</a>
+                  <a href="">Forgot Password?</a>
                 </v-layout>
               </v-form>
             </div>
@@ -60,10 +65,13 @@
 
  <script>
 import appData from "../modules/appData";
+import axios from "axios";
 
 export default {
   name: "Login",
   data: () => ({
+    messageText: "Log in to the Admin Control Panel",
+    msgType: "info",
     valid: false,
     e1: true,
     password: "",
@@ -71,25 +79,52 @@ export default {
     email: "",
     emailRules: [
       (v) => !!v || "E-mail is required",
-      (v) => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'E-mail must be valid'
+      (v) =>
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,10})+$/.test(v) ||
+        "Email must be valid",
     ],
     appData,
-    
-    
   }),
   methods: {
-        submit: function() {
-            if (this.$refs.form.validate()) {
-              console.log("submit");
-            }
-            
-        }
+    submit: function () {
+      if (this.$refs.form.validate()) {
+        console.log("submit");
+        this.messageText = "Checking login information";
+        this.msgType = "info";
+
+        setTimeout(() => {
+          axios({
+            method: "post",
+            url:
+              "http://localhost:9080/http://labil.nubosoftware.com:8080/loginWebAdmin",
+            data: {
+              userName: this.email,
+              password: this.password,
+            },
+          })
+            .then((response) => {
+              console.log(response.data);
+              if (response.data.status != 1) {
+                this.messageText = "Incorrect email address or password.";
+                this.msgType = "error";
+                console.log("Error");
+              } else {
+                this.messageText = "Login successful";
+                this.msgType = "success";
+                appData.isAuthenticated = true;
+                appData.adminLoginToken = response.data.loginToken;
+                appData.mainDomain = response.data.mainDomain;
+                this.$router.push("/");
+              }
+            })
+            .catch((error) => console.log(error))
+            .finally(() => (this.loading = false));
+        }, 100);
+      }
     },
+  },
   created: function () {
-        this.$emit('updatePage','Login')
-    },
+    this.$emit("updatePage", "Login");
+  },
 };
-
-
-
 </script>

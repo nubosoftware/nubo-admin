@@ -1,5 +1,5 @@
 const appData = {
-    isLogin: false,
+    isAuthenticated: false,
     moduleName: "",
     appName: "Control Panel Test"
 };

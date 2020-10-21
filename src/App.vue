@@ -61,7 +61,7 @@
       drawer: true,
       moduleName: "Control Panel",
       menuItems: [
-          { title: 'Profiles', icon: 'mdi-view-dashboard' , link: '/about'},
+          { title: 'Profiles', icon: 'mdi-view-dashboard' , link: '/Profiles'},
           { title: 'Groups', icon: 'mdi-image' },
           { title: 'Apps', icon: 'mdi-help-box' },
           { title: 'Exchange', icon: 'mdi-view-dashboard' },
