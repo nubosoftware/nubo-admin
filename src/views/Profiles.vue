@@ -73,7 +73,9 @@ export default {
         data: {
           adminLoginToken: appData.adminLoginToken,
           offset: offset,
-          limit: limit
+          limit: limit,
+          sortBy: this.options.sortBy,
+          sortDesc: this.options.sortDesc,
         },
       })
         .then((response) => {
