@@ -12,13 +12,13 @@
             <div>
               <v-form v-model="valid" ref="form">
                 <v-text-field
-                  label="Enter your email address"
+                  :label="$t('Enter your email address')"
                   v-model="email"
                   :rules="emailRules"
                   required
                 ></v-text-field>
                 <v-text-field
-                  label="Enter your password"
+                  :label="$t('Enter your password')"
                   v-model="password"
                   min="8"
                   :append-icon="e1 ? 'visibility' : 'visibility_off'"
@@ -36,9 +36,9 @@
                       'blue darken-4 white--text': valid,
                       disabled: !valid,
                     }"
-                    >Login</v-btn
+                    >{{ $t("login") }}</v-btn
                   >
-                  <a href="">Forgot Password?</a>
+                  <a href="">{{ $t('Forgot Password')}}</a>
                 </v-layout>
               </v-form>
             </div>
@@ -70,7 +70,7 @@ import axios from "axios";
 export default {
   name: "Login",
   data: () => ({
-    messageText: "Log in to the Admin Control Panel",
+    messageText:  "",
     msgType: "info",
     valid: false,
     e1: true,
@@ -78,7 +78,7 @@ export default {
     passwordRules: [(v) => !!v || "Password is required"],
     email: "",
     emailRules: [
-      (v) => !!v || "E-mail is required",
+      (v) => !!v || "Email is required",
       (v) =>
         /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,10})+$/.test(v) ||
         "Email must be valid",
@@ -89,7 +89,7 @@ export default {
     submit: function () {
       if (this.$refs.form.validate()) {
         console.log("submit");
-        this.messageText = "Checking login information";
+        this.messageText = this.$t("Checking login information");
         this.msgType = "info";
 
         setTimeout(() => {
@@ -105,15 +105,16 @@ export default {
             .then((response) => {
               console.log(response.data);
               if (response.data.status != 1) {
-                this.messageText = "Incorrect email address or password.";
+                this.messageText = this.$t("Incorrect email address or password");
                 this.msgType = "error";
                 console.log("Error");
               } else {
-                this.messageText = "Login successful";
+                this.messageText = this.$t("Login successful");
                 this.msgType = "success";
                 appData.isAuthenticated = true;
                 appData.adminLoginToken = response.data.loginToken;
                 appData.mainDomain = response.data.mainDomain;
+                appData.commit();
                 this.$router.push("/");
               }
             })
@@ -124,6 +125,14 @@ export default {
     },
   },
   created: function () {
+    this.messageText = this.$t("Log in to the Admin Control Panel");
+    this.passwordRules = [(v) => !!v || this.$t("Password is required")];
+    this.emailRules = [
+      (v) => !!v || this.$t("Email is required"),
+      (v) =>
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,10})+$/.test(v) ||
+        this.$t("Email must be valid"),
+    ];
     this.$emit("updatePage", "Login");
   },
 };
