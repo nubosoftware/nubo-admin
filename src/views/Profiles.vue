@@ -1,19 +1,31 @@
 <template>
+  <v-card>
+    <v-card-title>
+      {{$t("Profile List")}}
+      <v-spacer></v-spacer>
+      <v-text-field
+        v-model="search"
+        append-icon="mdi-magnify"
+        label="Search"
+        single-line
+        hide-details
+      ></v-text-field>
+    </v-card-title>
+    <v-data-table
+      :headers="headers"
+      :items="rows"
+      :server-items-length="totalItems"
+      :items-per-page="5"
+      :loading="loading"
+      :options.sync="options"
+      :search="search"
+      class="elevation-1"
+      multi-sort
+      @update:options="updateOptions"
+    ></v-data-table>
+  </v-card>
 
-  <v-data-table
-    :headers="headers"
-    :items="rows"
-    :server-items-length="totalItems"
-    :items-per-page="5"
-    :loading="loading"
-    :options.sync="options"
-    class="elevation-1"
-    multi-sort
-    @update:options="updateOptions"
-  ></v-data-table>
-  
-    <!--<v-btn @click="refresh">Refresh</v-btn>-->
-  
+  <!--<v-btn @click="refresh">Refresh</v-btn>-->
 </template>
 
 
@@ -32,54 +44,42 @@
 
  <script>
 import appData from "../modules/appData";
-import axios from "axios";
+import appUtils from "../modules/appUtils";
 
-export default {
+let page = {
   name: "Profiles",
   data: () => ({
-    headers: [
-          {
-            text: 'Last Name',
-            align: 'start',
-            sortable: true,
-            value: 'lastName',
-          },
-          { text: 'First Name', value: 'firstName' },
-          { text: 'Email', value: 'email' },
-          { text: 'Username', value: 'userName' },
-        ],
-        rows: [
-         
-        ],
+    headers: [],
+    rows: [],
+    search: "",
     totalItems: 0,
     loading: true,
     options: {},
-    appData,
+    appData
   }),
   methods: {
-    
-    updateOptions (options) {
-      console.log('update:options', options);
+    updateOptions(options) {
+      console.log("update:options", options);
       this.refresh();
     },
-    
-    refresh: function () {
-      let limit = (this.options.itemsPerPage > 0 ? this.options.itemsPerPage : 10000);
+
+    refresh: function() {
+      let limit =
+        this.options.itemsPerPage > 0 ? this.options.itemsPerPage : 10000;
       let offset = (this.options.page - 1) * limit;
-      axios({
-        method: "post",
-        url:
-          "http://localhost:9080/http://labil.nubosoftware.com:8080/cp/getProfiles",
-        data: {
-          adminLoginToken: appData.adminLoginToken,
-          offset: offset,
-          limit: limit,
-          sortBy: this.options.sortBy,
-          sortDesc: this.options.sortDesc,
-        },
-      })
-        .then((response) => {
-          
+      appUtils
+        .post({
+          url: "cp/getProfiles",
+          data: {
+            adminLoginToken: appData.adminLoginToken,
+            offset: offset,
+            limit: limit,
+            sortBy: this.options.sortBy,
+            sortDesc: this.options.sortDesc,
+            search: this.search
+          }
+        })
+        .then(response => {
           console.log(response.data);
           if (response.data.status == 1) {
             this.rows = response.data.profiles;
@@ -89,13 +89,32 @@ export default {
             this.$router.push("/Login");
           }
         })
-        .catch((error) => console.log(error))
+        .catch(error => console.log(error))
         .finally(() => (this.loading = false));
-    },
+    }
   },
-  created: function () {
-    this.$emit("updatePage", "Profiles");
+  created: function() {
+    this.$emit("updatePage", this.$t("Profiles"));
+    this.headers = [
+      {
+        text: this.$t("Last Name"),
+        value: "lastName"
+      },
+      { text: this.$t("First Name"), value: "firstName" },
+      { text: this.$t("Email"), value: "email" }
+    ];
     //this.refresh();
   },
+  watch: {
+    "search": function(newVal) {
+      console.log(`search: ${newVal}`);
+      if (newVal.length > 1 ||  newVal.length == 0 ) {
+        this.refresh();
+      }
+
+    }
+  }
 };
+
+export default page;
 </script>

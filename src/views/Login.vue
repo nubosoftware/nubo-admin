@@ -65,7 +65,7 @@
 
  <script>
 import appData from "../modules/appData";
-import axios from "axios";
+import appUtils from "../modules/appUtils";
 
 export default {
   name: "Login",
@@ -93,10 +93,11 @@ export default {
         this.msgType = "info";
 
         setTimeout(() => {
-          axios({
-            method: "post",
+          appUtils.post({
             url:
-              "http://localhost:9080/http://labil.nubosoftware.com:8080/loginWebAdmin",
+              //"http://localhost:9080/http://localhost:8080/loginWebAdmin",
+              //"http://localhost:9080/http://labil.nubosoftware.com:8080/loginWebAdmin",
+              "loginWebAdmin",
             data: {
               userName: this.email,
               password: this.password,
@@ -114,6 +115,11 @@ export default {
                 appData.isAuthenticated = true;
                 appData.adminLoginToken = response.data.loginToken;
                 appData.mainDomain = response.data.mainDomain;
+                appData.firstname = response.data.firstname;
+                appData.lastname = response.data.lastname;
+                appData.imageurl = response.data.imageurl;
+                appData.email = this.email;
+                appData.orgname = (response.data.orgname && response.data.orgname != "" ? response.data.orgname :response.data.mainDomain )
                 appData.commit();
                 this.$router.push("/");
               }

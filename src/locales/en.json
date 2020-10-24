@@ -1,4 +1,5 @@
 {
+
     "login": "Login",
     "Enter your password": "Enter your password",
     "Enter your email address": "Enter your email address",
@@ -9,6 +10,12 @@
     "Email must be valid": "Email must be valid",
     "Checking login information": "Checking login information",
     "Incorrect email address or password": "Incorrect email address or password.",
-    "Login successful": "Login successful"
+    "Login successful": "Login successful",
+
+    "Profiles": "Profiles",
+    "Profile List": "Profile List",
+    "Last Name": "Last Name",
+    "First Name": "First Name",
+    "Email": "Email"
 
 }
