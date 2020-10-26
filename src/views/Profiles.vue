@@ -19,9 +19,10 @@
       :loading="loading"
       :options.sync="options"
       :search="search"
-      class="elevation-1"
+      class="elevation-1 ma-4"
       multi-sort
       @update:options="updateOptions"
+      @click:row="rowClick"
     ></v-data-table>
   </v-card>
 
@@ -63,6 +64,11 @@ let page = {
       this.refresh();
     },
 
+    rowClick: function(val) {
+      console.log(`rowClick: ${val.email}`);
+      this.$router.push("/Profile/"+val.email);
+    },
+
     refresh: function() {
       let limit =
         this.options.itemsPerPage > 0 ? this.options.itemsPerPage : 10000;
@@ -94,7 +100,16 @@ let page = {
     }
   },
   created: function() {
-    this.$emit("updatePage", this.$t("Profiles"));
+    let bcItems = [{
+      text: this.$t("control-panel"),
+      href: "/#/",
+      disabled: false,
+    }, {
+      text: this.$t("Profiles"),
+      href: "/#/Profiles",
+      disabled: false,
+    }];
+    this.$emit("updatePage", bcItems);
     this.headers = [
       {
         text: this.$t("Last Name"),
