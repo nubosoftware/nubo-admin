@@ -89,7 +89,7 @@ export default {
     moduleName: "Control Panel",
     menuItems: [
       { title: "Profiles", icon: "mdi-view-dashboard", link: "/Profiles" },
-      { title: "Groups", icon: "mdi-image" },
+      { title: "Groups", icon: "mdi-image", link: "/Groups" },
       { title: "Apps", icon: "mdi-help-box" },
       { title: "Exchange", icon: "mdi-view-dashboard" },
       { title: "Active Directory", icon: "mdi-view-dashboard" },

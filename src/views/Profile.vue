@@ -91,20 +91,7 @@
                   </v-btn>
                 </v-col>
               </v-row>
-              <v-snackbar v-model="snackbarSave" :timeout="2000">
-                {{ snackbarText }}
-
-                <template v-slot:action="{ attrs }">
-                  <v-btn
-                    color="blue"
-                    text
-                    v-bind="attrs"
-                    @click="snackbarSave = false"
-                  >
-                    Close
-                  </v-btn>
-                </template>
-              </v-snackbar>
+              
             </v-container></v-form
           >
         </v-card>
@@ -143,26 +130,26 @@
                   />
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
-                  <v-btn @click="notificationTest" >Notification Test</v-btn>
+                  <v-btn @click="notificationTest">Notification Test</v-btn>
                 </v-col>
               </v-row>
-              
-              <v-row >
-                <v-card class="mt-6"> 
+
+              <v-row>
+                <v-card class="mt-6">
                   <v-card-title>Activity Log</v-card-title>
-                <v-data-table
-                  :headers="logsHead"
-                  :items="logsRows"
-                  :items-per-page="20"
-                  :loading="logsLoading"
-                  :sort-by.sync="logsSort"
-                  :sort-desc.sync="logsSortDesc"
-                  class="elevation-1 ma-4"
-                >
-                  <template v-slot:item.Time="{ item }">
-                    {{ moment(item.Time).format("LLL") }}
-                  </template>
-                </v-data-table>
+                  <v-data-table
+                    :headers="logsHead"
+                    :items="logsRows"
+                    :items-per-page="20"
+                    :loading="logsLoading"
+                    :sort-by.sync="logsSort"
+                    :sort-desc.sync="logsSortDesc"
+                    class="elevation-1 ma-4"
+                  >
+                    <template v-slot:item.Time="{ item }">
+                      {{ moment(item.Time).format("LLL") }}
+                    </template>
+                  </v-data-table>
                 </v-card>
               </v-row>
             </v-container></v-form
@@ -171,7 +158,41 @@
       </v-tab-item>
       <v-tab-item key="apps">
         <v-card flat>
-          <v-card-text></v-card-text>
+          <v-card-title>App List</v-card-title>
+          <v-dialog v-model="dialogDelete" max-width="500px">
+          <v-card>
+            <v-card-title class="headline">Are you sure you want to delete {{deleteAppItem.appName}}?</v-card-title>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="closeDelete">Cancel</v-btn>
+              <v-btn color="blue darken-1" text @click="deleteAppConfirm">OK</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+          <v-data-table
+            :headers="appsHead"
+            :items="apps"
+            :items-per-page="10"
+            :loading="appsLoading"
+            :sort-by.sync="appsSort"
+            :sort-desc.sync="appsSortDesc"
+            class="elevation-1 ma-4"
+          >
+            <template v-slot:item.imageUrl="{ item }">
+              <v-img
+                max-height="40"
+                max-width="40"
+                :src="item.imageUrl"
+              ></v-img>
+            </template>
+            <template v-slot:item.actions="{ item }">
+              <v-icon small class="mr-2" @click="reinstallItem(item)">
+                mdi-refresh
+              </v-icon>
+              <v-icon  v-if="item.privateApp == 1" small @click="deleteApp(item)"> mdi-delete </v-icon>
+            </template>
+          </v-data-table>
         </v-card>
       </v-tab-item>
       <v-tab-item key="devices">
@@ -185,6 +206,20 @@
         </v-card>
       </v-tab-item>
     </v-tabs-items>
+    <v-snackbar v-model="snackbarSave" :timeout="2000">
+                {{ snackbarText }}
+
+                <template v-slot:action="{ attrs }">
+                  <v-btn
+                    color="blue"
+                    text
+                    v-bind="attrs"
+                    @click="snackbarSave = false"
+                  >
+                    Close
+                  </v-btn>
+                </template>
+              </v-snackbar>
   </v-card>
 </template>
 
@@ -205,14 +240,148 @@ export default {
     saveLoading: false,
     snackbarSave: false,
     snackbarText: "",
+    moment: moment,
     logsHead: [],
     logsRows: [],
     logsLoading: true,
-    moment: moment,
     logsSort: "Time",
-    logsSortDesc: true
+    logsSortDesc: true,
+    appsHead: [],
+    apps: [],
+    appsLoading: true,
+    appsSort: "appName",
+    appsSortDesc: false,
+    dialogDelete: false,
+    deleteAppItem: {}
   }),
   methods: {
+    deleteApp: function(app) {
+      
+      this.deleteAppItem = app;
+      this.dialogDelete = true;
+    },
+    deleteAppConfirm : function() {
+      console.log(this.deleteAppItem);
+      this.dialogDelete = false;
+      appUtils
+        .post({
+          url:
+            "cp/deleteAppFromProfiles?email=" +
+            encodeURIComponent(this.details.email) +
+            `&packageName=${encodeURIComponent(
+              this.deleteAppItem.packageName
+            )}`,
+          data: {
+            adminLoginToken: appData.adminLoginToken,
+          },
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            console.log("Success");
+            
+            this.snackbarText = "App deleted";
+            this.snackbarSave = true;
+            this.loadDetails();
+          } else {
+            console.log(`status: ${response.data.status}`);
+            //this.$router.push("/Login");
+
+            this.snackbarText = "Error";
+            this.snackbarSave = true;
+          }
+        })
+        .catch((error) => console.log(error))
+        .finally(() => {
+
+        });
+    },
+    closeDelete: function() {
+      this.dialogDelete = false;
+    },
+    reinstallItem: function(app) {
+      console.log("reinstallItem..");
+      appUtils
+        .post({
+          url:
+            "cp/installApps?email=" +
+            encodeURIComponent(this.details.email) +
+            `&packageName=${encodeURIComponent(
+              app.packageName
+            )}&privateApp=${encodeURIComponent(app.privateApp)}` +
+            `&appStoreOnly=0`,
+          data: {
+            adminLoginToken: appData.adminLoginToken,
+          },
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            console.log("Success");
+            
+            this.snackbarText = "App re-installed";
+            this.snackbarSave = true;
+          } else {
+            console.log(`status: ${response.data.status}`);
+            //this.$router.push("/Login");
+
+            this.snackbarText = "Error";
+            this.snackbarSave = true;
+          }
+        })
+        .catch((error) => console.log(error))
+        .finally(() => {
+
+        });
+    },
+    loadDetails: function() {
+      appUtils
+      .post({
+        url:
+          "cp/getProfileDetails?email=" +
+          encodeURIComponent(this.$route.params.id),
+        data: {
+          adminLoginToken: appData.adminLoginToken,
+        },
+      })
+      .then((response) => {
+        console.log(response.data);
+        if (response.data.status == 1) {
+          console.log("Success");
+          this.details = response.data.details;
+          this.details.email = this.$route.params.id;
+          let m = moment(this.details.lastActivityTime);
+          if (m.isValid()) {
+            this.details.lastActivityTimeFormat = m.format("LLL");
+          } else {
+            this.details.lastActivityTimeFormat = "";
+          }
+          m = moment(this.details.subscriptionUpdateDate);
+          if (m.isValid()) {
+            this.details.subscriptionUpdateDateFormat = m.format("LLL");
+          } else {
+            this.details.subscriptionUpdateDateFormat = "";
+          }
+          this.apps = response.data.apps;
+          this.appsHead = [
+            {
+              text: this.$t("Icon"),
+              value: "imageUrl",
+              sortable: false
+            },
+            { text: this.$t("Name"), value: "appName" },
+            { text: this.$t("Package"), value: "packageName" },
+            { text: 'Actions', value: 'actions', sortable: false },
+          ];
+          this.appsLoading = false;
+        } else {
+          console.log(`status: ${response.data.status}`);
+          this.$router.push("/Login");
+        }
+      })
+      .catch((error) => console.log(error))
+      .finally(() => (this.loading = false));
+    },
     saveDetails: function () {
       this.saveLoading = true;
 
@@ -252,39 +421,38 @@ export default {
         .catch((error) => console.log(error))
         .finally(() => (this.saveLoading = false));
     },
-    notificationTest: function() {
+    notificationTest: function () {
       console.log("notificationTest");
       appUtils
-      .post({
-        url:
-          "/Notifications/pushNotification?email=" +
-          encodeURIComponent(this.details.email) +
+        .post({
+          url:
+            "/Notifications/pushNotification?email=" +
+            encodeURIComponent(this.details.email) +
             `&titleText=Test&notifyTime=Test%20Notification` +
             `&notifyLocation=Test%20Notification&appName=test` +
             `&authKey=test`,
-        data: {
-          adminLoginToken: appData.adminLoginToken,
-        },
-      })
-      .then((response) => {
-        console.log(response.data);
-        if (response.data.status == 1) {
-          console.log("Success");
-          this.snackbarText = "Notification Sent";
-          this.snackbarSave = true;
-          
-        } else {
-          console.log(`status: ${response.data.status}`);
-          this.snackbarText = "Notification Error";
-          this.snackbarSave = true;
-        }
-      })
-      .catch((error) => console.log(error))
-      .finally(() => (this.loading = false));
+          data: {
+            adminLoginToken: appData.adminLoginToken,
+          },
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            console.log("Success");
+            this.snackbarText = "Notification Sent";
+            this.snackbarSave = true;
+          } else {
+            console.log(`status: ${response.data.status}`);
+            this.snackbarText = "Notification Error";
+            this.snackbarSave = true;
+          }
+        })
+        .catch((error) => console.log(error))
+        .finally(() => (this.loading = false));
     },
-    resetLogin: function() {
+    resetLogin: function () {
       console.log("resetLogin");
-    }
+    },
   },
   created: function () {
     let bcItems = [
@@ -306,40 +474,7 @@ export default {
     ];
     this.$emit("updatePage", bcItems);
     //
-    appUtils
-      .post({
-        url:
-          "cp/getProfileDetails?email=" +
-          encodeURIComponent(this.$route.params.id),
-        data: {
-          adminLoginToken: appData.adminLoginToken,
-        },
-      })
-      .then((response) => {
-        console.log(response.data);
-        if (response.data.status == 1) {
-          console.log("Success");
-          this.details = response.data.details;
-          this.details.email = this.$route.params.id;
-          let m = moment(this.details.lastActivityTime);
-          if (m.isValid()) {
-            this.details.lastActivityTimeFormat = m.format("LLL");
-          } else {
-            this.details.lastActivityTimeFormat = "";
-          }
-          m = moment(this.details.subscriptionUpdateDate);
-          if (m.isValid()) {
-            this.details.subscriptionUpdateDateFormat = m.format("LLL");
-          } else {
-            this.details.subscriptionUpdateDateFormat = "";
-          }
-        } else {
-          console.log(`status: ${response.data.status}`);
-          this.$router.push("/Login");
-        }
-      })
-      .catch((error) => console.log(error))
-      .finally(() => (this.loading = false));
+    this.loadDetails();
   },
   watch: {
     tab: function (newVal) {

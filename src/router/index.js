@@ -29,6 +29,24 @@ const routes = [{
             import ( /* webpackChunkName: "about" */ '../views/Profile.vue'),
     },
     {
+        path: '/Groups',
+        name: 'Groups',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Groups.vue'),
+    },
+    {
+        path: '/Group/:groupName/:adDomain',
+        name: 'Group',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Group.vue'),
+    },
+    {
+        path: '/Group/:groupName',
+        name: 'Group',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Group.vue'),
+    },
+    {
         path: '/about',
         name: 'About',
         // route level code-splitting
