@@ -97,7 +97,7 @@ export default {
             url:
               //"http://localhost:9080/http://localhost:8080/loginWebAdmin",
               //"http://localhost:9080/http://labil.nubosoftware.com:8080/loginWebAdmin",
-              "loginWebAdmin",
+              "api/auth",
             data: {
               userName: this.email,
               password: this.password,

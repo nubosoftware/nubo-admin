@@ -19,8 +19,10 @@
           link
           :to="item.link"
         >
+         
           <v-list-item-icon>
-            <v-icon>{{ item.icon }}</v-icon>
+           
+            <v-icon >{{ item.icon }}</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>
@@ -88,14 +90,14 @@ export default {
     drawer: true,
     moduleName: "Control Panel",
     menuItems: [
-      { title: "Profiles", icon: "mdi-view-dashboard", link: "/Profiles" },
-      { title: "Groups", icon: "mdi-image", link: "/Groups" },
-      { title: "Apps", icon: "mdi-help-box" },
-      { title: "Exchange", icon: "mdi-view-dashboard" },
-      { title: "Active Directory", icon: "mdi-view-dashboard" },
-      { title: "Administrators", icon: "mdi-view-dashboard" },
-      { title: "Security", icon: "mdi-view-dashboard" },
-      { title: "Dashboard and Reports", icon: "mdi-view-dashboard" },
+      { title: "Profiles", icon: "mdi-account-multiple-outline", link: "/Profiles" },
+      { title: "Groups", icon: "mdi-account-group", link: "/Groups" },
+      { title: "Apps", icon: "mdi-apps" },
+      { title: "Exchange", icon: "mdi-email" },
+      { title: "Active Directory", icon: "mdi-microsoft" },
+      { title: "Administrators", icon: "mdi-account-tie" },
+      { title: "Security", icon: "mdi-shield-account" },
+      { title: "Dashboard and Reports", icon: "mdi-chart-bar" },
     ],
     items: [
       {

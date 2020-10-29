@@ -264,16 +264,9 @@ export default {
       console.log(this.deleteAppItem);
       this.dialogDelete = false;
       appUtils
-        .post({
+        .get({
           url:
-            "cp/deleteAppFromProfiles?email=" +
-            encodeURIComponent(this.details.email) +
-            `&packageName=${encodeURIComponent(
-              this.deleteAppItem.packageName
-            )}`,
-          data: {
-            adminLoginToken: appData.adminLoginToken,
-          },
+            `api/apps/${encodeURIComponent(this.deleteAppItem.packageName)}/deleteFromProfiles?email=${encodeURIComponent(this.details.email)}`,
         })
         .then((response) => {
           console.log(response.data);
@@ -302,17 +295,11 @@ export default {
     reinstallItem: function(app) {
       console.log("reinstallItem..");
       appUtils
-        .post({
+      .get({
           url:
-            "cp/installApps?email=" +
-            encodeURIComponent(this.details.email) +
-            `&packageName=${encodeURIComponent(
-              app.packageName
-            )}&privateApp=${encodeURIComponent(app.privateApp)}` +
+            `api/apps/${encodeURIComponent(app.packageName)}/install?email=${encodeURIComponent(this.details.email)}`+
+            `&privateApp=${encodeURIComponent(app.privateApp)}` +
             `&appStoreOnly=0`,
-          data: {
-            adminLoginToken: appData.adminLoginToken,
-          },
         })
         .then((response) => {
           console.log(response.data);
@@ -336,13 +323,10 @@ export default {
     },
     loadDetails: function() {
       appUtils
-      .post({
+      .get({
         url:
-          "cp/getProfileDetails?email=" +
+          "/api/profiles/" +
           encodeURIComponent(this.$route.params.id),
-        data: {
-          adminLoginToken: appData.adminLoginToken,
-        },
       })
       .then((response) => {
         console.log(response.data);
@@ -388,19 +372,15 @@ export default {
       appUtils
         .post({
           url:
-            "cp/updateProfileDetails?email=" +
-            encodeURIComponent(this.details.email) +
-            `&first=${encodeURIComponent(
-              this.details.firstname
-            )}&last=${encodeURIComponent(this.details.lastname)}` +
-            `&manager=${encodeURIComponent(
-              this.details.manager
-            )}&country=${encodeURIComponent(this.details.country)}` +
-            `&officePhone=${encodeURIComponent(
-              this.details.officePhone
-            )}&mobilePhone=${encodeURIComponent(this.details.mobilePhone)}`,
+          "/api/profiles/" +
+          encodeURIComponent(this.$route.params.id),
           data: {
-            adminLoginToken: appData.adminLoginToken,
+            first: this.details.firstname,
+            last: this.details.lastname,
+            manager: this.details.manager,
+            country: this.details.country,
+            officePhone: this.details.officePhone,
+            mobilePhone: this.details.mobilePhone,
           },
         })
         .then((response) => {
@@ -424,16 +404,17 @@ export default {
     notificationTest: function () {
       console.log("notificationTest");
       appUtils
-        .post({
+        .put({
           url:
-            "/Notifications/pushNotification?email=" +
-            encodeURIComponent(this.details.email) +
-            `&titleText=Test&notifyTime=Test%20Notification` +
-            `&notifyLocation=Test%20Notification&appName=test` +
-            `&authKey=test`,
+            "api/notifications",
           data: {
-            adminLoginToken: appData.adminLoginToken,
-          },
+            email: this.details.email,
+            titleText: "Test",
+            notifyTime: "Test Notification",
+            notifyLocation: "Test Notification",
+            appName: "test",
+            authKey: "test"
+          }
         })
         .then((response) => {
           console.log(response.data);
@@ -493,15 +474,12 @@ export default {
         let s = Math.round(new Date().getTime() / 1000 - 60 * 60 * 24 * 5);
         this.logsLoading = true;
         appUtils
-          .post({
+          .get({
             url:
-              "cp/getLogs?u=" +
+              "api/logs?u=" +
               encodeURIComponent(this.details.email) +
               `&mtype=important&limit=200` +
-              `&s=${s}`,
-            data: {
-              adminLoginToken: appData.adminLoginToken,
-            },
+              `&s=${s}`
           })
           .then((response) => {
             console.log(response.data);

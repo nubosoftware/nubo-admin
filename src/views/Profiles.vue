@@ -75,9 +75,8 @@ let page = {
       let offset = (this.options.page - 1) * limit;
       appUtils
         .post({
-          url: "cp/getProfiles",
+          url: "api/profiles",
           data: {
-            adminLoginToken: appData.adminLoginToken,
             offset: offset,
             limit: limit,
             sortBy: this.options.sortBy,

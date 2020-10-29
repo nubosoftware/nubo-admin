@@ -31,11 +31,8 @@ let page = {
 
     refresh: function() {
       appUtils
-        .post({
-          url: "cp/getGroups",
-          data: {
-            adminLoginToken: appData.adminLoginToken
-          }
+        .get({
+          url: "api/groups"
         })
         .then(response => {
           console.log(response.data);

@@ -2,7 +2,9 @@ import appData from "./appData";
 import axios from "axios";
 
 const appUtils = {
-    post: (options) => {
+
+
+    req: (options) => {
         if (appData.postURL && appData.postURL != "") {
             options.url = appData.postURL + options.url;
         }
@@ -10,11 +12,31 @@ const appUtils = {
             options.url = appData.proxyURL + options.url;
         }
         if (!options.method) {
-            options.method = "post";
+            options.method = "get";
         }
-
+        if (!options.headers) {
+            options.headers = {};
+        }
+        if (appData.adminLoginToken) {
+            options.headers['Authorization'] = `OAuth ${appData.adminLoginToken}`;
+        }
         return axios(options);
-
+    },
+    post: (options) => {
+        options.method = "post";
+        return appUtils.req(options);
+    },
+    get: (options) => {
+        options.method = "get";
+        return appUtils.req(options);
+    },
+    put: (options) => {
+        options.method = "put";
+        return appUtils.req(options);
+    },
+    delete: (options) => {
+        options.method = "delete";
+        return appUtils.req(options);
     }
 }
 
