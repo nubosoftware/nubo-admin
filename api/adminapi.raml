@@ -1,0 +1,594 @@
+#%RAML 1.0
+title: Nubo Admin
+version: v1
+baseUri: https://api.nubosoftware.com/api/
+/auth:
+  post:
+    description: |
+        Login to the admin API.<br>
+        After successful login, use the "loginToken" return value to authenticate
+        to the resources using the Authorization http header with OAuth auth type.<br>
+        e.g. Authorization: OAuth 474dff215b73e8fdedaee76bc896655830d592c25a3fda259fe9ddbc58c6985d835d71d428e54c48f30a6454f34a032c
+    queryParameters:
+      userName:
+          description: "User name (Email)"
+          required: true
+          type: string
+          example: "admin@mydomain.com"
+      password:
+          description: "Password"
+          required: true
+          type: string
+          example: "********"
+    responses:
+      200:
+        body:
+          application/json:
+              example: |
+                {
+                  "status": 1,
+                  "message": "Login Successful",
+                  "loginToken": "AABB0011",
+                  "mainDomain": "mydomain.com",
+                  "firstname": "John",
+                  "lastname": "Doe",
+                  "orgname": "My Company Inc."
+                }
+/profiles:
+    get:
+        description: Get list of profiles (users).
+        queryParameters:
+            online:
+                description: "Display only online users (Y/N)"
+                required: false
+                type: string
+                example: "Y"
+            limit:
+                description: "Maximum number of rows to fetch"
+                required: false
+                type: number
+                example: 1000
+            offset:
+                description: "Rows to skip"
+                required: false
+                type: number
+                example: 0
+            sortBy:
+                description: "Sort by fields"
+                required: false
+                type: string
+                example: "firstname"
+            sortDesc:
+                description: "boolean array indicate on each sort field if the sort is decendent"
+                required: false
+                type: string
+                example: "true"
+            search:
+                description: "Filter results by this search string"
+                required: false
+                type: string
+                example: "John"
+        responses:
+            200:
+                body:
+                    application/json:
+                        example: |
+                            {
+                            "status": "1",
+                            "message": "import succedded!",
+                            "myUser": "admin@mydomain.com",
+                            "profiles": [
+                                {
+                                    "id": 1,
+                                    "email": "main1@nub4est.co",
+                                    "userName": "main1@nub4est.co",
+                                    "firstName": "main1",
+                                    "lastName": "",
+                                    "isActive": 1,
+                                    "imageUrl": "",
+                                    "isOnline": 0,
+                                    "deviceType1": "",
+                                    "deviceType2": "",
+                                    "isAdmin": 0
+                                },
+                                {
+                                    "id": 2,
+                                    "email": "subuser1@subdc1.nub4est.co",
+                                    "userName": "subuser1@subdc1.nub4est.co",
+                                    "firstName": "subuser1",
+                                    "lastName": "",
+                                    "isActive": 1,
+                                    "imageUrl": "",
+                                    "isOnline": 0,
+                                    "deviceType1": "",
+                                    "deviceType2": "",
+                                    "isAdmin": 1
+                                }
+                            ],
+                            "totalItems": 2,
+                            "isMore":false
+                            }
+    post:
+        description: Get list of profiles (users).
+        body:
+            application/json:
+                type: |
+                  {
+                    "type": "object",
+                    "$schema": "http://json-schema.org/draft-03/schema",
+                    "id": "http://jsonschema.net",
+                    "required": true,
+                    "properties": {
+                        "online": {
+                            "type": "string",
+                            "description": "Y to list onle online users",
+                            "required": false
+                        },
+                        "limit": {
+                            "type": "number",
+                            "description": "Maximum number of rows to fetch",
+                            "required": false
+                        },
+                        "offset": {
+                            "type": "number",
+                            "description": "Rows to skip",
+                            "required": false
+                        },
+                        "sortBy": {
+                            "type": "array",
+                            "description": "Sort by fields",
+                            "required": false
+                        },
+                        "sortDesc": {
+                            "type": "array",
+                            "description": "boolean array indicate on each sort field if the sort is decendent",
+                            "required": false
+                        },
+                        "search": {
+                            "type": "string",
+                            "description": "Filter results by this search string",
+                            "required": false
+                        }
+                    }
+                  }
+                example: |
+                    {
+                    "limit": 100,
+                    "offset": 0,
+                    "sortBy": ["firstname","lastname"],
+                    "sortDesc": [false,false],
+                    "search": "john"
+                    }
+        responses:
+            200:
+                body:
+                    application/json:
+                        example: |
+                            {
+                            "status": "1",
+                            "message": "import succedded!",
+                            "myUser": "admin@mydomain.com",
+                            "profiles": [
+                                {
+                                    "id": 1,
+                                    "email": "main1@nub4est.co",
+                                    "userName": "main1@nub4est.co",
+                                    "firstName": "main1",
+                                    "lastName": "",
+                                    "isActive": 1,
+                                    "imageUrl": "",
+                                    "isOnline": 0,
+                                    "deviceType1": "",
+                                    "deviceType2": "",
+                                    "isAdmin": 0
+                                },
+                                {
+                                    "id": 2,
+                                    "email": "subuser1@subdc1.nub4est.co",
+                                    "userName": "subuser1@subdc1.nub4est.co",
+                                    "firstName": "subuser1",
+                                    "lastName": "",
+                                    "isActive": 1,
+                                    "imageUrl": "",
+                                    "isOnline": 0,
+                                    "deviceType1": "",
+                                    "deviceType2": "",
+                                    "isAdmin": 1
+                                }
+                            ],
+                            "totalItems": 2,
+                            "isMore":false
+                            }
+    /{email}:
+        get:
+            description: | 
+              Get profile information <br>
+              Return user details as well as list of user's apps, devices, and groups
+            responses:
+                200:
+                    body:
+                        application/json:
+                            example: |
+                              {
+                                "status": "1",
+                                "message": "import succedded",
+                                "details": {
+                                  "emailAddress": "1234@nub4est.co",
+                                  "userName": "1234@nub4est.co",
+                                  "isActive": 1,
+                                  "officePhone": "12344567",
+                                  "mobilePhone": "87643434",
+                                  "manager": "Jim",
+                                  "country": "UK",
+                                  "isImAdmin": 0,
+                                  "dataCenter": "",
+                                  "imMobile": "",
+                                  "imMobile2": "",
+                                  "adDomain": "",
+                                  "clientIp": "",
+                                  "clientPort": "",
+                                  "subscriptionId": "",
+                                  "subscriptionUpdateDate": "",
+                                  "Calendar": 1,
+                                  "Email": 1,
+                                  "Messaging": 1,
+                                  "userCert": 0,
+                                  "lastActivityTime": "",
+                                  "firstname": "John",
+                                  "lastname": "Smith",
+                                  "storageUsage": "0.00%"
+                                },
+                                "apps": [
+                                  {
+                                    "appName": "Calendar",
+                                    "packageName": "com.android.calendar",
+                                    "imageUrl": "https://api.nubosoftware.com/appstore/domain.com/repo/icons/com.android.calendar.100.png",
+                                    "price": "0",
+                                    "privateApp": 0
+                                  },
+                                  {
+                                    "appName": "Camera",
+                                    "packageName": "com.android.camera",
+                                    "imageUrl": "https://api.nubosoftware.com/appstore/domain.com/repo/icons/com.android.camera.3.png",
+                                    "price": "0",
+                                    "privateApp": 0
+                                  },
+                                  {
+                                    "appName": "Contacts",
+                                    "packageName": "com.android.contacts",
+                                    "imageUrl": "https://api.nubosoftware.com/appstore/domain.com/repo/icons/com.android.contacts.100001.png",
+                                    "price": "0",
+                                    "privateApp": 0
+                                  },
+                                  {
+                                    "appName": "Phone",
+                                    "packageName": "com.android.dialer",
+                                    "imageUrl": "https://api.nubosoftware.com/appstore/domain.com/repo/icons/com.android.dialer.30000.png",
+                                    "price": "0",
+                                    "privateApp": 0
+                                  },
+                                  {
+                                    "appName": "Email",
+                                    "packageName": "com.android.email",
+                                    "imageUrl": "https://api.nubosoftware.com/appstore/domain.com/repo/icons/com.android.email.550007.png",
+                                    "price": "0",
+                                    "privateApp": 0
+                                  },
+                                  {
+                                    "appName": "Store",
+                                    "packageName": "com.nubo.appstore",
+                                    "imageUrl": "https://api.nubosoftware.com/appstore/domain.com/repo/icons/com.nubo.appstore.1008002.png",
+                                    "price": "0",
+                                    "privateApp": 0
+                                  },
+                                  {
+                                    "appName": "Files",
+                                    "packageName": "com.nubo.filemanager",
+                                    "imageUrl": "https://api.nubosoftware.com/appstore/domain.com/repo/icons/com.nubo.filemanager.48.png",
+                                    "price": "0",
+                                    "privateApp": 0
+                                  },
+                                  {
+                                    "appName": "Gallery",
+                                    "packageName": "com.nubo.gallery",
+                                    "imageUrl": "https://api.nubosoftware.com/appstore/domain.com/repo/icons/com.nubo.gallery.37.png",
+                                    "price": "0",
+                                    "privateApp": 0
+                                  },
+                                  {
+                                    "appName": "Launcher",
+                                    "packageName": "com.nubo.launcher.nubo",
+                                    "imageUrl": "https://api.nubosoftware.com/appstore/domain.com/repo/icons/com.nubo.launcher.nubo.30912.png",
+                                    "price": "0",
+                                    "privateApp": 0
+                                  },
+                                  {
+                                    "appName": "Notes",
+                                    "packageName": "com.nubo.notes",
+                                    "imageUrl": "https://api.nubosoftware.com/appstore/domain.com/repo/icons/com.nubo.notes.13.png",
+                                    "price": "0",
+                                    "privateApp": 0
+                                  },
+                                  {
+                                    "appName": "Voice Call",
+                                    "packageName": "com.nubo.sip",
+                                    "imageUrl": "https://api.nubosoftware.com/appstore/domain.com/repo/icons/com.nubo.sip.13.png",
+                                    "price": "0",
+                                    "privateApp": 0
+                                  },
+                                  {
+                                    "appName": "Messages",
+                                    "packageName": "org.pf.messages",
+                                    "imageUrl": "https://api.nubosoftware.com/appstore/domain.com/repo/icons/org.pf.messages.79.png",
+                                    "price": "0",
+                                    "privateApp": 0
+                                  }
+                                ],
+                                "devices": [
+                                  {
+                                    "deviceName": "Samsung_SM-G973F",
+                                    "isActive": 1,
+                                    "gateway": "",
+                                    "platform": "",
+                                    "IMEI": "dd98df4eeaeecb3a",
+                                    "IMSI": "",
+                                    "insertTime": "2020-06-11T12:11:58.000Z",
+                                    "isCertExists": 0,
+                                    "isOnline": 0
+                                  },
+                                  {
+                                    "deviceName": "iPhoneX",
+                                    "isActive": 1,
+                                    "gateway": "",
+                                    "platform": "",
+                                    "IMEI": "04960B8D-2093-415B-B710-FDF548D79322",
+                                    "IMSI": "",
+                                    "insertTime": "2020-05-25T10:54:50.000Z",
+                                    "isCertExists": 0,
+                                    "isOnline": 0
+                                  }
+                                ],
+                                "groups": [
+                                  {
+                                    "groupName": "All",
+                                    "adDomain": ""
+                                  }
+                                ]
+                              }
+        post:
+            description: Update profile information
+            queryParameters:
+                first:
+                    description: "First name"
+                    required: true
+                    type: string
+                    example: "John"
+                last:
+                    description: "Last name"
+                    required: true
+                    type: string
+                    example: "Smith"
+                manager:
+                    description: "Name of manager"
+                    required: false
+                    type: string
+                    example: "Bill Gates"
+                country:
+                    description: "Country"
+                    required: false
+                    type: string
+                    example: "United Kingdom"
+                officePhone:
+                    description: "Offie phone number"
+                    required: false
+                    type: string
+                    example: "212-456-9876"
+                mobilePhone:
+                    description: "Mobile phone number"
+                    required: false
+                    type: string
+                    example: "212-456-9876"
+            responses:
+              200:
+                  body:
+                      application/json:
+                          example: |
+                            {
+                              "status": 1,
+                              "message": "The profile was updated successfully"
+                            }
+        put:
+            description: Add profile
+            queryParameters:
+                first:
+                    description: "First name"
+                    required: true
+                    type: string
+                    example: "John"
+                last:
+                    description: "Last name"
+                    required: true
+                    type: string
+                    example: "Smith"
+                manager:
+                    description: "Name of manager"
+                    required: false
+                    type: string
+                    example: "Bill Gates"
+                country:
+                    description: "Country"
+                    required: false
+                    type: string
+                    example: "United Kingdom"
+                officePhone:
+                    description: "Offie phone number"
+                    required: false
+                    type: string
+                    example: "212-456-9876"
+                mobilePhone:
+                    description: "Mobile phone number"
+                    required: false
+                    type: string
+                    example: "212-456-9876"
+            responses:
+              200:
+                  body:
+                      application/json:
+                          example: |
+                            {
+                              "status": 1,
+                              "message": "The profile was added successfully"
+                            }
+        delete:
+            description: Delete profile
+            responses:
+              200:
+                  body:
+                      application/json:
+                          example: |
+                            {
+                              "status": 1,
+                              "message": "The profile was deleted successfully"
+                            }
+/groups:
+    get:
+        description: Get list of groups.
+        responses:
+          200:
+              body:
+                  application/json:
+                      example: |
+                        {
+                          "status": "1",
+                          "message": "The request was fulfilled",
+                          "groups": [
+                            {
+                              "groupName": "abcde",
+                              "adDomain": "",
+                              "profiles": [],
+                              "apps": []
+                            },
+                            {
+                              "groupName": "All",
+                              "adDomain": "",
+                              "profiles": [],
+                              "apps": []
+                            },
+                            {
+                              "groupName": "gggg",
+                              "adDomain": "",
+                              "profiles": [],
+                              "apps": []
+                            },
+                            {
+                              "groupName": "Account Operators",
+                              "adDomain": "nub4est.co",
+                              "profiles": [],
+                              "apps": []
+                            },
+                            {
+                              "groupName": "Administrators",
+                              "adDomain": "nub4est.co",
+                              "profiles": [],
+                              "apps": []
+                            }
+                          ]
+                        }
+    /{groupName}:
+        description: |
+            Actions on specific group.<br>
+            If group is imported from A.D domain, groupName parameter shoud be <Group Name>#<A.D Domain>
+        get:
+            description: Get group information
+            responses:
+              200:
+                  body:
+                      application/json:
+                          example: |
+                            {
+                              "status": "1",
+                              "message": "The request was fulfilled",
+                              "groupName": "abcde",
+                              "profiles": [
+                                {
+                                  "email": "administrator@nub4est.co",
+                                  "firstName": "admin",
+                                  "lastName": "nub4est",
+                                  "isActive": 1,
+                                  "imageUrl": ""
+                                },
+                                {
+                                  "email": "administrator@subdc1.nub4est.co",
+                                  "firstName": "admin",
+                                  "lastName": "subdc1",
+                                  "isActive": 1,
+                                  "imageUrl": ""
+                                }
+                              ],
+                              "apps": []
+                            }
+        delete:
+            description: Delete a group
+            responses:
+              200:
+                  body:
+                      application/json:
+                          example: |
+                            {
+                              "status": "1",
+                              "message": "The group was deleted successfully"
+                            }
+        put:
+            description: Create new group
+            queryParameters:
+                email:
+                    description: "Array of emails to add to this group"
+                    required: false
+                    type: string
+                    example: "user@domain.com"
+            responses:
+              200:
+                  body:
+                      application/json:
+                          example: |
+                            {
+                              "status": "1",
+                              "message": "The group was created successfully"
+                            }
+        /addProfiles:
+            post:
+                description: Add profiles to group
+                queryParameters:
+                    email:
+                        description: "Array of emails to add to this group"
+                        required: false
+                        type: string
+                        example: "user@domain.com"
+                responses:
+                  200:
+                      body:
+                          application/json:
+                              example: |
+                                {
+                                  "status": "1",
+                                  "message": "The profiles were added to the group successfully"
+                                }
+        /removeProfiles:
+            post:
+                description: Remove profiles from group
+                queryParameters:
+                    email:
+                        description: "Array of emails to add to this group"
+                        required: false
+                        type: string
+                        example: "user@domain.com"
+                responses:
+                  200:
+                      body:
+                          application/json:
+                              example: |
+                                {
+                                  "status": "1",
+                                  "message": "The profiles were removed from the group successfully"
+                                }
+
