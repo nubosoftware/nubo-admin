@@ -38,6 +38,13 @@ baseUri: https://api.nubosoftware.com/api/
     get:
         description: Get list of profiles (users).
         queryParameters:
+            adminFilter:
+              description: |
+                Return only administrators (Y) or non-administrators (N)
+                Keep this parameter empty to get both admins and non-admins
+              required: false
+              type: string
+              example: "Y"
             online:
                 description: "Display only online users (Y/N)"
                 required: false
@@ -68,97 +75,6 @@ baseUri: https://api.nubosoftware.com/api/
                 required: false
                 type: string
                 example: "John"
-        responses:
-            200:
-                body:
-                    application/json:
-                        example: |
-                            {
-                            "status": "1",
-                            "message": "import succedded!",
-                            "myUser": "admin@mydomain.com",
-                            "profiles": [
-                                {
-                                    "id": 1,
-                                    "email": "main1@nub4est.co",
-                                    "userName": "main1@nub4est.co",
-                                    "firstName": "main1",
-                                    "lastName": "",
-                                    "isActive": 1,
-                                    "imageUrl": "",
-                                    "isOnline": 0,
-                                    "deviceType1": "",
-                                    "deviceType2": "",
-                                    "isAdmin": 0
-                                },
-                                {
-                                    "id": 2,
-                                    "email": "subuser1@subdc1.nub4est.co",
-                                    "userName": "subuser1@subdc1.nub4est.co",
-                                    "firstName": "subuser1",
-                                    "lastName": "",
-                                    "isActive": 1,
-                                    "imageUrl": "",
-                                    "isOnline": 0,
-                                    "deviceType1": "",
-                                    "deviceType2": "",
-                                    "isAdmin": 1
-                                }
-                            ],
-                            "totalItems": 2,
-                            "isMore":false
-                            }
-    post:
-        description: Get list of profiles (users).
-        body:
-            application/json:
-                type: |
-                  {
-                    "type": "object",
-                    "$schema": "http://json-schema.org/draft-03/schema",
-                    "id": "http://jsonschema.net",
-                    "required": true,
-                    "properties": {
-                        "online": {
-                            "type": "string",
-                            "description": "Y to list onle online users",
-                            "required": false
-                        },
-                        "limit": {
-                            "type": "number",
-                            "description": "Maximum number of rows to fetch",
-                            "required": false
-                        },
-                        "offset": {
-                            "type": "number",
-                            "description": "Rows to skip",
-                            "required": false
-                        },
-                        "sortBy": {
-                            "type": "array",
-                            "description": "Sort by fields",
-                            "required": false
-                        },
-                        "sortDesc": {
-                            "type": "array",
-                            "description": "boolean array indicate on each sort field if the sort is decendent",
-                            "required": false
-                        },
-                        "search": {
-                            "type": "string",
-                            "description": "Filter results by this search string",
-                            "required": false
-                        }
-                    }
-                  }
-                example: |
-                    {
-                    "limit": 100,
-                    "offset": 0,
-                    "sortBy": ["firstname","lastname"],
-                    "sortDesc": [false,false],
-                    "search": "john"
-                    }
         responses:
             200:
                 body:
@@ -497,7 +413,8 @@ baseUri: https://api.nubosoftware.com/api/
     /{groupName}:
         description: |
             Actions on specific group.<br>
-            If group is imported from A.D domain, groupName parameter shoud be <Group Name>#<A.D Domain>
+            If group was imported from A.D, groupName parameter shoud be &lt;Group Name&gt;#&lt;A.D Domain&gt; <br>
+            e.g. Administrators#nub4est.co
         get:
             description: Get group information
             responses:
@@ -591,4 +508,209 @@ baseUri: https://api.nubosoftware.com/api/
                                   "status": "1",
                                   "message": "The profiles were removed from the group successfully"
                                 }
+/ldap:
+    get:
+        description: Get list of LDAP domains and thier detailes.
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": "1",
+                    "message": "",
+                    "ldapDomains": [
+                      {
+                        "domain": "mydomain.com",
+                        "addomain": "domain.com",
+                        "basedn": "DC=domain,DC=com",
+                        "connectionurl": "ldap://8.8.8.8:389",
+                        "password": "********",
+                        "username": "administrator@domain.com"
+                      }
+                    ]
+                  }
+    /{ldapDomain}:
+      get:
+        description: Get list of OUs for the selected ldap domain 
+        responses:
+          200:
+            body:
+              application/json:
+                example: | 
+                  {
+                    "status": "1",
+                    "message": "",
+                    "ousList": [
+                      {
+                        "ouName": "domain",
+                        "level": 0,
+                        "key": "DC=domain,DC=com",
+                        "father": " ",
+                        "checked": false,
+                        "hasChild": true
+                      },
+                      {
+                        "ouName": "Domain Controllers",
+                        "level": 1,
+                        "key": "OU=Domain Controllers,DC=domain,DC=com",
+                        "father": "domain",
+                        "checked": true,
+                        "hasChild": false
+                      },
+                      {
+                        "ouName": "Main OU",
+                        "level": 1,
+                        "key": "OU=Main OU,DC=domain,DC=com",
+                        "father": "domain",
+                        "checked": false,
+                        "hasChild": true
+                      },
+                      {
+                        "ouName": "Sales",
+                        "level": 2,
+                        "key": "OU=Sales,OU=Main OU,DC=domain,DC=com",
+                        "father": "Main OU",
+                        "checked": false,
+                        "hasChild": true
+                      },
+                      {
+                        "ouName": "R&D",
+                        "level": 2,
+                        "key": "OU=R&D,OU=Main OU,DC=domain,DC=com",
+                        "father": "Main OU",
+                        "checked": false,
+                        "hasChild": true
+                      },
+                      {
+                        "ouName": "Team 1",
+                        "level": 3,
+                        "key": "OU=Team 1,OU=R&D,OU=Main OU,DC=domain,DC=com",
+                        "father": "R&D",
+                        "checked": true,
+                        "hasChild": false
+                      },
+                      {
+                        "ouName": "Team 2",
+                        "level": 3,
+                        "key": "OU=Team 2,OU=R&D,OU=Main OU,DC=domain,DC=com",
+                        "father": "R&D",
+                        "checked": true,
+                        "hasChild": false
+                      },
+                      {
+                        "ouName": "Team 3",
+                        "level": 3,
+                        "key": "OU=Team 3,OU=R&D,OU=Main OU,DC=domain,DC=com",
+                        "father": "R&D",
+                        "checked": true,
+                        "hasChild": false
+                      },
+                      {
+                        "ouName": "Team 1 Sales",
+                        "level": 3,
+                        "key": "OU=Team 1 Sales,OU=Sales,OU=Main OU,DC=domain,DC=com",
+                        "father": "Sales",
+                        "checked": true,
+                        "hasChild": false
+                      }
+                    ]
+                  }
+      post:
+        description: Set list of synced OUs and start sync process
+        queryParameters:
+          orgUnits:
+              description: "List of OUs to sync"
+              required: true
+              type: string
+              example: "OU=Team 1 Sales,OU=Sales,OU=Main OU,DC=domain,DC=com"
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": "1",
+                    "message": "Starting LDAP sync"
+                  }
+      put:
+        description: Set new LDAP domain or LDAP connection paramters for existing domain
+        queryParameters:
+          host:
+              description: "LDAP host name"
+              required: true
+              type: string
+              example: "ad.mydomain.com"
+          user:
+              description: "Admin user name that can login to the LDAP server and read information (readonly user)"
+              required: true
+              type: string
+              example: "administrator@mydomain.com"
+          password:
+              description: "Password for the admin user"
+              required: true
+              type: string
+              example: "*******"
+          port:
+              description: "Port number for the LDAP server"
+              required: true
+              type: number
+              example: 389
+          baseDN:
+              description: "Base DN for the LDAP import"
+              required: true
+              type: string
+              example: "DC=domain,DC=com"
+          SSL:
+              description: "Connection type (auto or ldap:// or ldaps://)"
+              required: true
+              type: string
+              example: "auto"
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": "1",
+                    "message": "LDAP Domain was updated succesfully"
+                  }
+      delete:
+        description: "Delete the LDAP domain"
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": "1",
+                    "message": "The LDAP settings were deleted"
+                  }
+/admins:
+  /{email}:
+    put:
+      description: Add new admin
+      responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": "1",
+                    "message": "The admin was added successfully"
+                  }
+    delete:
+      description: Remove admin
+      responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": "1",
+                    "message": "The admin was removed successfully"
+                  }
+
+
+
 

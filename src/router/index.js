@@ -47,6 +47,24 @@ const routes = [{
             import ( /* webpackChunkName: "about" */ '../views/Group.vue'),
     },
     {
+        path: '/LDAP',
+        name: 'LDAP',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/LDAP.vue'),
+    },
+    {
+        path: '/LDAP/:addomain',
+        name: 'LDAPDomain',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/LDAPDomain.vue'),
+    },
+    {
+        path: '/Admins',
+        name: 'Admins',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Admins.vue'),
+    },
+    {
         path: '/about',
         name: 'About',
         // route level code-splitting

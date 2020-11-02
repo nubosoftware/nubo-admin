@@ -324,11 +324,6 @@
 <!-- modal shown by hashchange event -->
               <span class="badge badge_get">get</span>
                       </a>
-                      <a href="#profiles_post">
-
-                        <!-- modal shown by hashchange event -->
-                        <span class="badge badge_post">post</span>
-                      </a>
                       </span>
                     </h4>
                   </div>
@@ -337,13 +332,6 @@
                       <div class="list-group">
                         <div onclick="window.location.href = '#profiles_get'" class="list-group-item">
                           <span class="badge badge_get">get</span>
-                          <div class="method_description">
-                            <p>Get list of profiles (users).</p>
-                          </div>
-                          <div class="clearfix"></div>
-                        </div>
-                        <div onclick="window.location.href = '#profiles_post'" class="list-group-item">
-                          <span class="badge badge_post">post</span>
                           <div class="method_description">
                             <p>Get list of profiles (users).</p>
                           </div>
@@ -382,6 +370,17 @@
                             <div class="tab-pane active" id="profiles_get_request">
                               <h3>Query Parameters</h3>
                               <ul>
+                                <li>
+                                  <strong>adminFilter</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>Return only administrators (Y) or non-administrators (N)
+                                    Keep this parameter empty to get both admins and non-admins</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>Y</code></pre>
+                                  </div>
+                                </li>
                                 <li>
                                   <strong>online</strong>:
                                   <em>(string)
@@ -445,138 +444,6 @@
                               </ul>
                             </div>
                             <div class="tab-pane" id="profiles_get_response">
-                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
-                              <h3>Body</h3>
-                              <p><strong>Media type</strong>: application/json</p>
-                              <p><strong>Type</strong>: any</p>
-                              <p><strong>Example</strong>:</p>
-                              <div class="examples">
-                                <pre><code>{
-"status": "1",
-"message": "import succedded!",
-"myUser": "admin@mydomain.com",
-"profiles": [
-    {
-        "id": 1,
-        "email": "main1@nub4est.co",
-        "userName": "main1@nub4est.co",
-        "firstName": "main1",
-        "lastName": "",
-        "isActive": 1,
-        "imageUrl": "",
-        "isOnline": 0,
-        "deviceType1": "",
-        "deviceType2": "",
-        "isAdmin": 0
-    },
-    {
-        "id": 2,
-        "email": "subuser1@subdc1.nub4est.co",
-        "userName": "subuser1@subdc1.nub4est.co",
-        "firstName": "subuser1",
-        "lastName": "",
-        "isActive": 1,
-        "imageUrl": "",
-        "isOnline": 0,
-        "deviceType1": "",
-        "deviceType2": "",
-        "isAdmin": 1
-    }
-],
-"totalItems": 2,
-"isMore":false
-}
-</code></pre>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="modal fade" tabindex="0" id="profiles_post">
-                    <div class="modal-dialog modal-lg">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                          <h4 class="modal-title" id="myModalLabel">
-                            <span class="badge badge_post">post</span>
-                            <span class="parent"></span>/profiles
-                          </h4>
-                        </div>
-                        <div class="modal-body">
-                          <div class="alert alert-info">
-                            <p>Get list of profiles (users).</p>
-                          </div>
-
-                          <!-- Nav tabs -->
-                          <ul class="nav nav-tabs">
-                            <li class="active">
-                              <a href="#profiles_post_request" data-toggle="tab">Request</a>
-                            </li>
-                            <li>
-                              <a href="#profiles_post_response" data-toggle="tab">Response</a>
-                            </li>
-                          </ul>
-
-                          <!-- Tab panes -->
-                          <div class="tab-content">
-                            <div class="tab-pane active" id="profiles_post_request">
-                              <h3>Body</h3>
-                              <p><strong>Media type</strong>: application/json</p>
-                              <p><strong>Type</strong>:</p>
-                              <pre><code>{
-  "type": "object",
-  "$schema": "http://json-schema.org/draft-03/schema",
-  "id": "http://jsonschema.net",
-  "required": true,
-  "properties": {
-      "online": {
-          "type": "string",
-          "description": "Y to list onle online users",
-          "required": false
-      },
-      "limit": {
-          "type": "number",
-          "description": "Maximum number of rows to fetch",
-          "required": false
-      },
-      "offset": {
-          "type": "number",
-          "description": "Rows to skip",
-          "required": false
-      },
-      "sortBy": {
-          "type": "array",
-          "description": "Sort by fields",
-          "required": false
-      },
-      "sortDesc": {
-          "type": "array",
-          "description": "boolean array indicate on each sort field if the sort is decendent",
-          "required": false
-      },
-      "search": {
-          "type": "string",
-          "description": "Filter results by this search string",
-          "required": false
-      }
-  }
-}
-</code></pre>
-                              <p><strong>Example</strong>:</p>
-                              <div class="examples">
-                                <pre><code>{
-"limit": 100,
-"offset": 0,
-"sortBy": ["firstname","lastname"],
-"sortDesc": [false,false],
-"search": "john"
-}
-</code></pre>
-                              </div>
-                            </div>
-                            <div class="tab-pane" id="profiles_post_response">
                               <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
                               <h3>Body</h3>
                               <p><strong>Media type</strong>: application/json</p>
@@ -1325,7 +1192,8 @@
                     <div class="panel-body">
                       <div class="resource-description">
                         <p>Actions on specific group.<br>
-                          If group is imported from A.D domain, groupName parameter shoud be <Group Name>#&lt;A.D Domain&gt;</p>
+                          If group was imported from A.D, groupName parameter shoud be &lt;Group Name&gt;#&lt;A.D Domain&gt; <br>
+                          e.g. Administrators#nub4est.co</p>
                       </div>
                       <div class="list-group">
                         <div onclick="window.location.href = '#groups__groupname__get'" class="list-group-item">
@@ -1749,6 +1617,695 @@
               </div>
             </div>
           </div>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 id="ldap" class="panel-title">/ldap</h3>
+            </div>
+            <div class="panel-body">
+              <div class="panel-group">
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_ldap">
+                        <span class="parent"></span>/ldap
+                      </a>
+                      <span class="methods">
+            <a href="#ldap_get">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_get">get</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_ldap" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#ldap_get'" class="list-group-item">
+                          <span class="badge badge_get">get</span>
+                          <div class="method_description">
+                            <p>Get list of LDAP domains and thier detailes.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="ldap_get">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_get">get</span>
+                            <span class="parent"></span>/ldap
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Get list of LDAP domains and thier detailes.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#ldap_get_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="ldap_get_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "",
+  "ldapDomains": [
+    {
+      "domain": "mydomain.com",
+      "addomain": "domain.com",
+      "basedn": "DC=domain,DC=com",
+      "connectionurl": "ldap://8.8.8.8:389",
+      "password": "********",
+      "username": "administrator@domain.com"
+    }
+  ]
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_ldap__ldapdomain_">
+                        <span class="parent">/ldap</span>/{ldapDomain}
+                      </a>
+                      <span class="methods">
+            <a href="#ldap__ldapdomain__get">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_get">get</span>
+                      </a>
+                      <a href="#ldap__ldapdomain__post">
+
+                        <!-- modal shown by hashchange event -->
+                        <span class="badge badge_post">post</span>
+                      </a>
+                      <a href="#ldap__ldapdomain__put">
+
+                        <!-- modal shown by hashchange event -->
+                        <span class="badge badge_put">put</span>
+                      </a>
+                      <a href="#ldap__ldapdomain__delete">
+
+                        <!-- modal shown by hashchange event -->
+                        <span class="badge badge_delete">delete</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_ldap__ldapdomain_" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#ldap__ldapdomain__get'" class="list-group-item">
+                          <span class="badge badge_get">get</span>
+                          <div class="method_description">
+                            <p>Get list of OUs for the selected ldap domain</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                        <div onclick="window.location.href = '#ldap__ldapdomain__post'" class="list-group-item">
+                          <span class="badge badge_post">post</span>
+                          <div class="method_description">
+                            <p>Set list of synced OUs and start sync process</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                        <div onclick="window.location.href = '#ldap__ldapdomain__put'" class="list-group-item">
+                          <span class="badge badge_put">put</span>
+                          <div class="method_description">
+                            <p>Set new LDAP domain or LDAP connection paramters for existing domain</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                        <div onclick="window.location.href = '#ldap__ldapdomain__delete'" class="list-group-item">
+                          <span class="badge badge_delete">delete</span>
+                          <div class="method_description">
+                            <p>Delete the LDAP domain</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="ldap__ldapdomain__get">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_get">get</span>
+                            <span class="parent">/ldap</span>/{ldapDomain}
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Get list of OUs for the selected ldap domain</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#ldap__ldapdomain__get_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#ldap__ldapdomain__get_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="ldap__ldapdomain__get_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>ldapDomain</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="ldap__ldapdomain__get_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "",
+  "ousList": [
+    {
+      "ouName": "domain",
+      "level": 0,
+      "key": "DC=domain,DC=com",
+      "father": " ",
+      "checked": false,
+      "hasChild": true
+    },
+    {
+      "ouName": "Domain Controllers",
+      "level": 1,
+      "key": "OU=Domain Controllers,DC=domain,DC=com",
+      "father": "domain",
+      "checked": true,
+      "hasChild": false
+    },
+    {
+      "ouName": "Main OU",
+      "level": 1,
+      "key": "OU=Main OU,DC=domain,DC=com",
+      "father": "domain",
+      "checked": false,
+      "hasChild": true
+    },
+    {
+      "ouName": "Sales",
+      "level": 2,
+      "key": "OU=Sales,OU=Main OU,DC=domain,DC=com",
+      "father": "Main OU",
+      "checked": false,
+      "hasChild": true
+    },
+    {
+      "ouName": "R&amp;D",
+      "level": 2,
+      "key": "OU=R&amp;D,OU=Main OU,DC=domain,DC=com",
+      "father": "Main OU",
+      "checked": false,
+      "hasChild": true
+    },
+    {
+      "ouName": "Team 1",
+      "level": 3,
+      "key": "OU=Team 1,OU=R&amp;D,OU=Main OU,DC=domain,DC=com",
+      "father": "R&amp;D",
+      "checked": true,
+      "hasChild": false
+    },
+    {
+      "ouName": "Team 2",
+      "level": 3,
+      "key": "OU=Team 2,OU=R&amp;D,OU=Main OU,DC=domain,DC=com",
+      "father": "R&amp;D",
+      "checked": true,
+      "hasChild": false
+    },
+    {
+      "ouName": "Team 3",
+      "level": 3,
+      "key": "OU=Team 3,OU=R&amp;D,OU=Main OU,DC=domain,DC=com",
+      "father": "R&amp;D",
+      "checked": true,
+      "hasChild": false
+    },
+    {
+      "ouName": "Team 1 Sales",
+      "level": 3,
+      "key": "OU=Team 1 Sales,OU=Sales,OU=Main OU,DC=domain,DC=com",
+      "father": "Sales",
+      "checked": true,
+      "hasChild": false
+    }
+  ]
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="ldap__ldapdomain__post">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_post">post</span>
+                            <span class="parent">/ldap</span>/{ldapDomain}
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Set list of synced OUs and start sync process</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#ldap__ldapdomain__post_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#ldap__ldapdomain__post_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="ldap__ldapdomain__post_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>ldapDomain</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                </li>
+                              </ul>
+                              <h3>Query Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>orgUnits</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>List of OUs to sync</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>OU=Team 1 Sales,OU=Sales,OU=Main OU,DC=domain,DC=com</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="ldap__ldapdomain__post_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "Starting LDAP sync"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="ldap__ldapdomain__put">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_put">put</span>
+                            <span class="parent">/ldap</span>/{ldapDomain}
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Set new LDAP domain or LDAP connection paramters for existing domain</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#ldap__ldapdomain__put_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#ldap__ldapdomain__put_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="ldap__ldapdomain__put_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>ldapDomain</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                </li>
+                              </ul>
+                              <h3>Query Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>host</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>LDAP host name</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>ad.mydomain.com</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>user</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>Admin user name that can login to the LDAP server and read information (readonly user)</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>administrator@mydomain.com</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>password</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>Password for the admin user</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>*******</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>port</strong>:
+                                  <em><span class="required">required </span>(number)
+      </em>
+                                  <p>Port number for the LDAP server</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>389</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>baseDN</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>Base DN for the LDAP import</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>DC=domain,DC=com</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>SSL</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>Connection type (auto or ldap:// or ldaps://)</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>auto</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="ldap__ldapdomain__put_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "LDAP Domain was updated succesfully"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="ldap__ldapdomain__delete">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_delete">delete</span>
+                            <span class="parent">/ldap</span>/{ldapDomain}
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Delete the LDAP domain</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#ldap__ldapdomain__delete_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#ldap__ldapdomain__delete_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="ldap__ldapdomain__delete_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>ldapDomain</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="ldap__ldapdomain__delete_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "The LDAP settings were deleted"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 id="admins" class="panel-title">/admins</h3>
+            </div>
+            <div class="panel-body">
+              <div class="panel-group">
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_admins__email_">
+                        <span class="parent">/admins</span>/{email}
+                      </a>
+                      <span class="methods">
+            <a href="#admins__email__put">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_put">put</span>
+                      </a>
+                      <a href="#admins__email__delete">
+
+                        <!-- modal shown by hashchange event -->
+                        <span class="badge badge_delete">delete</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_admins__email_" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#admins__email__put'" class="list-group-item">
+                          <span class="badge badge_put">put</span>
+                          <div class="method_description">
+                            <p>Add new admin</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                        <div onclick="window.location.href = '#admins__email__delete'" class="list-group-item">
+                          <span class="badge badge_delete">delete</span>
+                          <div class="method_description">
+                            <p>Remove admin</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="admins__email__put">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_put">put</span>
+                            <span class="parent">/admins</span>/{email}
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Add new admin</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#admins__email__put_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#admins__email__put_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="admins__email__put_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>email</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="admins__email__put_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "The admin was added successfully"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="admins__email__delete">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_delete">delete</span>
+                            <span class="parent">/admins</span>/{email}
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Remove admin</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#admins__email__delete_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#admins__email__delete_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="admins__email__delete_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>email</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="admins__email__delete_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "The admin was removed successfully"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="col-md-3">
           <div id="sidebar" class="hidden-print affix" role="complementary">
@@ -1756,6 +2313,8 @@
               <li><a href="#auth">/auth</a></li>
               <li><a href="#profiles">/profiles</a></li>
               <li><a href="#groups">/groups</a></li>
+              <li><a href="#ldap">/ldap</a></li>
+              <li><a href="#admins">/admins</a></li>
             </ul>
           </div>
         </div>
