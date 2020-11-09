@@ -92,11 +92,11 @@ export default {
     menuItems: [
       { title: "Profiles", icon: "mdi-account-multiple-outline", link: "/Profiles" },
       { title: "Groups", icon: "mdi-account-group", link: "/Groups" },
-      { title: "Apps", icon: "mdi-apps" },
+      { title: "Apps", icon: "mdi-apps", link: "/Apps" },
       { title: "Exchange", icon: "mdi-email" },
       { title: "Active Directory", icon: "mdi-microsoft" , link: "/LDAP" },
       { title: "Administrators", icon: "mdi-account-tie" , link: "/Admins" },
-      { title: "Security", icon: "mdi-shield-account" },
+      { title: "Security", icon: "mdi-shield-account", link: "/Security" },
       { title: "Dashboard and Reports", icon: "mdi-chart-bar" },
     ],
     items: [

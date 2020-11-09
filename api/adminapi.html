@@ -214,9 +214,9 @@
                         <div onclick="window.location.href = '#auth_post'" class="list-group-item">
                           <span class="badge badge_post">post</span>
                           <div class="method_description">
-                            <p>Login to the admin API.<br>
+                            <p>Log in to the admin API.<br>
                               After successful login, use the "loginToken" return value to authenticate
-                              to the resources using the Authorization http header with OAuth auth type.<br>
+                              the resources, using the "Authorization" http header with "OAuth" authentication type.<br>
                               e.g. Authorization: OAuth 474dff215b73e8fdedaee76bc896655830d592c25a3fda259fe9ddbc58c6985d835d71d428e54c48f30a6454f34a032c</p>
                           </div>
                           <div class="clearfix"></div>
@@ -236,9 +236,9 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Login to the admin API.<br>
+                            <p>Log in to the admin API.<br>
                               After successful login, use the "loginToken" return value to authenticate
-                              to the resources using the Authorization http header with OAuth auth type.<br>
+                              the resources, using the "Authorization" http header with "OAuth" authentication type.<br>
                               e.g. Authorization: OAuth 474dff215b73e8fdedaee76bc896655830d592c25a3fda259fe9ddbc58c6985d835d71d428e54c48f30a6454f34a032c</p>
                           </div>
 
@@ -288,8 +288,8 @@
                               <div class="examples">
                                 <pre><code>{
   "status": 1,
-  "message": "Login Successful",
-  "loginToken": "AABB0011",
+  "message": "Login was successful",
+  "loginToken": "474dff215b73e8fdedaee76bc896655830d592c25a3fda259fe9ddbc58c6985d835d71d428e54c48f30a6454f34a032c",
   "mainDomain": "mydomain.com",
   "firstname": "John",
   "lastname": "Doe",
@@ -374,8 +374,8 @@
                                   <strong>adminFilter</strong>:
                                   <em>(string)
       </em>
-                                  <p>Return only administrators (Y) or non-administrators (N)
-                                    Keep this parameter empty to get both admins and non-admins</p>
+                                  <p>Return only administrators (Y) or non-administrators (N).
+                                    Keep this parameter empty to get both admins and non-admins.</p>
                                   <p><strong>Example</strong>:</p>
                                   <div class="examples">
                                     <pre><code>Y</code></pre>
@@ -425,7 +425,7 @@
                                   <strong>sortDesc</strong>:
                                   <em>(string)
       </em>
-                                  <p>boolean array indicate on each sort field if the sort is decendent</p>
+                                  <p>Boolean array indicates if each sorted field is descending</p>
                                   <p><strong>Example</strong>:</p>
                                   <div class="examples">
                                     <pre><code>true</code></pre>
@@ -435,7 +435,7 @@
                                   <strong>search</strong>:
                                   <em>(string)
       </em>
-                                  <p>Filter results by this search string</p>
+                                  <p>Filter results by using this search string</p>
                                   <p><strong>Example</strong>:</p>
                                   <div class="examples">
                                     <pre><code>John</code></pre>
@@ -452,7 +452,7 @@
                               <div class="examples">
                                 <pre><code>{
 "status": "1",
-"message": "import succedded!",
+"message": "Request was fulfilled",
 "myUser": "admin@mydomain.com",
 "profiles": [
     {
@@ -529,8 +529,8 @@
                         <div onclick="window.location.href = '#profiles__email__get'" class="list-group-item">
                           <span class="badge badge_get">get</span>
                           <div class="method_description">
-                            <p>Get profile information <br>
-                              Return user details as well as list of user&#39;s apps, devices, and groups</p>
+                            <p>Get profile information. <br>
+                              Return user details as well as list of user&#39;s apps, devices, and groups.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
@@ -570,8 +570,8 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Get profile information <br>
-                              Return user details as well as list of user&#39;s apps, devices, and groups</p>
+                            <p>Get profile information. <br>
+                              Return user details as well as list of user&#39;s apps, devices, and groups.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -605,7 +605,7 @@
                               <div class="examples">
                                 <pre><code>{
   "status": "1",
-  "message": "import succedded",
+  "message": "Request was fulfilled",
   "details": {
     "emailAddress": "1234@nub4est.co",
     "userName": "1234@nub4est.co",
@@ -819,7 +819,7 @@
                                   <strong>manager</strong>:
                                   <em>(string)
       </em>
-                                  <p>Name of manager</p>
+                                  <p>Manager&#39;s name</p>
                                   <p><strong>Example</strong>:</p>
                                   <div class="examples">
                                     <pre><code>Bill Gates</code></pre>
@@ -839,7 +839,7 @@
                                   <strong>officePhone</strong>:
                                   <em>(string)
       </em>
-                                  <p>Offie phone number</p>
+                                  <p>Office number</p>
                                   <p><strong>Example</strong>:</p>
                                   <div class="examples">
                                     <pre><code>212-456-9876</code></pre>
@@ -849,7 +849,7 @@
                                   <strong>mobilePhone</strong>:
                                   <em>(string)
       </em>
-                                  <p>Mobile phone number</p>
+                                  <p>Mobile number</p>
                                   <p><strong>Example</strong>:</p>
                                   <div class="examples">
                                     <pre><code>212-456-9876</code></pre>
@@ -938,7 +938,7 @@
                                   <strong>manager</strong>:
                                   <em>(string)
       </em>
-                                  <p>Name of manager</p>
+                                  <p>Manager&#39;s name</p>
                                   <p><strong>Example</strong>:</p>
                                   <div class="examples">
                                     <pre><code>Bill Gates</code></pre>
@@ -958,7 +958,7 @@
                                   <strong>officePhone</strong>:
                                   <em>(string)
       </em>
-                                  <p>Offie phone number</p>
+                                  <p>Office number</p>
                                   <p><strong>Example</strong>:</p>
                                   <div class="examples">
                                     <pre><code>212-456-9876</code></pre>
@@ -968,7 +968,7 @@
                                   <strong>mobilePhone</strong>:
                                   <em>(string)
       </em>
-                                  <p>Mobile phone number</p>
+                                  <p>Mobile number</p>
                                   <p><strong>Example</strong>:</p>
                                   <div class="examples">
                                     <pre><code>212-456-9876</code></pre>
@@ -1060,6 +1060,11 @@
               <h3 id="groups" class="panel-title">/groups</h3>
             </div>
             <div class="panel-body">
+              <div class="top-resource-description">
+                <p>Actions on specific group.<br>
+                  If group was imported from A.D, groupName parameter shoud be &lt;Group Name&gt;#&lt;A.D Domain&gt; <br>
+                  e.g. Administrators#nub4est.co</p>
+              </div>
               <div class="panel-group">
                 <div class="panel panel-white resource-modal">
                   <div class="panel-heading">
@@ -1121,7 +1126,7 @@
                               <div class="examples">
                                 <pre><code>{
   "status": "1",
-  "message": "The request was fulfilled",
+  "message": "Request was fulfilled",
   "groups": [
     {
       "groupName": "abcde",
@@ -1190,23 +1195,20 @@
                   </div>
                   <div id="panel_groups__groupname_" class="panel-collapse collapse">
                     <div class="panel-body">
-                      <div class="resource-description">
-                        <p>Actions on specific group.<br>
-                          If group was imported from A.D, groupName parameter shoud be &lt;Group Name&gt;#&lt;A.D Domain&gt; <br>
-                          e.g. Administrators#nub4est.co</p>
-                      </div>
                       <div class="list-group">
                         <div onclick="window.location.href = '#groups__groupname__get'" class="list-group-item">
                           <span class="badge badge_get">get</span>
                           <div class="method_description">
-                            <p>Get group information</p>
+                            <p>Get group information.<br>
+                              If group was imported from A.D, groupName parameter shoud be &lt;Group Name&gt;#&lt;A.D Domain&gt; <br>
+                              e.g. Administrators#domain.com</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
                         <div onclick="window.location.href = '#groups__groupname__delete'" class="list-group-item">
                           <span class="badge badge_delete">delete</span>
                           <div class="method_description">
-                            <p>Delete a group</p>
+                            <p>Delete group</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
@@ -1232,7 +1234,9 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Get group information</p>
+                            <p>Get group information.<br>
+                              If group was imported from A.D, groupName parameter shoud be &lt;Group Name&gt;#&lt;A.D Domain&gt; <br>
+                              e.g. Administrators#domain.com</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -1266,7 +1270,7 @@
                               <div class="examples">
                                 <pre><code>{
   "status": "1",
-  "message": "The request was fulfilled",
+  "message": "Request was fulfilled",
   "groupName": "abcde",
   "profiles": [
     {
@@ -1306,7 +1310,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Delete a group</p>
+                            <p>Delete group</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -1392,7 +1396,7 @@
                                   <strong>email</strong>:
                                   <em>(string)
       </em>
-                                  <p>Array of emails to add to this group</p>
+                                  <p>Array of emails to be added to this group</p>
                                   <p><strong>Example</strong>:</p>
                                   <div class="examples">
                                     <pre><code>user@domain.com</code></pre>
@@ -1489,7 +1493,7 @@
                                   <strong>email</strong>:
                                   <em>(string)
       </em>
-                                  <p>Array of emails to add to this group</p>
+                                  <p>Array of emails to be added to this group</p>
                                   <p><strong>Example</strong>:</p>
                                   <div class="examples">
                                     <pre><code>user@domain.com</code></pre>
@@ -1586,7 +1590,7 @@
                                   <strong>email</strong>:
                                   <em>(string)
       </em>
-                                  <p>Array of emails to add to this group</p>
+                                  <p>Array of emails to be removed from this group</p>
                                   <p><strong>Example</strong>:</p>
                                   <div class="examples">
                                     <pre><code>user@domain.com</code></pre>
@@ -1643,7 +1647,7 @@
                         <div onclick="window.location.href = '#ldap_get'" class="list-group-item">
                           <span class="badge badge_get">get</span>
                           <div class="method_description">
-                            <p>Get list of LDAP domains and thier detailes.</p>
+                            <p>Get list of LDAP domains and their details.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
@@ -1662,7 +1666,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Get list of LDAP domains and thier detailes.</p>
+                            <p>Get list of LDAP domains and their details.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -1683,7 +1687,7 @@
                               <div class="examples">
                                 <pre><code>{
   "status": "1",
-  "message": "",
+  "message": "Request was fulfilled",
   "ldapDomains": [
     {
       "domain": "mydomain.com",
@@ -1739,21 +1743,21 @@
                         <div onclick="window.location.href = '#ldap__ldapdomain__get'" class="list-group-item">
                           <span class="badge badge_get">get</span>
                           <div class="method_description">
-                            <p>Get list of OUs for the selected ldap domain</p>
+                            <p>Get list of OUs for the selected ldap domain.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
                         <div onclick="window.location.href = '#ldap__ldapdomain__post'" class="list-group-item">
                           <span class="badge badge_post">post</span>
                           <div class="method_description">
-                            <p>Set list of synced OUs and start sync process</p>
+                            <p>Set list of synced OUs and start sync process.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
                         <div onclick="window.location.href = '#ldap__ldapdomain__put'" class="list-group-item">
                           <span class="badge badge_put">put</span>
                           <div class="method_description">
-                            <p>Set new LDAP domain or LDAP connection paramters for existing domain</p>
+                            <p>Set new LDAP domain or LDAP connection paramters for existing domain.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
@@ -1779,7 +1783,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Get list of OUs for the selected ldap domain</p>
+                            <p>Get list of OUs for the selected ldap domain.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -1813,7 +1817,7 @@
                               <div class="examples">
                                 <pre><code>{
   "status": "1",
-  "message": "",
+  "message": "Request was fulfilled",
   "ousList": [
     {
       "ouName": "domain",
@@ -1909,7 +1913,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Set list of synced OUs and start sync process</p>
+                            <p>Set list of synced OUs and start sync process.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -1978,7 +1982,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Set new LDAP domain or LDAP connection paramters for existing domain</p>
+                            <p>Set new LDAP domain or LDAP connection paramters for existing domain.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -2018,7 +2022,7 @@
                                   <strong>user</strong>:
                                   <em><span class="required">required </span>(string)
       </em>
-                                  <p>Admin user name that can login to the LDAP server and read information (readonly user)</p>
+                                  <p>Admin user name that can log in to the LDAP server and read information (read-only user)</p>
                                   <p><strong>Example</strong>:</p>
                                   <div class="examples">
                                     <pre><code>administrator@mydomain.com</code></pre>
@@ -2075,7 +2079,7 @@
                               <div class="examples">
                                 <pre><code>{
   "status": "1",
-  "message": "LDAP Domain was updated succesfully"
+  "message": "LDAP domain was updated succesfully"
 }
 </code></pre>
                               </div>

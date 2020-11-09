@@ -125,7 +125,6 @@ let page = {
       if (newVal.length > 1 ||  newVal.length == 0 ) {
         this.refresh();
       }
-
     }
   }
 };

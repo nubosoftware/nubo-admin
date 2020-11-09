@@ -5,9 +5,9 @@ baseUri: https://api.nubosoftware.com/api/
 /auth:
   post:
     description: |
-        Login to the admin API.<br>
+        Log in to the admin API.<br>
         After successful login, use the "loginToken" return value to authenticate
-        to the resources using the Authorization http header with OAuth auth type.<br>
+        the resources, using the "Authorization" http header with "OAuth" authentication type.<br>
         e.g. Authorization: OAuth 474dff215b73e8fdedaee76bc896655830d592c25a3fda259fe9ddbc58c6985d835d71d428e54c48f30a6454f34a032c
     queryParameters:
       userName:
@@ -27,8 +27,8 @@ baseUri: https://api.nubosoftware.com/api/
               example: |
                 {
                   "status": 1,
-                  "message": "Login Successful",
-                  "loginToken": "AABB0011",
+                  "message": "Login was successful",
+                  "loginToken": "474dff215b73e8fdedaee76bc896655830d592c25a3fda259fe9ddbc58c6985d835d71d428e54c48f30a6454f34a032c",
                   "mainDomain": "mydomain.com",
                   "firstname": "John",
                   "lastname": "Doe",
@@ -40,8 +40,8 @@ baseUri: https://api.nubosoftware.com/api/
         queryParameters:
             adminFilter:
               description: |
-                Return only administrators (Y) or non-administrators (N)
-                Keep this parameter empty to get both admins and non-admins
+                Return only administrators (Y) or non-administrators (N).
+                Keep this parameter empty to get both admins and non-admins.
               required: false
               type: string
               example: "Y"
@@ -66,12 +66,12 @@ baseUri: https://api.nubosoftware.com/api/
                 type: string
                 example: "firstname"
             sortDesc:
-                description: "boolean array indicate on each sort field if the sort is decendent"
+                description: "Boolean array indicates if each sorted field is descending"
                 required: false
                 type: string
                 example: "true"
             search:
-                description: "Filter results by this search string"
+                description: "Filter results by using this search string"
                 required: false
                 type: string
                 example: "John"
@@ -82,7 +82,7 @@ baseUri: https://api.nubosoftware.com/api/
                         example: |
                             {
                             "status": "1",
-                            "message": "import succedded!",
+                            "message": "Request was fulfilled",
                             "myUser": "admin@mydomain.com",
                             "profiles": [
                                 {
@@ -118,8 +118,8 @@ baseUri: https://api.nubosoftware.com/api/
     /{email}:
         get:
             description: | 
-              Get profile information <br>
-              Return user details as well as list of user's apps, devices, and groups
+              Get profile information. <br>
+              Return user details as well as list of user's apps, devices, and groups.
             responses:
                 200:
                     body:
@@ -127,7 +127,7 @@ baseUri: https://api.nubosoftware.com/api/
                             example: |
                               {
                                 "status": "1",
-                                "message": "import succedded",
+                                "message": "Request was fulfilled",
                                 "details": {
                                   "emailAddress": "1234@nub4est.co",
                                   "userName": "1234@nub4est.co",
@@ -285,7 +285,7 @@ baseUri: https://api.nubosoftware.com/api/
                     type: string
                     example: "Smith"
                 manager:
-                    description: "Name of manager"
+                    description: "Manager's name"
                     required: false
                     type: string
                     example: "Bill Gates"
@@ -295,12 +295,12 @@ baseUri: https://api.nubosoftware.com/api/
                     type: string
                     example: "United Kingdom"
                 officePhone:
-                    description: "Offie phone number"
+                    description: "Office number"
                     required: false
                     type: string
                     example: "212-456-9876"
                 mobilePhone:
-                    description: "Mobile phone number"
+                    description: "Mobile number"
                     required: false
                     type: string
                     example: "212-456-9876"
@@ -327,7 +327,7 @@ baseUri: https://api.nubosoftware.com/api/
                     type: string
                     example: "Smith"
                 manager:
-                    description: "Name of manager"
+                    description: "Manager's name"
                     required: false
                     type: string
                     example: "Bill Gates"
@@ -337,12 +337,12 @@ baseUri: https://api.nubosoftware.com/api/
                     type: string
                     example: "United Kingdom"
                 officePhone:
-                    description: "Offie phone number"
+                    description: "Office number"
                     required: false
                     type: string
                     example: "212-456-9876"
                 mobilePhone:
-                    description: "Mobile phone number"
+                    description: "Mobile number"
                     required: false
                     type: string
                     example: "212-456-9876"
@@ -367,6 +367,10 @@ baseUri: https://api.nubosoftware.com/api/
                               "message": "The profile was deleted successfully"
                             }
 /groups:
+    description: |
+            Actions on specific group.<br>
+            If group was imported from A.D, groupName parameter shoud be &lt;Group Name&gt;#&lt;A.D Domain&gt; <br>
+            e.g. Administrators#nub4est.co
     get:
         description: Get list of groups.
         responses:
@@ -376,7 +380,7 @@ baseUri: https://api.nubosoftware.com/api/
                       example: |
                         {
                           "status": "1",
-                          "message": "The request was fulfilled",
+                          "message": "Request was fulfilled",
                           "groups": [
                             {
                               "groupName": "abcde",
@@ -411,12 +415,11 @@ baseUri: https://api.nubosoftware.com/api/
                           ]
                         }
     /{groupName}:
-        description: |
-            Actions on specific group.<br>
-            If group was imported from A.D, groupName parameter shoud be &lt;Group Name&gt;#&lt;A.D Domain&gt; <br>
-            e.g. Administrators#nub4est.co
         get:
-            description: Get group information
+            description: |
+              Get group information.<br>
+              If group was imported from A.D, groupName parameter shoud be &lt;Group Name&gt;#&lt;A.D Domain&gt; <br>
+              e.g. Administrators#domain.com
             responses:
               200:
                   body:
@@ -424,7 +427,7 @@ baseUri: https://api.nubosoftware.com/api/
                           example: |
                             {
                               "status": "1",
-                              "message": "The request was fulfilled",
+                              "message": "Request was fulfilled",
                               "groupName": "abcde",
                               "profiles": [
                                 {
@@ -445,7 +448,7 @@ baseUri: https://api.nubosoftware.com/api/
                               "apps": []
                             }
         delete:
-            description: Delete a group
+            description: Delete group
             responses:
               200:
                   body:
@@ -459,7 +462,7 @@ baseUri: https://api.nubosoftware.com/api/
             description: Create new group
             queryParameters:
                 email:
-                    description: "Array of emails to add to this group"
+                    description: "Array of emails to be added to this group"
                     required: false
                     type: string
                     example: "user@domain.com"
@@ -477,7 +480,7 @@ baseUri: https://api.nubosoftware.com/api/
                 description: Add profiles to group
                 queryParameters:
                     email:
-                        description: "Array of emails to add to this group"
+                        description: "Array of emails to be added to this group"
                         required: false
                         type: string
                         example: "user@domain.com"
@@ -495,7 +498,7 @@ baseUri: https://api.nubosoftware.com/api/
                 description: Remove profiles from group
                 queryParameters:
                     email:
-                        description: "Array of emails to add to this group"
+                        description: "Array of emails to be removed from this group"
                         required: false
                         type: string
                         example: "user@domain.com"
@@ -510,7 +513,7 @@ baseUri: https://api.nubosoftware.com/api/
                                 }
 /ldap:
     get:
-        description: Get list of LDAP domains and thier detailes.
+        description: Get list of LDAP domains and their details.
         responses:
           200:
             body:
@@ -518,7 +521,7 @@ baseUri: https://api.nubosoftware.com/api/
                 example: |
                   {
                     "status": "1",
-                    "message": "",
+                    "message": "Request was fulfilled",
                     "ldapDomains": [
                       {
                         "domain": "mydomain.com",
@@ -532,7 +535,7 @@ baseUri: https://api.nubosoftware.com/api/
                   }
     /{ldapDomain}:
       get:
-        description: Get list of OUs for the selected ldap domain 
+        description: Get list of OUs for the selected ldap domain.
         responses:
           200:
             body:
@@ -540,7 +543,7 @@ baseUri: https://api.nubosoftware.com/api/
                 example: | 
                   {
                     "status": "1",
-                    "message": "",
+                    "message": "Request was fulfilled",
                     "ousList": [
                       {
                         "ouName": "domain",
@@ -617,7 +620,7 @@ baseUri: https://api.nubosoftware.com/api/
                     ]
                   }
       post:
-        description: Set list of synced OUs and start sync process
+        description: Set list of synced OUs and start sync process.
         queryParameters:
           orgUnits:
               description: "List of OUs to sync"
@@ -634,7 +637,7 @@ baseUri: https://api.nubosoftware.com/api/
                     "message": "Starting LDAP sync"
                   }
       put:
-        description: Set new LDAP domain or LDAP connection paramters for existing domain
+        description: Set new LDAP domain or LDAP connection paramters for existing domain.
         queryParameters:
           host:
               description: "LDAP host name"
@@ -642,7 +645,7 @@ baseUri: https://api.nubosoftware.com/api/
               type: string
               example: "ad.mydomain.com"
           user:
-              description: "Admin user name that can login to the LDAP server and read information (readonly user)"
+              description: "Admin user name that can log in to the LDAP server and read information (read-only user)"
               required: true
               type: string
               example: "administrator@mydomain.com"
@@ -673,7 +676,7 @@ baseUri: https://api.nubosoftware.com/api/
                 example: |
                   {
                     "status": "1",
-                    "message": "LDAP Domain was updated succesfully"
+                    "message": "LDAP domain was updated succesfully"
                   }
       delete:
         description: "Delete the LDAP domain"
