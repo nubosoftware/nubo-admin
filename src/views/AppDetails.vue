@@ -539,7 +539,7 @@ export default {
     },
     installImp: function (appStoreOnly) {
       let emails = [];
-      for (const [key, value] of Object.entries(this.allSelected)) {
+      for (const [key] of Object.entries(this.allSelected)) {
         emails.push(key);
       }
       let data;
@@ -668,7 +668,6 @@ export default {
     profilesSelected: function (arr) {
       console.log(`profilesSelected: ${JSON.stringify(arr, null, 2)}`);
       let addKeys = {};
-      let delKeys = {};
       arr.forEach((element) => {
         addKeys[element.email] = element.email;
         //console.log(`Add ${element.email}`);

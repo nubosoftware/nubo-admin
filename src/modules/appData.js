@@ -2,7 +2,7 @@ const appData = {
 
     // configuration
     postURL: "http://labil.nubosoftware.com:8080/",
-    proxyURL: "http://localhost:9080/",
+    proxyURL: "http://172.16.80.119:9080/", //"http://localhost:9080/",
 
     // loaded users params
     isAuthenticated: false,
