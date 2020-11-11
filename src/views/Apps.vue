@@ -1,72 +1,229 @@
 <template>
   <v-card>
-    <v-card-title>{{$t("Apps")}}</v-card-title>
+    <v-card-title>{{ $t("Apps") }}</v-card-title>
     <v-data-table
       :headers="headers"
       :items="rows"
       :items-per-page="20"
       :loading="loading"
-      
       class="elevation-1 ma-4"
     >
-    <template v-slot:top>
-      <v-toolbar
-        flat
-      >
-        <v-btn
-              color="primary"
-              dark
-              class="mb-2"
-              @click="appUpload"
-            >
-              {{$t("App Upload")}}
-            </v-btn>
-      </v-toolbar>
-    </template>
-    <template v-slot:item.imageUrl="{ item }">
-              <v-img
-                max-height="40"
-                max-width="40"
-                :src="item.imageUrl"
-              ></v-img>
-            </template>
+      <template v-slot:top>
+        <v-toolbar flat>
+          <v-btn color="primary" dark class="ma-2" @click="uploadDialog = true">
+            {{ $t("App Upload") }}
+          </v-btn>
+          <v-btn color="primary" dark class="ma-2" @click="webappDialog = true ">
+            {{ $t("Generate Web App") }}
+          </v-btn>
+        </v-toolbar>
+      </template>
+      <template v-slot:item.imageUrl="{ item }">
+        <v-img max-height="40" max-width="40" :src="item.imageUrl"></v-img>
+      </template>
       <template v-slot:item.actions="{ item }">
-             <v-icon small @click="rowClick(item)" class="mx-2"> mdi-pencil </v-icon>
-              <v-icon small @click="deleteApp(item)" class="mx-2"> mdi-delete </v-icon>
-            </template>
+        <v-icon small @click="rowClick(item)" class="mx-2"> mdi-pencil </v-icon>
+        <v-icon small @click="deleteApp(item)" class="mx-2">
+          mdi-delete
+        </v-icon>
+      </template>
     </v-data-table>
-    <v-dialog
-      v-model="dialog"
-      persistent
-      max-width="290"
-    >
-      
+    <v-dialog v-model="dialog" persistent max-width="290">
       <v-card>
-        <v-card-title >
-          Delete {{deleteAppName}}
-        </v-card-title>
+        <v-card-title> Delete {{ deleteAppName }} </v-card-title>
         <v-card-text>
-          {{$t("Are you sure you want to delete")}} {{deleteAppName}}?
+          {{ $t("Are you sure you want to delete") }} {{ deleteAppName }}?
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn
-            color="red darken-1"
-            text
-            @click="dialog = false"
-          >
+          <v-btn color="red darken-1" text @click="dialog = false">
             Cancel
           </v-btn>
+          <v-btn color="green darken-1" text @click="deleteOK"> OK </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="uploadDialog" persistent max-width="1000">
+      <v-card>
+        <v-card-title>
+          {{ $t("Upload App") }}
+        </v-card-title>
+        <v-container class="ma-4">
+          <v-row class="mx-4">
+            <v-col >
+              <v-file-input
+                show-size
+                accept=".apk"
+                :label="$t('APK File')"
+                @change="selectFile"
+              ></v-file-input>
+            </v-col>
+          </v-row>
+          
+          <v-row v-if="uploadAppDesc.appName && uploadAppDesc.appName != ''" class="mx-4" >
+            <v-col >
+              <v-text-field
+                :label="$t('App Name')"
+                readonly
+                v-model="uploadAppDesc.appName"
+              />
+            </v-col>
+            <v-col >
+              <v-text-field
+                :label="$t('Package Name')"
+                readonly
+                v-model="uploadAppDesc.packageName"
+              />
+            </v-col>
+          </v-row>
+          <v-row v-if="uploadAppDesc.appName && uploadAppDesc.appName != ''" class="mx-4" >
+            <v-col >
+              <v-text-field
+                :label="$t('Version Name')"
+                v-model="uploadAppDesc.versionName"
+                readonly
+              />
+            </v-col>
+            <v-col >
+              <v-text-field
+                :label="$t('Version Code')"
+                v-model="uploadAppDesc.versionCode"
+                readonly
+              />
+            </v-col>
+          </v-row>
+          <v-row class="mx-4" >
+            <v-col >
+              <v-alert :type="uploadAppDesc.uploadAlertType" text
+              v-if="uploadAppDesc.uploadStatus && uploadAppDesc.uploadStatus != ''"
+              >
+                {{uploadAppDesc.uploadStatus}}
+                <v-progress-linear
+                v-if="uploadProgress > 0"
+                v-model="uploadProgress"
+              ></v-progress-linear>
+              <v-btn v-if="uploadAppDesc.uploadAlertType == 'success'"
+                class="ma-2"
+                color="success"
+                @click="goToUploadedApp"
+              >
+              {{$t("Go to App")}}
+              </v-btn>
+              </v-alert>
+            </v-col>
+          </v-row>
+        </v-container>
+        <v-card-actions class="mx-4" >
+          <v-spacer></v-spacer>
+          <v-btn color="gray darken-1" @click="uploadDialog = false">
+            {{ $t("Cancel") }}
+          </v-btn>
           <v-btn
+            
             color="green darken-1"
-            text
-            @click="deleteOK"
+            :loading="uploading"
+            :disabled="!uploadSelectedFile || uploading"
+            @click="startUpload"
           >
-            OK
+            {{ $t("Upload") }}
+            <v-icon
+              right
+              dark
+            >
+              mdi-cloud-upload
+      </v-icon>
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="webappDialog" persistent max-width="1000">
+      <v-card>
+        <v-card-title>
+          {{ $t("Generate Web App") }}
+        </v-card-title>
+        <v-container class="ma-4">
+          <v-row class="mx-4">
+            <v-col >
+              <v-text-field
+                :label="$t('URL')"
+                placeholder="https://youwebsite.com"
+                v-model="uploadAppDesc.appURL"
+              />
+            </v-col>
+          </v-row>
+          <v-row class="mx-4">
+            <v-col cols="6">
+              <v-text-field
+                :label="$t('App Name')"
+                v-model="uploadAppDesc.appName"
+              />
+            </v-col>
+            <v-col cols="1">
+              <v-img
+                height="50"
+                width="50"
+                :src="iconURL"
+              >
+              </v-img>
+            </v-col>
+            <v-col cols="5">
+              <v-file-input
+                show-size
+                accept=".png"
+                :label="$t('App Icon')"
+                @change="selectIcon"
+              ></v-file-input>
+            </v-col>
+          </v-row>
+          
+          
+          
+          <v-row class="mx-4" >
+            <v-col >
+              <v-alert :type="uploadAppDesc.uploadAlertType" text
+              v-if="uploadAppDesc.uploadStatus && uploadAppDesc.uploadStatus != ''"
+              >
+                {{uploadAppDesc.uploadStatus}}
+                <v-progress-linear
+                v-if="uploadProgress > 0"
+                v-model="uploadProgress"
+              ></v-progress-linear>
+              <v-btn v-if="uploadAppDesc.uploadAlertType == 'success'"
+                class="ma-2"
+                color="success"
+                @click="goToUploadedApp"
+              >
+              {{$t("Go to App")}}
+              </v-btn>
+              </v-alert>
+            </v-col>
+          </v-row>
+        </v-container>
+        <v-card-actions class="mx-4" >
+          <v-spacer></v-spacer>
+          <v-btn color="gray darken-1" @click="webappDialog = false">
+            {{ $t("Cancel") }}
+          </v-btn>
+          <v-btn
+            
+            color="green darken-1"
+            :loading="uploading"
+            :disabled="!uploadAppDesc.appURL || uploadAppDesc.appURL == '' || !uploadAppDesc.appName || uploadAppDesc.appName == '' || iconURL == '' ||uploading"
+            @click="startWebapp"
+          >
+            {{ $t("Generate App") }}
+            <v-icon
+              right
+              dark
+            >
+              mdi-cloud-upload
+      </v-icon>
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <v-snackbar v-model="snackbarSave" :timeout="2000">
       {{ snackbarText }}
 
@@ -97,25 +254,34 @@ let page = {
     deleteAppName: "",
     snackbarSave: false,
     snackbarText: "",
+    uploadDialog: false,
+    uploading: false,
+    uploadProgress: 0,
+    uploadFileName: "",
+    uploadSelectedFile: null,
+    uploadAppDesc: {},
+    webappDialog: false,
+    iconURL: "",
     appData,
   }),
   methods: {
     rowClick: function (val) {
       console.log(`rowClick: ${val.packageName}`);
-      this.$router.push("/App/" + val.packageName );
+      this.$router.push("/App/" + val.packageName);
     },
     deleteApp: function (val) {
-      
       this.deleteObj = val;
       this.deleteAppName = val.appName;
       this.dialog = true;
     },
-    deleteOK: function() {
+    deleteOK: function () {
       console.log(`deleteApp: ${this.deleteAppName}`);
       this.dialog = false;
-      appUtils.delete({
-        url: "api/apps/"+encodeURIComponent(this.deleteObj.packageName)
-      }).then((response) => {
+      appUtils
+        .delete({
+          url: "api/apps/" + encodeURIComponent(this.deleteObj.packageName),
+        })
+        .then((response) => {
           console.log(response.data);
           if (response.data.status == 1) {
             this.snackbarText = this.$t("Saved");
@@ -123,17 +289,157 @@ let page = {
             this.refresh();
           } else {
             console.log(`status: ${response.data.status}`);
-            this.snackbarText = this.$t("Error")+" - "+response.data.message;
+            this.snackbarText =
+              this.$t("Error") + " - " + response.data.message;
             this.snackbarSave = true;
           }
         })
         .catch((error) => console.log(error))
         .finally(() => (this.loading = false));
     },
-    addLDAP: function () {
-      this.$router.push("/LDAP/CREATELDAP" );
+    selectFile: function (file) {
+      console.log("selectFile: " + file);
+      this.uploadSelectedFile = file;
     },
+    startUpload: function () {
+      this.uploading = true;
+      let formData = new FormData();
+      formData.append("file", this.uploadSelectedFile);
+      this.uploadAppDesc.uploadAlertType = "info";
+      this.uploadAppDesc.uploadStatus = this.$t("Uploading file..");
+      let thisPage = this;
+      appUtils
+        .post({
+          url: "api/upload",
+          data: formData,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress: function (progressEvent) {
+            var percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            console.log(percentCompleted);
+            thisPage.uploadProgress = Math.round(percentCompleted / 2);
+          },
+        })
+        .then((response) => {
+          console.log(response.data);
+          this.uploadSelectedFile = null;
+          if (response.data.status == 1) {
+            console.log(`status: ${response.data.status}`);
+            this.uploadFileName = response.data.uploadFileName;
+            this.uploadAPK();
+          } else {
+            console.log(`status: ${response.data.status}`);
+            this.uploading = false;
+            this.uploadAppDesc.uploadStatus = this.$t("Error uploading apk")+" - "+response.data.message;
+            this.uploadAppDesc.uploadAlertType = "error";
+          }
+        })
+        .catch((error) => {
+            this.uploadSelectedFile = null;
+            this.uploading = false;
+            this.uploadAppDesc.uploadStatus = this.$t("Error uploading apk")+" - "+error;
+            this.uploadAppDesc.uploadAlertType = "error";
+        })
+        .finally(() => (this.loading = false));
+    },
+    uploadAPK: function () {
+      console.log("uploadAPK: " + this.uploadFileName);
+      appUtils
+        .put({
+          url: "api/apps",
+          data: {
+            fileName: this.uploadFileName,
+          },
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            console.log(`status: ${response.data.status}`);
 
+            this.uploadAppDesc = response.data;
+            this.uploadAppDesc.uploadAlertType = "info";
+            this.uploadAppDesc.uploadStatus = this.$t("Installing apk..");
+            this.uploadProgress = 60;
+            this.checkUploadStatus();
+          } else {
+            console.log(`status: ${response.data.status}`);
+            this.uploadAppDesc.uploadStatus = this.$t("Error installing apk")+" - "+response.data.message;
+            this.uploadAppDesc.uploadAlertType = "error";
+            this.uploading = false;
+          }
+        })
+        .catch((error) => {
+          this.uploadAppDesc.uploadStatus = this.$t("Error installing apk")+" - "+error;
+          this.uploadAppDesc.uploadAlertType = "error";
+          this.uploading = false;
+        })
+        .finally(() => (this.loading = false));
+    },
+    goToUploadedApp: function () {
+      this.$router.push("/App/" + this.uploadAppDesc.packageName);
+    },
+    checkUploadStatus: function () {
+      let thisPage = this;
+      appUtils
+        .get({
+          url:
+            "api/apps/" +
+            encodeURIComponent(this.uploadAppDesc.packageName) +
+            "/checkUploadStatus",
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            console.log(`status: ${response.data.status}`);
+            //this.uploading = false;
+            /*
+            apkStatus: 1
+            message: ""
+            status: "1"
+            */
+            let apkStatus = response.data.apkStatus;
+            if (apkStatus > 0) {
+              if (apkStatus == 1) {
+                this.uploadAppDesc.uploadStatus = this.$t("Processing apk..");
+                this.uploadProgress = 70;
+              } else {
+                this.uploadAppDesc.uploadStatus = this.$t("Installing app..");
+                this.uploadProgress = 90;
+              }
+              this.uploadAppDesc.uploadAlertType = "info";
+              setTimeout(function () {
+                thisPage.checkUploadStatus();
+              }, 1000);
+            } else {
+              if (apkStatus == 0) {
+                this.uploadAppDesc.uploadStatus =
+                  this.$t("The apk was installed successfully");
+                  this.uploadAppDesc.uploadAlertType = "success";
+                  this.refresh();
+              } else {
+                this.uploadAppDesc.uploadStatus = this.$t("Error installing apk");
+                this.uploadAppDesc.uploadAlertType = "error";
+              }
+              this.uploadProgress = 0;
+              this.uploading = false;
+            }
+          } else {
+            console.log(`status: ${response.data.status}`);
+            this.uploadAppDesc.uploadStatus = this.$t("Error installing apk")+" - "+response.data.status;
+            this.uploadAppDesc.uploadAlertType = "error";
+            this.uploading = false;
+          }
+        })
+        .catch((error) => {
+          this.uploadAppDesc.uploadStatus = this.$t("Error installing apk")+" - "+error;
+          this.uploadAppDesc.uploadAlertType = "error";
+          this.uploading = false;
+        })
+        .finally(() => (this.loading = false));
+    },
     refresh: function () {
       appUtils
         .get({
@@ -149,6 +455,65 @@ let page = {
           }
         })
         .catch((error) => console.log(error))
+        .finally(() => (this.loading = false));
+    },
+    selectIcon: function (file) {
+      console.log(file);
+      let thisPage = this;
+      if (!file) {
+        thisPage.iconURL = "";
+        return;
+      }
+      let reader = new FileReader();
+      reader.onload = function(){
+        var dataURL = reader.result;
+        //var output = document.getElementById('output');
+        //output.src = dataURL;
+        console.log("dataURL: "+dataURL);
+        thisPage.iconURL = dataURL;
+      };
+      reader.readAsDataURL(file);
+    },
+    startWebapp: function () {
+      this.uploading = true;
+      console.log("startWebapp");
+      let arr = this.iconURL.split(",");
+      let icLauncher = arr[1];
+      console.log("arr.length: "+arr.length);
+      appUtils
+        .put({
+          url: "api/apps/webapp",
+          data: {
+            appURL: this.uploadAppDesc.appURL,
+            appName: this.uploadAppDesc.appName,
+            appName: this.uploadAppDesc.appName,
+            ssoURL: this.uploadAppDesc.appURL,
+            OrientationMode: "0",
+            icLauncher: icLauncher
+          },
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            console.log(`status: ${response.data.status}`);
+
+            this.uploadAppDesc = response.data;
+            this.uploadAppDesc.uploadAlertType = "info";
+            this.uploadAppDesc.uploadStatus = this.$t("Building web app..");
+            this.uploadProgress = 6;
+            //this.checkUploadStatus();
+          } else {
+            console.log(`status: ${response.data.status}`);
+            this.uploadAppDesc.uploadStatus = this.$t("Error bulding web app ")+" - "+response.data.message;
+            this.uploadAppDesc.uploadAlertType = "error";
+            this.uploading = false;
+          }
+        })
+        .catch((error) => {
+          this.uploadAppDesc.uploadStatus = this.$t("Error bulding web app")+" - "+error;
+          this.uploadAppDesc.uploadAlertType = "error";
+          this.uploading = false;
+        })
         .finally(() => (this.loading = false));
     },
   },
@@ -167,15 +532,15 @@ let page = {
     ];
     this.$emit("updatePage", bcItems);
     this.headers = [
-            {
-              text: this.$t("Icon"),
-              value: "imageUrl",
-              sortable: false
-            },
-            { text: this.$t("Name"), value: "appName" },
-            { text: this.$t("Package"), value: "packageName" },
-            { text: 'Actions', value: 'actions', sortable: false },
-          ];
+      {
+        text: this.$t("Icon"),
+        value: "imageUrl",
+        sortable: false,
+      },
+      { text: this.$t("Name"), value: "appName" },
+      { text: this.$t("Package"), value: "packageName" },
+      { text: "Actions", value: "actions", sortable: false },
+    ];
     this.refresh();
   },
 };

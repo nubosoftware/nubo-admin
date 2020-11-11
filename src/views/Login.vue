@@ -119,6 +119,15 @@ export default {
                 appData.lastname = response.data.lastname;
                 appData.imageurl = response.data.imageurl;
                 appData.email = this.email;
+                appData.orgs = response.data.orgs;
+                appData.orgs.forEach(element => {
+                  if (!element.orgname || element.orgname == "") {
+                    element.domainName = element.maindomain;
+                  } else {
+                    element.domainName = `${element.orgname} - ${element.maindomain}`;
+                  }
+                });
+                console.log("appData.orgs: "+JSON.stringify(appData.orgs,null,2));
                 appData.orgname = (response.data.orgname && response.data.orgname != "" ? response.data.orgname :response.data.mainDomain )
                 appData.commit();
                 this.$router.push("/");

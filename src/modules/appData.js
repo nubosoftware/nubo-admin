@@ -2,7 +2,7 @@ const appData = {
 
     // configuration
     postURL: "http://labil.nubosoftware.com:8080/",
-    proxyURL: "http://172.16.80.119:9080/", //"http://localhost:9080/",
+    proxyURL: "http://127.0.0.1:9080/", //"http://localhost:9080/",
 
     // loaded users params
     isAuthenticated: false,
@@ -14,6 +14,7 @@ const appData = {
     imageurl: "",
     email: "",
     orgname: "",
+    orgs: [],
 
     // additional data
     moduleName: "",
@@ -27,6 +28,8 @@ const appData = {
         localStorage.setItem("imageurl", appData.imageurl);
         localStorage.setItem("email", appData.email);
         localStorage.setItem("orgname", appData.orgname);
+        localStorage.setItem("orgs", JSON.stringify(appData.orgs));
+
     },
     load: () => {
         console.log("Loading app data..");
@@ -38,6 +41,14 @@ const appData = {
         appData.imageurl = localStorage.getItem("imageurl");
         appData.email = localStorage.getItem("email");
         appData.orgname = localStorage.getItem("orgname");
+        let orgsStr = localStorage.getItem("orgs");
+        if (orgsStr && orgsStr != "") {
+            try {
+                appData.orgs = JSON.parse(orgsStr);
+            } catch (err) {
+                console.log(err);
+            }
+        }
         console.log(`Admin: ${appData.email}`);
     },
     logout: () => {

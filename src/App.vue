@@ -6,8 +6,21 @@
           <v-list-item-title class="title"
             >Admin Control Panel</v-list-item-title
           >
-          <v-list-item-subtitle>{{ appData.orgname }}</v-list-item-subtitle>
+          <!--<v-list-item-subtitle>{{ appData.orgname }}</v-list-item-subtitle>-->
         </v-list-item-content>
+      </v-list-item>
+      <v-list-item>
+        <v-list-item-content>
+    
+        <v-select
+          :items="appData.orgs"
+          :label="$t('Organization')"
+          item-text="domainName"
+          item-value="maindomain"
+          :value="appData.mainDomain"
+          @change="orgChanged"
+        ></v-select>
+      </v-list-item-content>
       </v-list-item>
 
       <v-divider></v-divider>
@@ -84,6 +97,7 @@
 
 <script>
 import appData from "./modules/appData";
+import appUtils from "./modules/appUtils";
 
 export default {
   data: () => ({
@@ -116,6 +130,27 @@ export default {
       } else {
         this.items = this.defItems;
       }
+    },
+    orgChanged: function (val) {
+      console.log("orgChanged: "+val);
+      appUtils
+        .put({
+          url: "api/orgs/" + encodeURIComponent(val),
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            console.log("Success");
+            this.appData.mainDomain = val;
+            this.appData.commit();
+            location.reload();
+          } else {
+            console.log(`status: ${response.data.status}`);
+            //this.$router.push("/Login");
+          }
+        })
+        .catch((error) => console.log(error))
+        .finally(() => (this.loading = false));
     },
     logoutClick: function () {
       appData.logout();

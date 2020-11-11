@@ -187,6 +187,11 @@
                 </v-btn>
               </v-toolbar>
             </template>
+            <template v-slot:item.adDomain="{ item }">
+              <div v-if="item.groupName == 'All'">{{$t("Automatic")}}</div>
+              <div v-else-if="item.adDomain == ''">{{$t("Manual")}}</div>
+              <div v-else>{{$t("Active Directory")}}</div>
+            </template>
             <template v-slot:item.actions="{ item }">
               <v-icon small @click="deleteGroup(item)" class="mx-2">
                 mdi-delete
@@ -214,6 +219,11 @@
                 :search="groupSearch"
                 @click:row="groupClick"
               >
+              <template v-slot:item.adDomain="{ item }">
+              <div v-if="item.groupName == 'All'">{{$t("Automatic")}}</div>
+              <div v-else-if="item.adDomain == ''">{{$t("Manual")}}</div>
+              <div v-else>{{$t("Active Directory")}}</div>
+            </template>
               </v-data-table>
             </v-card>
           </v-dialog>
@@ -412,11 +422,11 @@ export default {
             this.groupLoading = false;
             this.groupRows = response.data.groups;
             this.groupHeaders = [
-              { text: this.$t("Group Type"), value: "adDomain" },
               {
                 text: this.$t("Group Name"),
                 value: "groupName",
               },
+              { text: this.$t("Group Type"), value: "adDomain" },
               { text: "Actions", value: "actions", sortable: false },
             ];
             let bcItems = [
@@ -485,11 +495,12 @@ export default {
     loadAllGroups: function () {
       this.allGroupsLoading = true;
       this.allGroupsHeaders = [
-        { text: this.$t("Group Type"), value: "adDomain" },
+        
         {
           text: this.$t("Group Name"),
           value: "groupName",
-        }
+        },
+        { text: this.$t("Group Type"), value: "adDomain" },
       ];
       appUtils
         .get({
