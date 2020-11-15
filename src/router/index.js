@@ -89,7 +89,12 @@ const routes = [{
         component: () =>
             import ( /* webpackChunkName: "about" */ '../views/EmailSetup.vue'),
     },
-
+    {
+        path: '/Security',
+        name: 'Security',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Security.vue'),
+    },
     {
         path: '/about',
         name: 'About',
