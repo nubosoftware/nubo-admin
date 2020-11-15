@@ -1,23 +1,15 @@
 <template>
-  <v-card>
-    <v-toolbar color="cyan" dark flat>
+  <v-card color="bg">
+    <v-toolbar color="secondary" dark flat>
       <v-toolbar-title
         >{{ details.firstname }} {{ details.lastname }}</v-toolbar-title
       >
 
       <v-spacer></v-spacer>
 
-      <v-btn icon>
-        <v-icon>mdi-magnify</v-icon>
-      </v-btn>
-
-      <v-btn icon>
-        <v-icon>mdi-dots-vertical</v-icon>
-      </v-btn>
-
       <template v-slot:extension>
-        <v-tabs v-model="tab" align-with-title>
-          <v-tabs-slider color="yellow"></v-tabs-slider>
+        <v-tabs v-model="tab" align-with-title >
+          <v-tabs-slider color="primary"></v-tabs-slider>
 
           <v-tab key="details"> Details </v-tab>
           <v-tab key="activity"> Activity </v-tab>
@@ -28,9 +20,9 @@
       </template>
     </v-toolbar>
 
-    <v-tabs-items v-model="tab">
-      <v-tab-item key="details">
-        <v-card flat class="ma-4">
+    <v-tabs-items v-model="tab" >
+      <v-tab-item key="details" >
+        <v-card flat class="ma-0" color="bg">
           <v-form>
             <v-container>
               <v-row>
@@ -82,7 +74,7 @@
               <v-row>
                 <v-col cols="12" sm="6" md="3">
                   <v-btn
-                    color="success"
+                    color="primary"
                     class="mr-4"
                     @click="saveDetails"
                     v-bind:loading="saveLoading"
@@ -97,7 +89,7 @@
         </v-card>
       </v-tab-item>
       <v-tab-item key="activity">
-        <v-card flat class="ma-4">
+        <v-card flat class="ma-0" color="bg">
           <v-form>
             <v-container>
               <v-row>
@@ -130,12 +122,12 @@
                   />
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
-                  <v-btn @click="notificationTest">Notification Test</v-btn>
+                  <v-btn @click="notificationTest" color="primary" >Notification Test</v-btn>
                 </v-col>
               </v-row>
 
               <v-row>
-                <v-card class="mt-6">
+                <v-card class="mt-6" color="bg">
                   <v-card-title>Activity Log</v-card-title>
                   <v-data-table
                     :headers="logsHead"
@@ -144,7 +136,7 @@
                     :loading="logsLoading"
                     :sort-by.sync="logsSort"
                     :sort-desc.sync="logsSortDesc"
-                    class="elevation-1 ma-4"
+                    class="elevation-1 ma-4 bg"
                   >
                     <template v-slot:item.Time="{ item }">
                       {{ moment(item.Time).format("LLL") }}
@@ -157,15 +149,15 @@
         </v-card>
       </v-tab-item>
       <v-tab-item key="apps">
-        <v-card flat>
-          <v-card-title>App List</v-card-title>
-          <v-dialog v-model="dialogDelete" max-width="500px">
-          <v-card>
+        <v-card flat color="bg">
+          <v-card-title>{{$t("App List")}}</v-card-title>
+          <v-dialog v-model="dialogDelete" max-width="500px" color="bg">
+          <v-card color="bg">
             <v-card-title class="headline">Are you sure you want to delete {{deleteAppItem.appName}}?</v-card-title>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="closeDelete">Cancel</v-btn>
-              <v-btn color="blue darken-1" text @click="deleteAppConfirm">OK</v-btn>
+              <v-btn color="warning"  @click="closeDelete">Cancel</v-btn>
+              <v-btn color="primary"  @click="deleteAppConfirm">OK</v-btn>
               <v-spacer></v-spacer>
             </v-card-actions>
           </v-card>
@@ -177,7 +169,7 @@
             :loading="appsLoading"
             :sort-by.sync="appsSort"
             :sort-desc.sync="appsSortDesc"
-            class="elevation-1 ma-4"
+            class="elevation-1 ma-4 bg"
           >
             <template v-slot:item.imageUrl="{ item }">
               <v-img
@@ -196,13 +188,90 @@
         </v-card>
       </v-tab-item>
       <v-tab-item key="devices">
-        <v-card flat>
-          <v-card-text></v-card-text>
+        <v-card flat color="bg">
+          <v-card-title>{{$t("Devices")}}</v-card-title>
+          <v-data-table
+            :headers="devicesHead"
+            :items="devices"
+            :items-per-page="10"
+            class="elevation-1 ma-4 bg"
+          >
+            <template v-slot:item.isOnline="{ item }">
+              <v-chip
+                v-if="item.isOnline"
+                class="ma-2"
+                color="success"
+                text-color="white"
+              >
+                {{$t("Online")}}
+              </v-chip>
+              <v-chip
+                v-if="!item.isOnline && item.isActive"
+                class="ma-2"
+                color="warning"
+              >
+                {{$t("Offline")}}
+              </v-chip>
+              <v-chip
+                v-if="!item.isActive"
+                class="ma-2"
+                color="error"
+                text-color="white"
+              >
+                {{$t("Disabled")}}
+              </v-chip>
+            </template>
+            <template v-slot:item.actions="{ item }">
+              <v-btn
+              v-if="item.isOnline"
+              small
+              color="primary"
+              dark
+              class="ma-1"
+              @click="endSession(item)"
+            >
+              {{$t("End Session")}}
+            </v-btn>
+            <v-btn
+              v-else-if="item.isActive "
+              small
+              color="primary"
+              dark
+              class="ma-1"
+              @click="disableDevice(item)"
+            >
+              {{$t("Disable")}}
+            </v-btn>
+            <v-btn
+              v-else
+              small
+              color="primary"
+              dark
+              class="ma-1"
+              @click="enableDevice(item)"
+            >
+              {{$t("Enable")}}
+            </v-btn>
+            </template>
+          </v-data-table>
         </v-card>
       </v-tab-item>
       <v-tab-item key="groups">
-        <v-card flat>
-          <v-card-text></v-card-text>
+        <v-card flat color="bg">
+          <v-card-title>{{ $t("Groups") }}</v-card-title>
+          <v-data-table
+            :headers="groupHeaders"
+            :items="groupRows"
+            class="elevation-1 ma-4 bg"
+          >
+            
+            <template v-slot:item.adDomain="{ item }">
+              <div v-if="item.groupName == 'All'">{{$t("Automatic")}}</div>
+              <div v-else-if="item.adDomain == ''">{{$t("Manual")}}</div>
+              <div v-else>{{$t("Active Directory")}}</div>
+            </template>
+            
+          </v-data-table>
         </v-card>
       </v-tab-item>
     </v-tabs-items>
@@ -252,7 +321,11 @@ export default {
     appsSort: "appName",
     appsSortDesc: false,
     dialogDelete: false,
-    deleteAppItem: {}
+    deleteAppItem: {},
+    devicesHead: [],
+    devices: [],
+    groupHeaders: [],
+    groupRows: [],
   }),
   methods: {
     deleteApp: function(app) {
@@ -321,6 +394,99 @@ export default {
 
         });
     },
+    endSession: function(item) {
+      appUtils
+      .post({
+          url:
+            `api/devices/${encodeURIComponent(this.details.email)}/${encodeURIComponent(item.IMEI)}`,
+          data: {
+            action: "endSession"
+          }
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            console.log("Success");
+            
+            this.snackbarText = this.$t("Session closed");
+            this.snackbarSave = true;
+            this.loadDetails();
+
+          } else {
+            console.log(`status: ${response.data.status}`);
+            //this.$router.push("/Login");
+
+            this.snackbarText = this.$t("Error");
+            this.snackbarSave = true;
+          }
+        })
+        .catch((error) => console.log(error))
+        .finally(() => {
+
+        });
+    },
+    disableDevice: function(item) {
+      appUtils
+      .post({
+          url:
+            `api/devices/${encodeURIComponent(this.details.email)}/${encodeURIComponent(item.IMEI)}`,
+          data: {
+            action: "disable"
+          }
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1 || response.data.status == 0) {
+            console.log("Success");
+            
+            this.snackbarText = this.$t("Device disabled");
+            this.snackbarSave = true;
+            this.loadDetails();
+
+          } else {
+            console.log(`status: ${response.data.status}`);
+            //this.$router.push("/Login");
+
+            this.snackbarText = this.$t("Error");
+            this.snackbarSave = true;
+          }
+        })
+        .catch((error) => console.log(error))
+        .finally(() => {
+
+        });
+    },
+    enableDevice: function(item) {
+      appUtils
+      .post({
+          url:
+            `api/devices/${encodeURIComponent(this.details.email)}/${encodeURIComponent(item.IMEI)}`,
+          data: {
+            action: "enable"
+          }
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            console.log("Success");
+            
+            this.snackbarText = this.$t("Device enabled");
+            this.snackbarSave = true;
+            this.loadDetails();
+
+          } else {
+            console.log(`status: ${response.data.status}`);
+            //this.$router.push("/Login");
+
+            this.snackbarText = this.$t("Error");
+            this.snackbarSave = true;
+          }
+        })
+        .catch((error) => console.log(error))
+        .finally(() => {
+
+        });
+    },
     loadDetails: function() {
       appUtils
       .get({
@@ -358,6 +524,30 @@ export default {
             { text: 'Actions', value: 'actions', sortable: false },
           ];
           this.appsLoading = false;
+
+          this.devices = response.data.devices;
+          this.devicesHead = [
+            {
+              text: this.$t("Name"),
+              value: "deviceName"
+            },
+            { text: this.$t("ID"), value: "IMEI" },
+            { text: this.$t("Created"), value: "insertTime" },
+            { text: this.$t("Online"), value: "isOnline" },
+            { text: this.$t("Platform"), value: "platform" },
+            { text: this.$t("Gateway"), value: "gateway" },
+            { text: 'Actions', value: 'actions', sortable: false },
+          ];
+
+          this.groupRows = response.data.groups;
+          this.groupHeaders = [
+            {
+              text: this.$t("Group Name"),
+              value: "groupName",
+            },
+            { text: this.$t("Group Type"), value: "adDomain" },
+           
+          ];
         } else {
           console.log(`status: ${response.data.status}`);
           this.$router.push("/Login");

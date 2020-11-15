@@ -1,5 +1,5 @@
 <template>
-  <v-card>
+  <v-card color="bg">
     <v-card-title>{{$t("LDAP Domains")}}</v-card-title>
     <v-data-table
       :headers="headers"
@@ -7,11 +7,12 @@
       :items-per-page="20"
       :loading="loading"
       
-      class="elevation-1 ma-4"
+      class="elevation-1 ma-4 bg"
     >
     <template v-slot:top>
       <v-toolbar
         flat
+        color="bg"
       >
         <v-btn
               color="primary"
@@ -62,7 +63,7 @@
       {{ snackbarText }}
 
       <template v-slot:action="{ attrs }">
-        <v-btn color="blue" text v-bind="attrs" @click="snackbarSave = false">
+        <v-btn color="info" text v-bind="attrs" @click="snackbarSave = false">
           Close
         </v-btn>
       </template>

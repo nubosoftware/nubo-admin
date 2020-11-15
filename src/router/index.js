@@ -47,6 +47,13 @@ const routes = [{
             import ( /* webpackChunkName: "about" */ '../views/Group.vue'),
     },
     {
+        path: '/Group/',
+        name: 'Group',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Group.vue'),
+    },
+
+    {
         path: '/LDAP',
         name: 'LDAP',
         component: () =>
@@ -75,6 +82,12 @@ const routes = [{
         name: 'Apps',
         component: () =>
             import ( /* webpackChunkName: "about" */ '../views/AppDetails.vue'),
+    },
+    {
+        path: '/EmailSetup',
+        name: 'EmailSetup',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/EmailSetup.vue'),
     },
 
     {

@@ -1,14 +1,19 @@
 <template>
-  <v-card>
+  <v-card color="bg">
     <v-card-title>
-      {{ $t("Group") }}
+      <v-text-field
+        v-model="groupName"
+        :label="$t('Group Name')"
+        :readonly="!newgroup"
+        :rules="[checkGroupName]"
+      ></v-text-field>
       <v-spacer></v-spacer>
       <v-text-field
         v-model="search"
         append-icon="mdi-magnify"
         label="Search"
-        single-line
-        hide-details
+        
+        
       ></v-text-field>
     </v-card-title>
     <v-data-table
@@ -17,7 +22,7 @@
       :items-per-page="10"
       :loading="loading"
       :search="search"
-      class="elevation-1"
+      class="ma-4 bg"
       multi-sort
       show-select
       item-key="email"
@@ -25,25 +30,24 @@
       @click:row="rowClick"
     >
       <template v-slot:top>
-        <v-toolbar flat>
-          <v-toolbar-title>{{ $t("Profiles") }}</v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" dark text @click="openAddProfiles">{{
+        <v-toolbar flat color="bg">
+          <v-btn 
+            class="ma-4"
+            color="primary" :disabled="readonly || groupName == '' || checkGroupName(groupName) !== true" @click="openAddProfiles">{{
             $t("Add Profiles")
           }}</v-btn>
           <v-btn
             color="primary"
-            dark
-            text
+            class="ma-4"
             @click="dialogDelete = true"
-            :disabled="removeSelectedDisable"
+            :disabled="removeSelectedDisable || readonly"
             >{{ $t("Remove Selected Profiles") }}</v-btn
           >
         </v-toolbar>
       </template>
     </v-data-table>
-    <v-dialog v-model="dialog" max-width="800px">
-      <v-card>
+    <v-dialog v-model="dialog" max-width="800px" overlay-color="bg">
+      <v-card color="bg">
         <v-card-title>
           {{ $t("Add Profiles") }}
           <v-spacer></v-spacer>
@@ -60,7 +64,7 @@
           :headers="profilesHeaders"
           :items="profilesRows"
           :loading="profilesLoading"
-          class="elevation-1 ma-4"
+          class="ma-4 bg"
           :server-items-length="totalItems"
           :items-per-page="5"
           :options.sync="options"
@@ -71,8 +75,11 @@
           @update:options="updateOptions"
         >
           <template v-slot:header.data-table-select> &nbsp; </template>
+          <template v-slot:item.data-table-select="{ isSelected, select, item }">
+            <v-simple-checkbox :disabled="!isItemExists(item)" :value="isSelected" @input="select($event)"></v-simple-checkbox>
+          </template>
           <template v-slot:top>
-            <v-toolbar flat>
+            <v-toolbar flat color="bg">
               <v-btn
                 color="primary"
                 class="mb-2"
@@ -87,20 +94,19 @@
         </v-data-table>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="dialogDelete" max-width="500px">
-      <v-card>
+    <v-dialog v-model="dialogDelete" max-width="500px" overlay-color="bg">
+      <v-card color="bg">
         <v-card-title>{{ $t("Remove Selected Profiles") }}</v-card-title>
         <v-card-subtitle class="mt-4">{{
           $t("Are you sure you want to remove the selected profiles?")
         }}</v-card-subtitle>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="dialogDelete = false">{{
+          <v-btn color="warning" @click="dialogDelete = false">{{
             $t("Cancel")
           }}</v-btn>
           <v-btn
-            color="blue darken-1"
-            text
+            color="primary"
             @click="dialogDelete = false | removeProfiles(selected)"
             >{{ $t("Remove Profiles") }}</v-btn
           >
@@ -108,6 +114,20 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-snackbar v-model="snackbarSave" :timeout="2000">
+      {{ snackbarText }}
+
+      <template v-slot:action="{ attrs }">
+        <v-btn
+          color="primary"
+          text
+          v-bind="attrs"
+          @click="snackbarSave = false"
+        >
+          {{$t("Close")}}
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-card>
 </template>
 
@@ -140,6 +160,11 @@ let page = {
     searchProfiles: "",
     addSelectedDisabled: true,
     addSelectedLoading: false,
+    readonly: false,
+    newgroup: true,
+    snackbarSave: false,
+    snackbarText: "",
+    groupNames: {},
 
   }),
   methods: {
@@ -175,6 +200,7 @@ let page = {
           if (response.data.status == 1) {
             this.profilesRows = response.data.profiles;
             this.totalItems = response.data.totalItems;
+            
             /*let newSelected = [];
             this.profilesRows.forEach((element) => {
               if (this.allSelected[element.email]) {
@@ -191,6 +217,13 @@ let page = {
         .finally(() => (this.loading = false));
     },
 
+    isItemExists: function(item) {
+      if (!this.emailMap[item.email]) {
+        return true;
+      } else {
+        return false;
+      }
+    },
     updateOptions(options) {
       console.log("update:options", options);
       this.refreshProfiles();
@@ -210,6 +243,10 @@ let page = {
           console.log(response.data);
           if (response.data.status == 1) {
             this.rows = response.data.profiles;
+            this.emailMap = {};
+            this.rows.forEach((element) => {
+              this.emailMap[element.email] = 1;
+            });
           } else {
             console.log(`status: ${response.data.status}`);
             this.$router.push("/Login");
@@ -218,11 +255,30 @@ let page = {
         .catch((error) => console.log(error))
         .finally(() => (this.loading = false));
     },
+    loadGroupNames: function () {
+      appUtils
+        .get({
+          url: "api/groups"
+        })
+        .then(response => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            response.data.groups.forEach((item) => {
+              this.groupNames[item.groupName] = "1";
+            });
+          } else {
+            console.log(`status: ${response.data.status}`);
+          }
+        })
+        .catch(error => console.log(error))
+        .finally(() => (this.loading = false));
+    },
     addProfiles: function(items) {
       if (!Array.isArray(items)) {
         items = [items];
       }
-      let emailParams = "";
+      //let emailParams = "";
+      let emails = [];
       items.forEach((item) => {
         let email;
         if (typeof item === "string") {
@@ -230,25 +286,50 @@ let page = {
         } else {
           email = item.email;
         }
-        emailParams += "&email=" + encodeURIComponent(email);
+        //emailParams += "&email=" + encodeURIComponent(email);
+        emails.push(email);
       });
-      console.log(`addProfiles: ${emailParams}`);
+      console.log(`addProfiles: ${emails}`);
+      let method;
+      let cmd;
+      if (this.newgroup) {
+        method = "put";
+        cmd = "";
+        this.groupParam = this.groupName;
+      } else {
+        method = "post";
+        cmd = "addProfiles";
+      }
       appUtils
-        .get({
+        .req({
+          method: method,
           url: `api/groups/${encodeURIComponent(
             this.groupParam
-          )}/addProfiles?${emailParams}`,
+          )}/${cmd}`,
+          data: {
+            email: emails
+          },
         })
         .then((response) => {
           console.log(response.data);
-          if (response.data.status == 1 || response.data.status == 0) {
+          if (response.data.status == 1 ) {
             console.log(`status: ${response.data.status}`);
             this.addSelectedLoading = false;
             this.dialog = false;
+            if (this.newgroup) {
+              this.newgroup = false;
+              this.updatePageHead();
+              this.snackbarText = this.$t("Group Added");
+            } else {
+              this.snackbarText = this.$t("Profiles Added");
+            }
+            this.snackbarSave = true;
             this.refresh();
           } else {
             console.log(`status: ${response.data.status}`);
             this.addSelectedLoading = false;
+            this.snackbarText = this.$t("Error")+" - "+response.data.message;
+            this.snackbarSave = true;
             //this.$router.push("/Login");
           }
         })
@@ -289,36 +370,63 @@ let page = {
         .catch((error) => console.log(error))
         .finally(() => (this.loading = false));
     },
+    updatePageHead: function() {
+      let bcItems = [
+        {
+          text: this.$t("control-panel"),
+          href: "/#/",
+          disabled: false,
+        },
+        {
+          text: this.$t("Groups"),
+          href: "/#/Groups",
+          disabled: false,
+        },
+        {
+          text: (this.newgroup ? this.$t("New Group") : this.groupName),
+          href: "/#/Group/" + this.groupName + "/" + this.adDomain,
+          disabled: false,
+        },
+      ];
+      this.$emit("updatePage", bcItems);
+    },
+    checkGroupName: function(name) {
+      if (!name || name == "") {
+        return this.$t(`Enter group name`);
+      } else if (this.groupNames[name]) {
+        return this.$t(`Group name already exists`);
+      } else {
+        return true;
+      }
+    }
   },
   created: function() {
     this.groupName = this.$route.params.groupName;
-    this.adDomain = this.$route.params.adDomain
-      ? this.$route.params.adDomain
-      : "";
+    if (this.groupName == "All") {
+      this.readonly = true;
+    } else {
+      this.readonly = false;
+    }
+    if (!this.groupName) {
+      this.groupName = "";
+    }
+    if (this.groupName == "") {
+      this.newgroup = true;
+      this.adDomain = ""
+      this.loadGroupNames();
+    } else {
+      this.newgroup = false;
+      this.adDomain = this.$route.params.adDomain ? this.$route.params.adDomain : "";
+    }
+    
+      
 
     if (this.adDomain && this.adDomain != "") {
       this.groupParam = `${this.groupName}#${this.adDomain}`;
     } else {
       this.groupParam = this.groupName;
     }
-    let bcItems = [
-      {
-        text: this.$t("control-panel"),
-        href: "/#/",
-        disabled: false,
-      },
-      {
-        text: this.$t("Groups"),
-        href: "/#/Groups",
-        disabled: false,
-      },
-      {
-        text: this.$route.params.groupName,
-        href: "/#/Group/" + this.groupName + "/" + this.adDomain,
-        disabled: false,
-      },
-    ];
-    this.$emit("updatePage", bcItems);
+    this.updatePageHead();
     this.headers = [
       {
         text: this.$t("First Name"),

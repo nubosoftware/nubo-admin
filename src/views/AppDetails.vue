@@ -1,6 +1,6 @@
 <template>
-  <v-card>
-    <v-toolbar color="cyan" dark flat>
+  <v-card color="bg">
+    <v-toolbar color="secondary" dark flat>
       <v-toolbar-title>{{ details.appname }}</v-toolbar-title>
 
       <v-spacer></v-spacer>
@@ -9,7 +9,7 @@
 
       <template v-slot:extension>
         <v-tabs v-model="tab" align-with-title>
-          <v-tabs-slider color="yellow"></v-tabs-slider>
+          <v-tabs-slider color="primary"></v-tabs-slider>
 
           <v-tab key="details"> {{ $t("Details") }} </v-tab>
           <v-tab key="profiles"> {{ $t("Profiles") }} </v-tab>
@@ -20,7 +20,7 @@
 
     <v-tabs-items v-model="tab">
       <v-tab-item key="details">
-        <v-card flat class="ma-4">
+        <v-card flat class="ma-0" color="bg">
           <v-list-item three-line>
             <v-list-item-avatar tile size="80">
               <v-img :src="details.imageurl"></v-img>
@@ -36,7 +36,7 @@
             </v-list-item-content>
           </v-list-item>
         </v-card>
-        <v-card flat class="ma-4">
+        <v-card flat class="ma-0" color="bg">
           <v-form>
             <v-container>
               <v-row>
@@ -56,6 +56,7 @@
                 <v-col cols="12" sm="6" md="3">
                   <v-text-field
                     :label="$t('Categories')"
+                    :placeholder="$t('Seperate names by comma')"
                     v-model="details.categories"
                   />
                 </v-col>
@@ -88,7 +89,7 @@
               <v-row>
                 <v-col cols="12" sm="6" md="3">
                   <v-btn
-                    color="success"
+                    color="primary"
                     class="mr-4"
                     @click="saveDetails"
                     v-bind:loading="saveLoading"
@@ -102,16 +103,16 @@
         </v-card>
       </v-tab-item>
       <v-tab-item key="profiles">
-        <v-card flat class="ma-4">
+        <v-card flat class="ma-0" color="bg">
           <v-card-title>{{$t("Profiles")}}</v-card-title>
           <v-data-table
             :headers="headers"
             :items="rows"
             :loading="loading"
-            class="elevation-1 ma-4"
+            class="elevation-1 ma-4 bg"
           >
             <template v-slot:top>
-              <v-toolbar flat>
+              <v-toolbar flat color="bg">
                 <v-btn color="primary" dark class="mb-2" @click="addProfile">
                   {{ $t("Assign Profiles to App") }}
                 </v-btn>
@@ -123,8 +124,8 @@
               </v-icon>
             </template>
           </v-data-table>
-          <v-dialog v-model="dialog" max-width="800px">
-            <v-card>
+          <v-dialog v-model="dialog" max-width="800px" overlay-color="bg">
+            <v-card color="bg">
               <v-card-title>
                 {{ $t("Add Profiles") }}
                 <v-spacer></v-spacer>
@@ -141,7 +142,7 @@
                 :headers="profilesHeaders"
                 :items="profilesRows"
                 :loading="profilesLoading"
-                class="elevation-1 ma-4"
+                class="elevation-1 ma-4 bg"
                 :server-items-length="totalItems"
                 :items-per-page="5"
                 :options.sync="options"
@@ -153,7 +154,7 @@
               >
                 <template v-slot:header.data-table-select> &nbsp; </template>
                 <template v-slot:top>
-                  <v-toolbar flat>
+                  <v-toolbar flat color="bg">
                     <v-btn
                       color="primary"
                       class="mb-2"
@@ -172,16 +173,16 @@
       </v-tab-item>
 
       <v-tab-item key="groups">
-        <v-card flat class="ma-4">
+        <v-card flat class="ma-0" color="bg">
           <v-card-title>{{ $t("Groups") }}</v-card-title>
           <v-data-table
             :headers="groupHeaders"
             :items="groupRows"
             :loading="groupLoading"
-            class="elevation-1 ma-4"
+            class="elevation-1 ma-4 bg"
           >
             <template v-slot:top>
-              <v-toolbar flat>
+              <v-toolbar flat color="bg">
                 <v-btn color="primary" dark class="mb-2" @click="addGroup">
                   {{ $t("Add Groups") }}
                 </v-btn>
@@ -198,8 +199,8 @@
               </v-icon>
             </template>
           </v-data-table>
-          <v-dialog v-model="groupDialog" max-width="800px">
-            <v-card>
+          <v-dialog v-model="groupDialog" max-width="800px" overlay-color="bg">
+            <v-card color="bg">
               <v-card-title>
                 {{ $t("Add Groups") }}
                 <v-spacer></v-spacer>
@@ -215,7 +216,7 @@
                 :headers="allGroupsHeaders"
                 :items="allGroupsRows"
                 :loading="allGroupsLoading"
-                class="elevation-1 ma-4"
+                class="elevation-1 ma-4 bg"
                 :search="groupSearch"
                 @click:row="groupClick"
               >
@@ -230,29 +231,29 @@
         </v-card>
       </v-tab-item>
     </v-tabs-items>
-    <v-dialog v-model="dialogInstall" max-width="500px">
-      <v-card>
+    <v-dialog v-model="dialogInstall" max-width="500px" overlay-color="bg">
+      <v-card color="bg">
         <v-card-title>{{ $t("Add App") }}</v-card-title>
         <v-card-subtitle class="mt-4">{{
           $t("Are you sure you want to add app to the selected profiles",{addItemLabel: addItemLabel})
         }}</v-card-subtitle>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="cancelInstall">{{
+          <v-btn color="warning" @click="cancelInstall">{{
             $t("Cancel")
           }}</v-btn>
-          <v-btn color="blue darken-1" text @click="installApp">{{
+          <v-btn color="primary" @click="installApp">{{
             $t("Install App")
           }}</v-btn>
-          <v-btn color="blue darken-1" text @click="addToAppstore">{{
+          <v-btn color="secondary" @click="addToAppstore">{{
             $t("Add to Appstore")
           }}</v-btn>
           <v-spacer></v-spacer>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="dialogDelete" max-width="500px">
-      <v-card>
+    <v-dialog v-model="dialogDelete" max-width="500px" overlay-color="bg">
+      <v-card color="bg">
         <v-card-title>{{ $t("Remove App") }}</v-card-title>
         <v-card-subtitle class="mt-4">{{
           $t("Are you sure you want to remove app from", {
@@ -261,10 +262,10 @@
         }}</v-card-subtitle>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="cancelUninstall">{{
+          <v-btn color="warning" @click="cancelUninstall">{{
             $t("Cancel")
           }}</v-btn>
-          <v-btn color="blue darken-1" text @click="uninstallApp">{{
+          <v-btn color="primary" @click="uninstallApp">{{
             $t("Uninstall App")
           }}</v-btn>
           <v-spacer></v-spacer>
@@ -276,7 +277,7 @@
       {{ snackbarText }}
 
       <template v-slot:action="{ attrs }">
-        <v-btn color="blue" text v-bind="attrs" @click="snackbarSave = false">
+        <v-btn color="info" text v-bind="attrs" @click="snackbarSave = false">
           Close
         </v-btn>
       </template>

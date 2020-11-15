@@ -1,13 +1,13 @@
 <template>
-  <v-card>
-    <v-toolbar color="cyan" dark flat>
+  <v-card color="bg">
+    <v-toolbar color="secondary" dark flat>
       <v-toolbar-title>{{ $t("LDAP Domain") }}: {{ addomain }}</v-toolbar-title>
 
       <v-spacer></v-spacer>
 
       <template v-slot:extension>
         <v-tabs v-model="tab" align-with-title>
-          <v-tabs-slider color="yellow"></v-tabs-slider>
+          <v-tabs-slider color="primary"></v-tabs-slider>
 
           <v-tab key="setup"> Setup </v-tab>
           <v-tab key="ous" :disabled="disableOUs"> Organization Units </v-tab>
@@ -17,7 +17,7 @@
 
     <v-tabs-items v-model="tab">
       <v-tab-item key="setup">
-        <v-card flat>
+        <v-card flat color="bg">
           <v-form ref="form" v-model="formValid">
             <v-container>
               <v-row>
@@ -94,7 +94,7 @@
                 <v-col cols="12" sm="6" md="3">
                   <v-btn
                     :disabled="!formValid"
-                    color="success"
+                    color="primary"
                     class="mr-4"
                     @click="saveForm"
                     v-bind:loading="saveLoading"
@@ -108,7 +108,7 @@
         </v-card>
       </v-tab-item>
       <v-tab-item key="ous">
-        <v-card flat>
+        <v-card flat color="bg">
           <v-treeview
             selectable
             item-disabled="locked"
@@ -117,9 +117,10 @@
             :value="value"
             open-all
             @input="input"
+            class="bg"
           ></v-treeview>
           <v-btn
-            color="success"
+            color="primary"
             class="ma-4"
             v-bind:loading="saveOULoading"
             @click="saveOUs"
@@ -135,7 +136,7 @@
       {{ snackbarText }}
 
       <template v-slot:action="{ attrs }">
-        <v-btn color="blue" text v-bind="attrs" @click="snackbarSave = false">
+        <v-btn color="info" text v-bind="attrs" @click="snackbarSave = false">
           Close
         </v-btn>
       </template>

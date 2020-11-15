@@ -1,5 +1,5 @@
 <template>
-  <v-card>
+  <v-card color="bg">
     <v-card-title>
       {{$t("Profile List")}}
       <v-spacer></v-spacer>
@@ -12,6 +12,7 @@
       ></v-text-field>
     </v-card-title>
     <v-data-table
+      color="bg"
       :headers="headers"
       :items="rows"
       :server-items-length="totalItems"
@@ -19,7 +20,7 @@
       :loading="loading"
       :options.sync="options"
       :search="search"
-      class="elevation-1 ma-4"
+      class="ma-4 bg"
       multi-sort
       @update:options="updateOptions"
       @click:row="rowClick"
@@ -31,16 +32,7 @@
 
 
 <style>
-@import "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons";
-.loginOverlay {
-  background: rgba(33, 150, 243, 0.3);
-}
 
-.photoCredit {
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
-}
 </style>
 
  <script>

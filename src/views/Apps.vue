@@ -1,15 +1,15 @@
 <template>
-  <v-card>
+  <v-card color="bg">
     <v-card-title>{{ $t("Apps") }}</v-card-title>
     <v-data-table
       :headers="headers"
       :items="rows"
       :items-per-page="20"
       :loading="loading"
-      class="elevation-1 ma-4"
+      class="elevation-1 ma-4 bg"
     >
       <template v-slot:top>
-        <v-toolbar flat>
+        <v-toolbar flat color="bg">
           <v-btn color="primary" dark class="ma-2" @click="uploadDialog = true">
             {{ $t("App Upload") }}
           </v-btn>
@@ -28,23 +28,23 @@
         </v-icon>
       </template>
     </v-data-table>
-    <v-dialog v-model="dialog" persistent max-width="290">
+    <v-dialog v-model="dialog" persistent max-width="290" overlay-color="bg">
       <v-card>
-        <v-card-title> Delete {{ deleteAppName }} </v-card-title>
+        <v-card-title> {{$t("Delete deleteAppName",{deleteAppName})}} </v-card-title>
         <v-card-text>
-          {{ $t("Are you sure you want to delete") }} {{ deleteAppName }}?
+          {{ $t("Are you sure you want to delete",{deleteAppName}) }}
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="red darken-1" text @click="dialog = false">
+          <v-btn color="warning" @click="dialog = false">
             Cancel
           </v-btn>
-          <v-btn color="green darken-1" text @click="deleteOK"> OK </v-btn>
+          <v-btn color="primary" @click="deleteOK"> OK </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="uploadDialog" persistent max-width="1000">
-      <v-card>
+    <v-dialog v-model="uploadDialog" persistent max-width="1000" overlay-color="bg">
+      <v-card color="bg">
         <v-card-title>
           {{ $t("Upload App") }}
         </v-card-title>
@@ -115,12 +115,12 @@
         </v-container>
         <v-card-actions class="mx-4" >
           <v-spacer></v-spacer>
-          <v-btn color="gray darken-1" @click="uploadDialog = false">
+          <v-btn color="warning" @click="uploadDialog = false">
             {{ $t("Cancel") }}
           </v-btn>
           <v-btn
             
-            color="green darken-1"
+            color="primary"
             :loading="uploading"
             :disabled="!uploadSelectedFile || uploading"
             @click="startUpload"
@@ -137,8 +137,8 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="webappDialog" persistent max-width="1000">
-      <v-card>
+    <v-dialog v-model="webappDialog" persistent max-width="1000" overlay-color="bg">
+      <v-card color="bg">
         <v-card-title>
           {{ $t("Generate Web App") }}
         </v-card-title>
@@ -148,6 +148,7 @@
               <v-text-field
                 :label="$t('URL')"
                 placeholder="https://youwebsite.com"
+                :rules="httpRules"
                 v-model="uploadAppDesc.appURL"
               />
             </v-col>
@@ -202,12 +203,12 @@
         </v-container>
         <v-card-actions class="mx-4" >
           <v-spacer></v-spacer>
-          <v-btn color="gray darken-1" @click="webappDialog = false">
+          <v-btn color="warning" @click="webappDialog = false">
             {{ $t("Cancel") }}
           </v-btn>
           <v-btn
             
-            color="green darken-1"
+            color="primary"
             :loading="uploading"
             :disabled="!uploadAppDesc.appURL || uploadAppDesc.appURL == '' || !uploadAppDesc.appName || uploadAppDesc.appName == '' || iconURL == '' ||uploading"
             @click="startWebapp"
@@ -228,7 +229,7 @@
       {{ snackbarText }}
 
       <template v-slot:action="{ attrs }">
-        <v-btn color="blue" text v-bind="attrs" @click="snackbarSave = false">
+        <v-btn color="info" text v-bind="attrs" @click="snackbarSave = false">
           Close
         </v-btn>
       </template>
@@ -262,6 +263,12 @@ let page = {
     uploadAppDesc: {},
     webappDialog: false,
     iconURL: "",
+    httpRules: [
+      (v) => !!v || "URL is required",
+      (v) =>
+        /[(http(s)?)://(www.)?a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)/.test(v) ||
+        "URL must be valid",
+    ],
     appData,
   }),
   methods: {
@@ -284,7 +291,7 @@ let page = {
         .then((response) => {
           console.log(response.data);
           if (response.data.status == 1) {
-            this.snackbarText = this.$t("Saved");
+            this.snackbarText = this.$t("Deleted");
             this.snackbarSave = true;
             this.refresh();
           } else {
@@ -477,6 +484,9 @@ let page = {
     startWebapp: function () {
       this.uploading = true;
       console.log("startWebapp");
+      this.uploadAppDesc.uploadAlertType = "info";
+      this.uploadAppDesc.uploadStatus = this.$t("Sending web app information..");
+      this.uploadProgress = 1;
       let arr = this.iconURL.split(",");
       let icLauncher = arr[1];
       console.log("arr.length: "+arr.length);
@@ -485,7 +495,6 @@ let page = {
           url: "api/apps/webapp",
           data: {
             appURL: this.uploadAppDesc.appURL,
-            appName: this.uploadAppDesc.appName,
             appName: this.uploadAppDesc.appName,
             ssoURL: this.uploadAppDesc.appURL,
             OrientationMode: "0",
@@ -496,21 +505,91 @@ let page = {
           console.log(response.data);
           if (response.data.status == 1) {
             console.log(`status: ${response.data.status}`);
-
-            this.uploadAppDesc = response.data;
+            this.uploadAppDesc.packageName = response.data.apkname;
             this.uploadAppDesc.uploadAlertType = "info";
             this.uploadAppDesc.uploadStatus = this.$t("Building web app..");
-            this.uploadProgress = 6;
-            //this.checkUploadStatus();
+            this.uploadProgress = 10;
+            this.checkWebappStatus();
           } else {
             console.log(`status: ${response.data.status}`);
-            this.uploadAppDesc.uploadStatus = this.$t("Error bulding web app ")+" - "+response.data.message;
+            this.uploadAppDesc.uploadStatus = this.$t("Error building web app")+" - "+response.data.message;
             this.uploadAppDesc.uploadAlertType = "error";
             this.uploading = false;
           }
         })
         .catch((error) => {
-          this.uploadAppDesc.uploadStatus = this.$t("Error bulding web app")+" - "+error;
+          this.uploadAppDesc.uploadStatus = this.$t("Error building web app")+" - "+error;
+          this.uploadAppDesc.uploadAlertType = "error";
+          this.uploading = false;
+        })
+        .finally(() => (this.loading = false));
+    },
+    checkWebappStatus: function() {
+      let thisPage = this;
+      appUtils
+        .get({
+          url: "api/apps/webapp?appURL="+encodeURIComponent(this.uploadAppDesc.appURL),
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            console.log(`status: ${response.data.status}`);
+            this.uploadAppDesc.uploadAlertType = "info";
+            
+            let isError = true;
+            let isComplete = false;
+            if (response.data.URLLauncherStatus == 1) {
+              isError = false;
+              isComplete = true;
+              this.uploadAppDesc.uploadStatus = this.$t("Web app was genereated successfully");
+            } else if (response.data.URLLauncherStatus == 2) {
+              isError = false;
+              this.uploadAppDesc.uploadStatus = this.$t("Building web app...");
+              this.uploadProgress = 20;
+            } else if (response.data.URLLauncherStatus == 4) {
+              isError = false;
+              this.uploadAppDesc.uploadStatus = this.$t("Installing web app...");
+              this.uploadProgress = 60;
+            } else if (response.data.URLLauncherStatus == 3) {
+              isError = true;
+              isComplete = true;
+              this.uploadAppDesc.uploadStatus = this.$t("Build error");
+            } else if (response.data.URLLauncherStatus == 5) {
+              isError = true;
+              isComplete = true;
+              this.uploadAppDesc.uploadStatus = this.$t("Install error");
+            } else {
+              isError = true;
+              isComplete = true;
+              this.uploadAppDesc.uploadStatus = this.$t("Unknown status: "+this.uploadAppDesc.uploadStatus);
+            }
+            if (isError) {
+              this.uploadAppDesc.uploadAlertType = "error";
+              this.uploadProgress = 0;
+            } else if (!isComplete) {
+              this.uploadAppDesc.uploadAlertType = "info";
+            } else {
+              this.uploadAppDesc.uploadAlertType = "success";
+              this.uploadProgress = 0;
+            }
+            this.$forceUpdate();
+            if (isComplete) {
+              this.uploading = false;
+            } else {
+              setTimeout(function () {
+                  thisPage.checkWebappStatus();
+              }, 1000);
+            }
+            
+          } else {
+            console.log(`status: ${response.data.status}`);
+            this.uploadAppDesc.uploadStatus = this.$t("Error building web app")+" - "+response.data.message;
+            this.uploadAppDesc.uploadAlertType = "error";
+            this.uploading = false;
+          }
+        })
+        .catch((error) => {
+          this.uploadAppDesc.uploadStatus = this.$t("Error building web app")+" - "+error;
           this.uploadAppDesc.uploadAlertType = "error";
           this.uploading = false;
         })

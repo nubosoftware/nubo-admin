@@ -1,17 +1,20 @@
 <template>
-  <v-app id="inspire">
-    <v-navigation-drawer v-model="drawer" app>
+  <v-app id="inspire" color="bg" >
+    <v-navigation-drawer v-model="drawer" app color="bg">
       <v-list-item>
         <v-list-item-content>
-          <v-list-item-title class="title"
-            >Admin Control Panel</v-list-item-title
-          >
+          <v-img class="mx-6"
+          max-width="160"
+          src="./assets/logo.png"
+          ></v-img>
+          
+          
           <!--<v-list-item-subtitle>{{ appData.orgname }}</v-list-item-subtitle>-->
         </v-list-item-content>
       </v-list-item>
       <v-list-item>
         <v-list-item-content>
-    
+          
         <v-select
           :items="appData.orgs"
           :label="$t('Organization')"
@@ -45,9 +48,15 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-app-bar app>
+    <v-app-bar app
+      
+      color="bg"
+      elevate-on-scroll
+    >
+      <v-app-bar-nav-icon v-if="!drawer" @click="drawer = true"> </v-app-bar-nav-icon>
       <v-breadcrumbs :items="items" divider=">"></v-breadcrumbs>
       <v-spacer></v-spacer>
+      
       <v-menu
         v-if="appData.isAuthenticated"
         :close-on-content-click="true"
@@ -56,7 +65,7 @@
       >
         <template v-slot:activator="{ on, attrs }">
           <v-btn icon v-bind="attrs" v-on="on">
-            <v-icon large color="blue darken-2">mdi-account</v-icon>
+            <v-icon large color="primary">mdi-account</v-icon>
           </v-btn>
         </template>
 
@@ -88,12 +97,15 @@
       </v-menu>
     </v-app-bar>
 
-    <v-main>
+    <v-main >
       <!--  -->
       <router-view @updatePage="updatePage"></router-view>
     </v-main>
   </v-app>
 </template>
+<style scoped>
+
+</style>
 
 <script>
 import appData from "./modules/appData";
@@ -103,16 +115,7 @@ export default {
   data: () => ({
     drawer: true,
     moduleName: "Control Panel",
-    menuItems: [
-      { title: "Profiles", icon: "mdi-account-multiple-outline", link: "/Profiles" },
-      { title: "Groups", icon: "mdi-account-group", link: "/Groups" },
-      { title: "Apps", icon: "mdi-apps", link: "/Apps" },
-      { title: "Exchange", icon: "mdi-email" },
-      { title: "Active Directory", icon: "mdi-microsoft" , link: "/LDAP" },
-      { title: "Administrators", icon: "mdi-account-tie" , link: "/Admins" },
-      { title: "Security", icon: "mdi-shield-account", link: "/Security" },
-      { title: "Dashboard and Reports", icon: "mdi-chart-bar" },
-    ],
+    menuItems: [],
     items: [
       {
         text: "Text",
@@ -164,6 +167,16 @@ export default {
       disabled: false,
     }];
     this.defItems = this.items;
+    this.menuItems= [
+      { title: this.$t("Profiles"), icon: "mdi-account-multiple-outline", link: "/Profiles" },
+      { title: this.$t("Groups"), icon: "mdi-account-group", link: "/Groups" },
+      { title: this.$t("Apps"), icon: "mdi-apps", link: "/Apps" },
+      { title: this.$t("Exchange"), icon: "mdi-email", link: "/EmailSetup"},
+      { title: this.$t("Active Directory"), icon: "mdi-microsoft" , link: "/LDAP" },
+      { title: this.$t("Administrators"), icon: "mdi-account-tie" , link: "/Admins" },
+      { title: this.$t("Security"), icon: "mdi-shield-account", link: "/Security" },
+      { title: this.$t("Dashboard and Reports"), icon: "mdi-chart-bar" },
+    ];
     console.log("created: items: " + this.items);
   },
 };

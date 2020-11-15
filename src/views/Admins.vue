@@ -1,5 +1,5 @@
 <template>
-  <v-card>
+  <v-card color="bg">
     <v-card-title>
       {{$t("Admin List")}}
       <v-spacer></v-spacer>
@@ -9,12 +9,13 @@
       :items="rows"
       :loading="loading"
       
-      class="elevation-1 ma-4"
+      class="elevation-1 ma-4 bg"
       
     >
     <template v-slot:top>
       <v-toolbar
         flat
+        color="bg"
       >
         <v-btn
               color="primary"
@@ -33,10 +34,10 @@
     </v-data-table>
     <v-dialog
       v-model="dialog"
-      
+      overlay-color="bg"
       max-width="800px"
     >
-    <v-card>
+    <v-card color="bg">
       <v-card-title>
       {{$t("Add Profiles")}}
       <v-spacer></v-spacer>
@@ -53,7 +54,7 @@
       :items="profilesRows"
       :loading="profilesLoading"
       
-      class="elevation-1 ma-4"
+      class="elevation-1 ma-4 bg"
 
       :server-items-length="totalItems"
       :items-per-page="5"
@@ -70,7 +71,7 @@
       {{ snackbarText }}
 
       <template v-slot:action="{ attrs }">
-        <v-btn color="blue" text v-bind="attrs" @click="snackbarSave = false">
+        <v-btn color="info" text v-bind="attrs" @click="snackbarSave = false">
           Close
         </v-btn>
       </template>
@@ -231,7 +232,7 @@ let page = {
       },
       { text: this.$t("First Name"), value: "firstName" },
       { text: this.$t("Email"), value: "email" },
-      { text: 'Actions', value: 'actions', sortable: false }
+      { text: this.$t('Actions'), value: 'actions', sortable: false }
     ];
     this.profilesHeaders = [
       {
