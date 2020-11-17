@@ -99,7 +99,7 @@
 
     <v-main >
       <!--  -->
-      <router-view @updatePage="updatePage"></router-view>
+      <router-view @updatePage="updatePage" @checkLoginLoop="checkLoginLoop"></router-view>
     </v-main>
   </v-app>
 </template>
@@ -159,6 +159,35 @@ export default {
       appData.logout();
       this.$router.push("/Login");
     },
+    checkLoginLoop: function(prevLoginToken){
+      console.log("checkLoginLoop: "+prevLoginToken);
+      let thisPage = this;
+      setTimeout(function(){
+        if (appData.adminLoginToken && appData.adminLoginToken != "" && appData.adminLoginToken == prevLoginToken) {
+          appUtils
+            .get({
+              url: "api/validateLogin",
+            })
+            .then((response) => {
+              
+              if (response.data.status == 1) {
+                console.log("Login is valid...");
+                thisPage.checkLoginLoop(prevLoginToken);
+              } else {
+                console.log("Login Error");
+                console.log(response.data);
+                appData.adminLoginToken = "";
+                thisPage.$router.push("/Login");
+              }
+            }).catch((error) => {
+              console.log("Login Error");
+              console.log(error);
+              appData.adminLoginToken = "";
+              thisPage.$router.push("/Login");
+            })
+        }
+      },10000);
+    },
   },
   created: function () {
     this.items = [{
@@ -168,6 +197,7 @@ export default {
     }];
     this.defItems = this.items;
     this.menuItems= [
+      { title: this.$t("Dashboard"), icon: "mdi-chart-bar" , link: "/" },
       { title: this.$t("Profiles"), icon: "mdi-account-multiple-outline", link: "/Profiles" },
       { title: this.$t("Groups"), icon: "mdi-account-group", link: "/Groups" },
       { title: this.$t("Apps"), icon: "mdi-apps", link: "/Apps" },
@@ -175,9 +205,11 @@ export default {
       { title: this.$t("Active Directory"), icon: "mdi-microsoft" , link: "/LDAP" },
       { title: this.$t("Administrators"), icon: "mdi-account-tie" , link: "/Admins" },
       { title: this.$t("Security"), icon: "mdi-shield-account", link: "/Security" },
-      { title: this.$t("Dashboard and Reports"), icon: "mdi-chart-bar" },
+      { title: this.$t("Reports"), icon: "mdi-file-document-multiple-outline" , link: "/Reports"},
     ];
-    console.log("created: items: " + this.items);
+    if (appData.adminLoginToken && appData.adminLoginToken != "") {
+      this.checkLoginLoop(appData.adminLoginToken);
+    }
   },
 };
 </script>

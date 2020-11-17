@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 const appData = {
 
     // configuration
@@ -14,6 +16,9 @@ const appData = {
     imageurl: "",
     email: "",
     orgname: "",
+    deviceid: "",
+    deviceName: "",
+    activationkey: "",
     orgs: [],
 
     // additional data
@@ -29,6 +34,9 @@ const appData = {
         localStorage.setItem("email", appData.email);
         localStorage.setItem("orgname", appData.orgname);
         localStorage.setItem("orgs", JSON.stringify(appData.orgs));
+        localStorage.setItem("deviceid", appData.deviceid);
+        localStorage.setItem("deviceName", appData.deviceName);
+        localStorage.setItem("activationkey", appData.activationkey);
 
     },
     load: () => {
@@ -49,6 +57,19 @@ const appData = {
                 console.log(err);
             }
         }
+        appData.deviceid = localStorage.getItem("deviceid");
+        if (!appData.deviceid || appData.deviceid == "") {
+            appData.deviceid = uuidv4();
+            localStorage.setItem("deviceid", appData.deviceid);
+            //console.log("appData.deviceid: " + appData.deviceid);
+        }
+        appData.deviceName = localStorage.getItem("deviceName");
+        if (!appData.deviceName || appData.deviceName == "") {
+            appData.deviceName = navigator.userAgent;
+            localStorage.setItem("deviceName", appData.deviceName);
+            console.log(`userAgent: ${navigator.userAgent}`);
+        }
+        appData.activationkey = localStorage.getItem("activationkey");
         console.log(`Admin: ${appData.email}`);
     },
     logout: () => {
@@ -58,8 +79,9 @@ const appData = {
         appData.firstname = "";
         appData.lastname = "";
         appData.imageurl = "";
-        appData.email = "";
+        //appData.email = "";
         appData.orgname = "";
+        //appData.activationkey = "";
         appData.commit();
     }
 };

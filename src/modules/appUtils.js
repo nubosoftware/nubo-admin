@@ -17,7 +17,7 @@ const appUtils = {
         if (!options.headers) {
             options.headers = {};
         }
-        if (appData.adminLoginToken) {
+        if (appData.adminLoginToken && appData.adminLoginToken != "") {
             options.headers['Authorization'] = `OAuth ${appData.adminLoginToken}`;
         }
         return axios(options);
