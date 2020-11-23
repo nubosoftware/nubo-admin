@@ -1,21 +1,64 @@
 <template>
   <v-card color="bg">
     <v-toolbar color="secondary" dark flat>
-      <v-toolbar-title
-        >{{ details.firstname }} {{ details.lastname }}</v-toolbar-title
-      >
-
+      <v-toolbar-title v-if="!newProfile"
+        >{{ details.firstname }} {{ details.lastname }}</v-toolbar-title>
+       <v-toolbar-title v-else
+        >{{ $t("New Profile") }}</v-toolbar-title>
       <v-spacer></v-spacer>
+      <!--
+      <v-btn icon>
+        <v-icon>mdi-dots-vertical</v-icon>
+      </v-btn>-->
+      <v-menu
+        bottom
+        left
+        v-if="!newProfile"
+      >
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            dark
+            icon
+            v-bind="attrs"
+            v-on="on"
+          >
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+
+        <v-list>
+          <v-list-item @click="sendInvitation()"
+          >
+            <v-list-item-title>{{ $t('Send invitation') }}</v-list-item-title>
+            
+          </v-list-item>
+          <v-list-item @click="dialogDeleteProfile = true">
+            <v-list-item-title>{{ $t('Delete profile') }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+
+      <v-dialog v-model="dialogDeleteProfile" max-width="500px" color="bg">
+          <v-card color="bg">
+            <v-card-subtitle class="headline">{{$t('Are you sure you want to delete profile',{profileName: details.firstname+' '+details.lastname })}}</v-card-subtitle>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="warning"  @click="dialogDeleteProfile = false">{{$t('Cancel')}}</v-btn>
+              <v-btn color="error"  @click="deleteProfile()">{{$t('OK')}}</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
 
       <template v-slot:extension>
         <v-tabs v-model="tab" align-with-title >
           <v-tabs-slider color="primary"></v-tabs-slider>
 
-          <v-tab key="details"> Details </v-tab>
-          <v-tab key="activity"> Activity </v-tab>
-          <v-tab key="apps"> Apps </v-tab>
-          <v-tab key="devices"> Devices </v-tab>
-          <v-tab key="groups"> Groups </v-tab>
+          <v-tab key="details"> {{$t("Details")}} </v-tab>
+          <v-tab key="activity" v-if="!newProfile"> {{$t("Activity")}} </v-tab>
+          <v-tab key="apps" v-if="!newProfile"> {{$t("Apps")}} </v-tab>
+          <v-tab key="devices" v-if="!newProfile"> {{$t("Devices")}} </v-tab>
+          <v-tab key="groups" v-if="!newProfile"> {{$t("Groups")}} </v-tab>
         </v-tabs>
       </template>
     </v-toolbar>
@@ -23,52 +66,57 @@
     <v-tabs-items v-model="tab" >
       <v-tab-item key="details" >
         <v-card flat class="ma-0" color="bg">
-          <v-form>
+          <v-form 
+            ref="form"
+            v-model="valid" >
             <v-container>
               <v-row>
                 <v-col cols="12" sm="6" md="3">
                   <v-text-field
-                    label="First Name"
+                    :label="$t('First Name')"
                     v-model="details.firstname"
+                    :rules="requiredRules"
                   />
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
-                  <v-text-field label="Last Name" v-model="details.lastname" />
+                  <v-text-field :label="$t('Last Name')" v-model="details.lastname"
+                    :rules="requiredRules"
+                   />
                 </v-col>
 
                 <v-col cols="12" sm="6" md="3">
                   <v-text-field
-                    label="Office Phone"
+                    :label="$t('Office Phone')"
                     v-model="details.officePhone"
                   />
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
                   <v-text-field
-                    label="Mobile Phone"
+                    :label="$t('Mobile Phone')"
                     v-model="details.mobilePhone"
                   />
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
-                  <v-text-field label="Manager" v-model="details.manager" />
+                  <v-text-field :label="$t('Manager')" v-model="details.manager" />
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
-                  <v-text-field label="Country" v-model="details.country" />
+                  <v-text-field :label="$t('Country')" v-model="details.country" />
                 </v-col>
               </v-row>
               <v-row>
                 <v-col cols="12" sm="6" md="3">
                   <v-text-field
-                    label="Email"
+                    :label="$t('Email')"
                     v-model="details.email"
-                    readonly
+                    :readonly="!newProfile"
+                    :rules="emailRules"
                   />
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
                   <v-text-field
-                    label="User Name"
+                    :label="$t('User Name')"
                     v-model="details.userName"
-                    readonly
-                  />
+                    readonly />
                 </v-col>
               </v-row>
               <v-row>
@@ -79,7 +127,7 @@
                     @click="saveDetails"
                     v-bind:loading="saveLoading"
                   >
-                    Save
+                    {{$t('Save')}}
                   </v-btn>
                 </v-col>
               </v-row>
@@ -95,40 +143,40 @@
               <v-row>
                 <v-col cols="12" sm="6" md="3">
                   <v-text-field
-                    label="Last Login"
+                    :label="$t('Last Login')"
                     v-model="details.lastActivityTimeFormat"
                     readonly
                   />
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
                   <v-text-field
-                    label="Data Center"
+                    :label="$t('Data Center')"
                     v-model="details.dataCenter"
                     readonly
                   />
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
                   <v-text-field
-                    label="Storage Usage"
+                    :label="$t('Storage Usage')"
                     v-model="details.storageUsage"
                     readonly
                   />
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
                   <v-text-field
-                    label="EWS Subscription"
+                    :label="$t('EWS Subscription')"
                     v-model="details.subscriptionUpdateDateFormat"
                     readonly
                   />
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
-                  <v-btn @click="notificationTest" color="primary" >Notification Test</v-btn>
+                  <v-btn @click="notificationTest" color="primary" >{{$t('Notification Test')}}</v-btn>
                 </v-col>
               </v-row>
 
               <v-row>
                 <v-card class="mt-6" color="bg">
-                  <v-card-title>Activity Log</v-card-title>
+                  <v-card-title>{{$t('Activity Log')}}</v-card-title>
                   <v-data-table
                     :headers="logsHead"
                     :items="logsRows"
@@ -153,11 +201,11 @@
           <v-card-title>{{$t("App List")}}</v-card-title>
           <v-dialog v-model="dialogDelete" max-width="500px" color="bg">
           <v-card color="bg">
-            <v-card-title class="headline">Are you sure you want to delete {{deleteAppItem.appName}}?</v-card-title>
+            <v-card-title class="headline">{{$t('Are you sure you want to delete',{deleteAppName: deleteAppItem.appName })}}</v-card-title>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="warning"  @click="closeDelete">Cancel</v-btn>
-              <v-btn color="primary"  @click="deleteAppConfirm">OK</v-btn>
+              <v-btn color="warning"  @click="closeDelete">{{$t('Cancel')}}</v-btn>
+              <v-btn color="primary"  @click="deleteAppConfirm">{{$t('OK')}}</v-btn>
               <v-spacer></v-spacer>
             </v-card-actions>
           </v-card>
@@ -285,7 +333,7 @@
                     v-bind="attrs"
                     @click="snackbarSave = false"
                   >
-                    Close
+                    {{$t('Close')}}
                   </v-btn>
                 </template>
               </v-snackbar>
@@ -326,6 +374,12 @@ export default {
     devices: [],
     groupHeaders: [],
     groupRows: [],
+    newProfile: false,
+    profileID: null,
+    emailRules: [],
+    requiredRules: [],
+    dialogDeleteProfile: false,
+    valid: true,
   }),
   methods: {
     deleteApp: function(app) {
@@ -488,18 +542,23 @@ export default {
         });
     },
     loadDetails: function() {
+      if (this.newProfile) {
+        console.log("loadDetails new profile..");
+        return;
+      }
+      console.log("Loading details...");
       appUtils
       .get({
         url:
           "/api/profiles/" +
-          encodeURIComponent(this.$route.params.id),
+          encodeURIComponent(this.profileID),
       })
       .then((response) => {
         console.log(response.data);
         if (response.data.status == 1) {
           console.log("Success");
           this.details = response.data.details;
-          this.details.email = this.$route.params.id;
+          this.details.email = this.profileID;
           let m = moment(this.details.lastActivityTime);
           if (m.isValid()) {
             this.details.lastActivityTimeFormat = m.format("LLL");
@@ -550,20 +609,81 @@ export default {
           ];
         } else {
           console.log(`status: ${response.data.status}`);
-          this.$router.push("/Login");
         }
       })
       .catch((error) => console.log(error))
       .finally(() => (this.loading = false));
     },
+    sendInvitation : function () {
+      console.log("sendInvitation");
+      appUtils
+        .put({
+          url:
+          "/api/profiles/" +
+          encodeURIComponent(this.profileID)+"/invite",
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            this.saveLoading = false;
+            this.snackbarText = this.$t("Invitation sent");
+            this.snackbarSave = true;
+          } else {
+            this.snackbarText = "Error";
+            this.snackbarSave = true;
+          }
+        }).catch((err) => {
+          this.snackbarText = "Error";
+          this.snackbarSave = true;
+          console.log(err);
+        });
+    },
+    deleteProfile: function () {
+      console.log("deleteProfile");
+      appUtils
+        .delete({
+          url:
+          "/api/profiles/" +
+          encodeURIComponent(this.profileID),
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            this.saveLoading = false;
+            this.snackbarText = this.$t("Profile deleted");
+            this.snackbarSave = true;
+            this.$router.push("/Profiles");
+          } else {
+            this.snackbarText = "Error";
+            this.snackbarSave = true;
+          }
+        }).catch((err) => {
+          this.snackbarText = "Error";
+          this.snackbarSave = true;
+          console.log(err);
+        });
+    },
     saveDetails: function () {
+
+      this.$refs.form.validate();
+      if (!this.valid) {
+        return;
+      }
+      let method;
+      if (this.newProfile) {
+        this.profileID = this.details.email;
+        method = "put";
+      } else {
+        method = "post";
+      }
       this.saveLoading = true;
 
       appUtils
-        .post({
+        .req({
+          method,
           url:
           "/api/profiles/" +
-          encodeURIComponent(this.$route.params.id),
+          encodeURIComponent(this.profileID),
           data: {
             first: this.details.firstname,
             last: this.details.lastname,
@@ -578,8 +698,15 @@ export default {
           if (response.data.status == 1) {
             console.log("Success");
             this.saveLoading = false;
-            this.snackbarText = "Saved";
+            this.snackbarText = this.$t("Profile saved");
             this.snackbarSave = true;
+            if (this.newProfile) {
+              this.newProfile = false;
+              this.snackbarText = this.$t("Profile added");
+              this.updatePageHead();
+              this.$router.replace("/Profile/" + encodeURIComponent(this.profileID));
+              this.loadDetails();
+            }
           } else {
             console.log(`status: ${response.data.status}`);
             //this.$router.push("/Login");
@@ -624,27 +751,47 @@ export default {
     resetLogin: function () {
       console.log("resetLogin");
     },
+    updatePageHead : function () {
+      console.log("updatePageHead");
+      let bcItems = [
+        {
+          text: this.$t("control-panel"),
+          href: "/#/",
+          disabled: false,
+        },
+        {
+          text: this.$t("Profiles"),
+          href: "/#/Profiles",
+          disabled: false,
+        },
+        {
+          text: (this.profileID != "" ? this.profileID : this.$t("New Profile")),
+          href: "/#/Profile/" + this.profileID,
+          disabled: false,
+        },
+      ];
+      this.$emit("updatePage", bcItems);
+    },
   },
   created: function () {
-    let bcItems = [
-      {
-        text: this.$t("control-panel"),
-        href: "/#/",
-        disabled: false,
-      },
-      {
-        text: this.$t("Profiles"),
-        href: "/#/Profiles",
-        disabled: false,
-      },
-      {
-        text: this.$route.params.id,
-        href: "/#/Profile/" + this.$route.params.id,
-        disabled: false,
-      },
-    ];
-    this.$emit("updatePage", bcItems);
+    this.profileID = this.$route.params.id;
+    if (!this.profileID || this.profileID == "") {
+      this.profileID = "";
+      this.newProfile = true;
+    } else {
+      this.newProfile = false;
+    }
+    this.updatePageHead();
     //
+    this.emailRules = [
+      (v) => !!v || this.$t("Field is required"),
+      (v) =>
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,10})+$/.test(v) ||
+        this.$t("Email must be valid"),
+    ];
+    this.requiredRules = [
+      (v) => !!v || this.$t("Field is required"),
+    ];
     this.loadDetails();
   },
   watch: {

@@ -208,37 +208,7 @@ export default {
             console.log(`status: ${response.data.status}`);
             this.dashboard = response.data;
             this.fillData ();
-            /*
-            androidDevices: 11
-            availablePlatforms: 2
-            iPhoneDevices: 7
-            lastSessions: Array(12)
-            0: {count: 2, time: "2020-11-12T15:10:00+02:00"}
-            1: {count: 2, time: "2020-11-12T15:05:00+02:00"}
-            2: {count: 2, time: "2020-11-12T15:00:00+02:00"}
-            3: {count: 2, time: "2020-11-12T14:55:00+02:00"}
-            4: {count: 2, time: "2020-11-12T14:50:00+02:00"}
-            5: {count: 2, time: "2020-11-12T14:45:00+02:00"}
-            6: {count: 2, time: "2020-11-12T14:40:00+02:00"}
-            7: {count: 2, time: "2020-11-12T14:35:00+02:00"}
-            8: {count: 2, time: "2020-11-12T14:30:00+02:00"}
-            9: {count: 2, time: "2020-11-12T14:25:00+02:00"}
-            10: {count: 2, time: "2020-11-12T14:20:00+02:00"}
-            11: {count: 2, time: "2020-11-12T14:15:00+02:00"}
-            length: 12
-            __proto__: Array(0)
-            message: "sent dashboard details for tablet "
-            onlineDevices: 3
-            onlineGroups: (3) [{…}, {…}, {…}]
-            onlineUsers: 1
-            runningPlatforms: 1
-            status: "1"
-            totalDevices: 56
-            totalSpaceMB: 19000
-            totalUsage: 0
-            totalUsedSpaceMB: 94
-            totalUsers: 19
-            */
+            
           } else {
             console.log(`status: ${response.data.status}`);
             this.$router.push("/Login");

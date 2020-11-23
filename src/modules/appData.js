@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import Bowser from "bowser";
 
 const appData = {
 
@@ -63,11 +64,13 @@ const appData = {
             localStorage.setItem("deviceid", appData.deviceid);
             //console.log("appData.deviceid: " + appData.deviceid);
         }
+
         appData.deviceName = localStorage.getItem("deviceName");
         if (!appData.deviceName || appData.deviceName == "") {
-            appData.deviceName = navigator.userAgent;
+            let parsedUserAgent = Bowser.parse(navigator.userAgent);
+            appData.deviceName = `${parsedUserAgent.browser.name}`;
             localStorage.setItem("deviceName", appData.deviceName);
-            console.log(`userAgent: ${navigator.userAgent}`);
+            console.log(`deviceName: ${appData.deviceName}`);
         }
         appData.activationkey = localStorage.getItem("activationkey");
         console.log(`Admin: ${appData.email}`);

@@ -29,6 +29,12 @@ const routes = [{
             import ( /* webpackChunkName: "about" */ '../views/Profile.vue'),
     },
     {
+        path: '/Profile/',
+        name: 'Profile',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Profile.vue'),
+    },
+    {
         path: '/Groups',
         name: 'Groups',
         component: () =>
@@ -106,6 +112,12 @@ const routes = [{
         name: 'Reports',
         component: () =>
             import ( /* webpackChunkName: "about" */ '../views/Reports.vue'),
+    },
+    {
+        path: '/Platforms',
+        name: 'Platforms',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Platforms.vue'),
     },
     {
         path: '/about',

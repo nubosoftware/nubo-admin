@@ -13,10 +13,27 @@ async function main() {
 
         }
         //return;
+        let s = await fs.promises.readFile("./src/App.vue", "utf8");
+        //console.log(content);
+        let re = /\$t\([\"\']([^\"\']+)[\"\']\)/g;
+        do {
+            m = re.exec(s);
+            if (m) {
+                //console.log(m[1]);
+                if (!t[m[1]]) {
+                    t[m[1]] = m[1];
+                }
+            }
+        } while (m);
+
+
         let dir = "./src/views/";
         const files = await fs.promises.readdir(dir);
         for (const file of files) {
             console.log(file);
+            if (!file.endsWith("vue")) {
+                continue;
+            }
             let s = await fs.promises.readFile(path.join(dir, file), "utf8");
             //console.log(content);
             let re = /\$t\([\"\']([^\"\']+)[\"\']\)/g;
