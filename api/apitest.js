@@ -16,8 +16,9 @@ var argv = require('optimist')
 async function main() {
     try {
 
+        let settingsStr;
         try {
-            let settingsStr = await fsPromises.readFile("./apitestSettings.json");
+            settingsStr = await fsPromises.readFile("./apitestSettings.json");
         } catch (err) {
             console.log("Error reading settings file: apitestSettings.json", err);
             return;

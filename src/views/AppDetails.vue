@@ -401,7 +401,7 @@ export default {
       appUtils
         .get({
           url:
-            "/api/apps/" + encodeURIComponent(this.$route.params.packageName),
+            "api/apps/" + encodeURIComponent(this.$route.params.packageName),
         })
         .then((response) => {
           console.log(response.data);
@@ -462,7 +462,7 @@ export default {
       appUtils
         .post({
           url:
-            "/api/apps/" + encodeURIComponent(this.$route.params.packageName),
+            "api/apps/" + encodeURIComponent(this.$route.params.packageName),
           data: {
             appName: this.details.appname,
             appDescription: this.details.description,

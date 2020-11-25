@@ -50,6 +50,14 @@
           {{$t("Starting")}}
         </v-chip>
         <v-chip
+          v-if="item.status == 'stopping'"
+          class="ma-2"
+          color="warning"
+          text-color="white"
+        >
+          {{$t("Stopping")}}
+        </v-chip>
+        <v-chip
           v-if="item.status == 'available'"
           class="ma-2"
           
@@ -141,7 +149,23 @@ let page = {
       this.stopPlatID = val.platID;
       this.dialog = true;
     },
-
+    scheduleLongOperCheck: function(notifToken,title) {
+      console.log("scheduleLongOperCheck: "+notifToken);
+      appUtils.get({
+        url: "api/longOperations/"+notifToken,
+      }).then((response) => {
+          console.log(response.data);
+          if (response.data.status == 50) {
+            setTimeout(this.scheduleLongOperCheck,5000,notifToken,title);
+          } else if (response.data.status == 1) {
+            console.log("response.data.status == 1");
+            this.$notification.success(response.data.message, { title:title, infiniteTimer: true ,showCloseIcn : true});
+          } else {
+            console.log("response.data.status != 1");
+            this.$notification.error(response.data.message, { title:title, infiniteTimer: true ,showCloseIcn : true});
+          }
+      }).catch((error) => console.log(error));
+    },
     stop: function() {
       console.log(`stop: ${this.stopPlatID}`);
       this.dialog = false;
@@ -150,8 +174,11 @@ let page = {
       }).then((response) => {
           console.log(response.data);
           if (response.data.status == 1) {
-            this.snackbarText = this.$t("Stopping platform");
+            this.snackbarText = this.$t("Stopping platform")+" "+this.stopPlatID;
             this.snackbarSave = true;
+            if (response.data.notifToken) {
+              this.scheduleLongOperCheck(response.data.notifToken,this.$t("Stopping platform")+" "+this.stopPlatID)
+            }
           } else {
             console.log(`status: ${response.data.status}`);
             this.snackbarText = this.$t("Error");
@@ -169,6 +196,10 @@ let page = {
           this.start(item);
         }
       });
+      if (!starting) {
+        this.snackbarText = this.$t("Cannot find available platform");
+        this.snackbarSave = true;
+      }
     },
     start: function(item) {
       appUtils
@@ -180,6 +211,9 @@ let page = {
           if (response.data.status == 1) {
             this.snackbarText = this.$t("Starting platform")+" "+item.platID;
             this.snackbarSave = true;
+            if (response.data.notifToken) {
+              this.scheduleLongOperCheck(response.data.notifToken,this.$t("Starting platform")+" "+item.platID)
+            }
           } else {
             console.log(`status: ${response.data.status}`);
             this.snackbarText = this.$t("Error");
@@ -236,12 +270,17 @@ let page = {
         value: "status",
       },
       {
+        text: this.$t("Sessions"),
+        value: "sessions",
+      },
+      {
         text: this.$t("IP Address"),
         value: "platform_ip",
       },
       { text: 'Actions', value: 'actions', sortable: false }
     ];
     this.refresh();
+    //
   },
 };
 

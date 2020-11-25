@@ -550,7 +550,7 @@ export default {
       appUtils
       .get({
         url:
-          "/api/profiles/" +
+          "api/profiles/" +
           encodeURIComponent(this.profileID),
       })
       .then((response) => {
@@ -817,6 +817,7 @@ export default {
               encodeURIComponent(this.details.email) +
               `&mtype=important&limit=200` +
               `&s=${s}`
+            //url: `api/logs?s=${s}`
           })
           .then((response) => {
             console.log(response.data);

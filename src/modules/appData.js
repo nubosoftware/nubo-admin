@@ -1,11 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
 import Bowser from "bowser";
 
+const production = process.env.NODE_ENV === 'production' ? true : false;
+
 const appData = {
 
     // configuration
-    postURL: "http://labil.nubosoftware.com:8080/",
-    proxyURL: "http://127.0.0.1:9080/", //"http://localhost:9080/",
+    //postURL: "/",
+    postURL: production ? "/" : "http://labil.nubosoftware.com:8080/",
+    proxyURL: production ? null : "http://127.0.0.1:9080/", //"http://localhost:9080/",
 
     // loaded users params
     isAuthenticated: false,

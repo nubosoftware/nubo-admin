@@ -202,6 +202,7 @@ export default {
       { title: this.$t("Groups"), icon: "mdi-account-group", link: "/Groups" },
       { title: this.$t("Apps"), icon: "mdi-apps", link: "/Apps" },
       { title: this.$t("Platforms"), icon: "mdi-server", link: "/Platforms" },
+      { title: this.$t("Logs"), icon: "mdi-list-status", link: "/Logs" },
       { title: this.$t("Exchange"), icon: "mdi-email", link: "/EmailSetup"},
       { title: this.$t("Active Directory"), icon: "mdi-microsoft" , link: "/LDAP" },
       { title: this.$t("Administrators"), icon: "mdi-account-tie" , link: "/Admins" },
