@@ -78,6 +78,12 @@ const routes = [{
             import ( /* webpackChunkName: "about" */ '../views/Admins.vue'),
     },
     {
+        path: '/Admin/:email',
+        name: 'Admin',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Admin.vue'),
+    },
+    {
         path: '/Apps',
         name: 'Apps',
         component: () =>

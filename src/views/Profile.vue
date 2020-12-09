@@ -13,7 +13,8 @@
       <v-menu
         bottom
         left
-        v-if="!newProfile"
+        v-if="!newProfile && appData.checkPermission('/profiles','w')"
+       
       >
         <template v-slot:activator="{ on, attrs }">
           <v-btn
@@ -126,6 +127,7 @@
                     class="mr-4"
                     @click="saveDetails"
                     v-bind:loading="saveLoading"
+                    v-if="appData.checkPermission('/profiles','w')"
                   >
                     {{$t('Save')}}
                   </v-btn>
@@ -170,7 +172,7 @@
                   />
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
-                  <v-btn @click="notificationTest" color="primary" >{{$t('Notification Test')}}</v-btn>
+                  <v-btn v-if="appData.checkPermission('/profiles','w')" @click="notificationTest" color="primary" >{{$t('Notification Test')}}</v-btn>
                 </v-col>
               </v-row>
 
@@ -227,10 +229,10 @@
               ></v-img>
             </template>
             <template v-slot:item.actions="{ item }">
-              <v-icon small class="mr-2" @click="reinstallItem(item)">
+              <v-icon v-if="appData.checkPermission('/apps','i')" small class="mr-2" @click="reinstallItem(item)">
                 mdi-refresh
               </v-icon>
-              <v-icon  v-if="item.privateApp == 1" small @click="deleteApp(item)"> mdi-delete </v-icon>
+              <v-icon  v-if="item.privateApp == 1 && appData.checkPermission('/apps','i')" small @click="deleteApp(item)"> mdi-delete </v-icon>
             </template>
           </v-data-table>
         </v-card>
@@ -271,7 +273,7 @@
             </template>
             <template v-slot:item.actions="{ item }">
               <v-btn
-              v-if="item.isOnline"
+              v-if="item.isOnline && appData.checkPermission('/profiles','w')"
               small
               color="primary"
               dark
@@ -281,7 +283,7 @@
               {{$t("End Session")}}
             </v-btn>
             <v-btn
-              v-else-if="item.isActive "
+              v-else-if="item.isActive && appData.checkPermission('/profiles','w')"
               small
               color="primary"
               dark
@@ -291,7 +293,7 @@
               {{$t("Disable")}}
             </v-btn>
             <v-btn
-              v-else
+              v-else-if="appData.checkPermission('/profiles','w')"
               small
               color="primary"
               dark

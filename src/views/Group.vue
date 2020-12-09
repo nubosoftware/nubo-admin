@@ -32,11 +32,13 @@
       <template v-slot:top>
         <v-toolbar flat color="bg">
           <v-btn 
+            v-if="appData.checkPermission('/groups','w')"
             class="ma-4"
             color="primary" :disabled="readonly || groupName == '' || checkGroupName(groupName) !== true" @click="openAddProfiles">{{
             $t("Add Profiles")
           }}</v-btn>
           <v-btn
+            v-if="appData.checkPermission('/groups','w')"
             color="primary"
             class="ma-4"
             @click="dialogDelete = true"

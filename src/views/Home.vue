@@ -13,7 +13,7 @@
                     <pie-chart :chart-data="onlineUsers"></pie-chart>
                   </v-card>
                 </v-col>
-                <v-col cols="12" sm="7" md="4">
+                <v-col cols="12" sm="7" md="4" v-if="appData.checkPermission('@/','r')" >
                   <v-card color="bg">
                     <v-card-title>{{$t("Platforms")}}</v-card-title>
                     <v-card-subtitle>{{dashboard.runningPlatforms}} {{$t("platforms are up")}}</v-card-subtitle>
@@ -29,7 +29,7 @@
                 </v-col>
               </v-row>
               <v-row>
-                <v-col cols="12" sm="7" md="4">
+                <v-col cols="12" sm="7" md="4" v-if="appData.checkPermission('@/','r')" >
                   <v-card color="bg">
                     <v-card-title>{{$t("Storage")}}</v-card-title>
                     <v-card-subtitle>{{$t("Using")}} {{dashboard.totalUsedSpaceMB / 1000}} GB out of {{dashboard.totalSpaceMB}} GB</v-card-subtitle>

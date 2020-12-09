@@ -99,7 +99,7 @@
 
     <v-main >
       <!--  -->
-      <router-view @updatePage="updatePage" @checkLoginLoop="checkLoginLoop"></router-view>
+      <router-view @updatePage="updatePage" @checkLoginLoop="checkLoginLoop" @updatePermissions="updatePermissions"></router-view>
     </v-main>
   </v-app>
 </template>
@@ -146,7 +146,13 @@ export default {
             console.log("Success");
             this.appData.mainDomain = val;
             this.appData.commit();
-            location.reload();
+            //console.log("currentRoute: "+this.$router.currentRoute.path);
+            if (this.$router.currentRoute.path != "/") {
+              this.$router.push("/");
+            } else { 
+              location.reload();
+            }
+
           } else {
             console.log(`status: ${response.data.status}`);
             //this.$router.push("/Login");
@@ -188,6 +194,34 @@ export default {
         }
       },10000);
     },
+    updatePermissions: function() {
+      let items = [
+        { title: this.$t("Dashboard"), icon: "mdi-chart-bar" , link: "/" },
+      ];
+      if (appData.checkPermission("/profiles","r")) {
+        items.push({ title: this.$t("Profiles"), icon: "mdi-account-multiple-outline", link: "/Profiles" });
+      }
+      if (appData.checkPermission("/groups","r")) {
+        items.push({ title: this.$t("Groups"), icon: "mdi-account-group", link: "/Groups" });
+      }
+      if (appData.checkPermission("/apps","r")) {
+        items.push({ title: this.$t("Apps"), icon: "mdi-apps", link: "/Apps" });
+      }
+      if (appData.checkPermission("@/","rw")) {
+        items.push({ title: this.$t("Platforms"), icon: "mdi-server", link: "/Platforms" });
+      }
+      if (appData.checkPermission("/","rw")) {
+        items.push({ title: this.$t("Logs"), icon: "mdi-list-status", link: "/Logs" });
+        items.push({ title: this.$t("Exchange"), icon: "mdi-email", link: "/EmailSetup"});
+        items.push({ title: this.$t("Active Directory"), icon: "mdi-microsoft" , link: "/LDAP" });
+        items.push({ title: this.$t("Administrators"), icon: "mdi-account-tie" , link: "/Admins" });
+        items.push({ title: this.$t("Security"), icon: "mdi-shield-account", link: "/Security" });
+      }
+      if (appData.checkPermission("/reports","r")) {
+        items.push({ title: this.$t("Reports"), icon: "mdi-file-document-multiple-outline" , link: "/Reports"});
+      }
+      this.menuItems = items;
+    },
   },
   created: function () {
     this.items = [{
@@ -196,19 +230,7 @@ export default {
       disabled: false,
     }];
     this.defItems = this.items;
-    this.menuItems= [
-      { title: this.$t("Dashboard"), icon: "mdi-chart-bar" , link: "/" },
-      { title: this.$t("Profiles"), icon: "mdi-account-multiple-outline", link: "/Profiles" },
-      { title: this.$t("Groups"), icon: "mdi-account-group", link: "/Groups" },
-      { title: this.$t("Apps"), icon: "mdi-apps", link: "/Apps" },
-      { title: this.$t("Platforms"), icon: "mdi-server", link: "/Platforms" },
-      { title: this.$t("Logs"), icon: "mdi-list-status", link: "/Logs" },
-      { title: this.$t("Exchange"), icon: "mdi-email", link: "/EmailSetup"},
-      { title: this.$t("Active Directory"), icon: "mdi-microsoft" , link: "/LDAP" },
-      { title: this.$t("Administrators"), icon: "mdi-account-tie" , link: "/Admins" },
-      { title: this.$t("Security"), icon: "mdi-shield-account", link: "/Security" },
-      { title: this.$t("Reports"), icon: "mdi-file-document-multiple-outline" , link: "/Reports"},
-    ];
+    this.updatePermissions();
     if (appData.adminLoginToken && appData.adminLoginToken != "") {
       this.checkLoginLoop(appData.adminLoginToken);
     }

@@ -15,6 +15,7 @@
     <template v-slot:top>
         <v-toolbar flat color="bg">
           <v-btn 
+            v-if="appData.checkPermission('/groups','w')"
             class="ma-4"
             color="primary" @click="$router.push('/Group/')">{{
             $t("New Group")
@@ -35,7 +36,7 @@
       <div v-else>{{$t("Active Directory")}}</div>
     </template>
     <template v-slot:item.actions="{ item }">
-      <v-icon v-if="item.groupName != 'All'" small @click="deleteGroup(item,$event)" class="mx-2"> mdi-delete </v-icon>
+      <v-icon v-if="item.groupName != 'All' && appData.checkPermission('/groups','w')" small @click="deleteGroup(item,$event)" class="mx-2"> mdi-delete </v-icon>
     </template>
     </v-data-table>
     <v-dialog v-model="dialogDelete" max-width="500px" overlay-color="bg">

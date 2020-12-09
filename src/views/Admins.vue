@@ -28,6 +28,7 @@
       </v-toolbar>
     </template>
     <template v-slot:item.actions="{ item }">
+      <v-icon v-if="item.email != appData.email" small @click="$router.push('/Admin/' + item.email)" class="mx-2"> mdi-pencil </v-icon>
       <v-icon v-if="item.email != appData.email" small @click="deleteAdmin(item)" class="mx-2"> mdi-delete </v-icon>
     </template>
 
@@ -121,6 +122,8 @@ let page = {
 
     rowClick: function(val) {
       console.log(`rowClick: ${val.email}`);
+      this.$router.push('/Admin/' + val.email);
+      /*
       appUtils.put({
         url: "api/admins/"+encodeURIComponent(val.email),
       }).then(response => {
@@ -138,7 +141,7 @@ let page = {
           }
         })
         .catch(error => console.log(error))
-        .finally(() => (this.loading = false));
+        .finally(() => (this.loading = false));*/
     },
     deleteAdmin: function(item) {
       console.log(`Delete admin: ${item.emil}`);

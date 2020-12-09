@@ -34,6 +34,7 @@
           <template v-slot:top>
             <v-toolbar flat color="bg">
               <v-btn
+                v-if="appData.checkPermission('/profiles','w')"
                 class="ma-4"
                 color="primary"
                 @click="$router.push('/Profile/')"
@@ -95,11 +96,13 @@
           <template v-slot:top>
             <v-toolbar  v-if="selectedApprovals.length > 0" flat color="bg">
               <v-btn 
+                v-if="appData.checkPermission('/profiles','w')"
                 class="ma-4"
                 color="success"  @click="approveSelected(true)">{{
                 $t("Approve Selected")
               }}</v-btn>
               <v-btn
+                v-if="appData.checkPermission('/profiles','w')"
                 color="error"
                 class="ma-4"
                 @click="approveSelected(false)"
@@ -127,12 +130,14 @@
             <v-chip v-if="item.approvalType == 'activate'">{{$t('Activate Device')}}</v-chip>
             <v-chip v-if="item.approvalType == 'unlock passcode'">{{$t('Unlock Device')}}</v-chip>
             <v-chip v-if="item.approvalType == 'reset passcode'">{{$t('Reset Password')}}</v-chip>
+            <v-chip v-if="item.approvalType == 'reset biometric'">{{$t('Reset Biometric Key')}}</v-chip>
             <v-chip v-if="item.approvalType == 'admin'">{{$t('Activate Control Panel')}}</v-chip>
+            <v-chip v-if="item.approvalType == 'admin reset'">{{$t('Reset Admin Password')}}</v-chip>
           </template>
           
           <template v-slot:item.actions="{ item }">
-            <v-icon  @click="approveItem(item,true)" color="success" class="mx-2"> mdi-check-bold </v-icon>
-            <v-icon  @click="approveItem(item,false)" color="error" class="mx-2"> mdi-close-thick </v-icon>
+            <v-icon  v-if="appData.checkPermission('/profiles','w')" @click="approveItem(item,true)" color="success" class="mx-2"> mdi-check-bold </v-icon>
+            <v-icon  v-if="appData.checkPermission('/profiles','w')" @click="approveItem(item,false)" color="error" class="mx-2"> mdi-close-thick </v-icon>
           </template>
          </v-data-table>
        </v-tab-item>

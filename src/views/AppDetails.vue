@@ -89,6 +89,7 @@
               <v-row>
                 <v-col cols="12" sm="6" md="3">
                   <v-btn
+                    v-if="appData.checkPermission('/apps','w')"
                     color="primary"
                     class="mr-4"
                     @click="saveDetails"
@@ -113,13 +114,13 @@
           >
             <template v-slot:top>
               <v-toolbar flat color="bg">
-                <v-btn color="primary" dark class="mb-2" @click="addProfile">
+                <v-btn v-if="appData.checkPermission('/apps','i')" color="primary" dark class="mb-2" @click="addProfile">
                   {{ $t("Assign Profiles to App") }}
                 </v-btn>
               </v-toolbar>
             </template>
             <template v-slot:item.actions="{ item }">
-              <v-icon small @click="deleteProfile(item)" class="mx-2">
+              <v-icon v-if="appData.checkPermission('/apps','i')" small @click="deleteProfile(item)" class="mx-2">
                 mdi-delete
               </v-icon>
             </template>
@@ -183,7 +184,7 @@
           >
             <template v-slot:top>
               <v-toolbar flat color="bg">
-                <v-btn color="primary" dark class="mb-2" @click="addGroup">
+                <v-btn v-if="appData.checkPermission('/apps','i')" color="primary" dark class="mb-2" @click="addGroup">
                   {{ $t("Add Groups") }}
                 </v-btn>
               </v-toolbar>
@@ -194,7 +195,7 @@
               <div v-else>{{$t("Active Directory")}}</div>
             </template>
             <template v-slot:item.actions="{ item }">
-              <v-icon small @click="deleteGroup(item)" class="mx-2">
+              <v-icon v-if="appData.checkPermission('/apps','i')" small @click="deleteGroup(item)" class="mx-2">
                 mdi-delete
               </v-icon>
             </template>

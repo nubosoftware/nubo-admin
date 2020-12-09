@@ -9,11 +9,13 @@
     "i18n:report": "vue-cli-service i18n:report --src './src/**/*.?(js|vue)' --locales './src/locales/**/*.json'"
   },
   "dependencies": {
+    "@kugatsu/vuenotification": "^1.1.4",
     "axios": "^0.20.0",
     "bowser": "^2.11.0",
     "chart.js": "^2.9.4",
     "core-js": "^3.6.5",
     "cors-anywhere": "^0.4.3",
+    "gsap": "^3.5.1",
     "jsrsasign": "^10.0.4",
     "moment": "^2.29.1",
     "optimist": "^0.6.1",

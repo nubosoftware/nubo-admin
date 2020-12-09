@@ -7,13 +7,14 @@
       :items-per-page="20"
       :loading="loading"
       class="elevation-1 ma-4 bg"
+      @click:row="rowClick"
     >
       <template v-slot:top>
         <v-toolbar flat color="bg">
-          <v-btn color="primary" dark class="ma-2" @click="uploadDialog = true">
+          <v-btn v-if="appData.checkPermission('/apps','w')" color="primary" dark class="ma-2" @click="uploadDialog = true">
             {{ $t("App Upload") }}
           </v-btn>
-          <v-btn color="primary" dark class="ma-2" @click="webappDialog = true ">
+          <v-btn v-if="appData.checkPermission('/apps','w')" color="primary" dark class="ma-2" @click="webappDialog = true ">
             {{ $t("Generate Web App") }}
           </v-btn>
         </v-toolbar>
@@ -22,8 +23,8 @@
         <v-img max-height="40" max-width="40" :src="item.imageUrl"></v-img>
       </template>
       <template v-slot:item.actions="{ item }">
-        <v-icon small @click="rowClick(item)" class="mx-2"> mdi-pencil </v-icon>
-        <v-icon small @click="deleteApp(item)" class="mx-2">
+        
+        <v-icon v-if="appData.checkPermission('/apps','w')" small @click="deleteApp(item,$event)" class="mx-2">
           mdi-delete
         </v-icon>
       </template>
@@ -276,7 +277,8 @@ let page = {
       console.log(`rowClick: ${val.packageName}`);
       this.$router.push("/App/" + val.packageName);
     },
-    deleteApp: function (val) {
+    deleteApp: function (val,event) {
+      event.stopPropagation();
       this.deleteObj = val;
       this.deleteAppName = val.appName;
       this.dialog = true;

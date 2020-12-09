@@ -23,6 +23,9 @@ const appData = {
     deviceid: "",
     deviceName: "",
     activationkey: "",
+    siteAdminDomain: "",
+    siteAdmin: false,
+    permissions: {},
     orgs: [],
 
     // additional data
@@ -41,6 +44,9 @@ const appData = {
         localStorage.setItem("deviceid", appData.deviceid);
         localStorage.setItem("deviceName", appData.deviceName);
         localStorage.setItem("activationkey", appData.activationkey);
+        localStorage.setItem("siteAdmin", appData.siteAdmin);
+        localStorage.setItem("siteAdminDomain", appData.siteAdminDomain);
+        localStorage.setItem("permissions", JSON.stringify(appData.permissions));
 
     },
     load: () => {
@@ -76,6 +82,17 @@ const appData = {
             console.log(`deviceName: ${appData.deviceName}`);
         }
         appData.activationkey = localStorage.getItem("activationkey");
+        appData.siteAdmin = localStorage.getItem("siteAdmin");
+        appData.siteAdminDomain = localStorage.getItem("siteAdminDomain");
+        let permStr = localStorage.getItem("permissions");
+        if (permStr && permStr != "") {
+            try {
+                appData.permissions = JSON.parse(permStr);
+            } catch (err) {
+                console.log(err);
+                appData.permissions = {};
+            }
+        }
         console.log(`Admin: ${appData.email}`);
     },
     logout: () => {
@@ -87,9 +104,32 @@ const appData = {
         appData.imageurl = "";
         //appData.email = "";
         appData.orgname = "";
+        appData.siteAdmin = false;
+        appData.siteAdminDomain = "";
         //appData.activationkey = "";
         appData.commit();
-    }
+    },
+
+    checkPermission: (perm, accessType) => {
+        let perms = appData.permissions;
+        if (!perms) {
+            return false;
+        }
+        let hasPerm = false;
+        let v = (perms["@/"] ? perms["@/"] : perms["/"]);
+        console.log("v: " + v);
+        if (perm != "@/" && v && (v == "rw")) {
+            hasPerm = true;
+        } else {
+            v = perms[perm];
+            if (v && (v.includes(accessType) || v == "rw")) {
+                hasPerm = true;
+            }
+
+        }
+        console.log(`checkPermission ${perm},${accessType}: ${hasPerm}`);
+        return hasPerm;
+    },
 };
 
 

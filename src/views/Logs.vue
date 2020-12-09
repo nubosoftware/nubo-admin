@@ -8,14 +8,43 @@
         <v-tabs v-model="tab" align-with-title>
           <v-tabs-slider color="primary"></v-tabs-slider>
 
-          <v-tab key="list"> {{ $t("Syslog") }} </v-tab>
           <v-tab key="events"> {{ $t("Events") }} </v-tab>
+          <v-tab key="list" v-if="appData.checkPermission('@/','r')"> {{ $t("Syslog") }} </v-tab>
+          
         </v-tabs>
       </template>
     </v-toolbar>
 
     <v-tabs-items v-model="tab">
-      <v-tab-item key="list" class="bg">
+     
+       <v-tab-item key="events" class="bg">
+         <v-data-table
+          :headers="eventsHeaders"
+          :items="eventsRows"
+          :items-per-page="20"
+          :loading="eventsLoading"
+          :search="eventsSearch"
+          class="elevation-1 ma-4 bg"
+        >
+        <template v-slot:top>
+            <v-toolbar flat color="bg">
+              
+              <v-spacer></v-spacer>
+              <v-text-field
+                v-model="eventsSearch"
+                append-icon="mdi-magnify"
+                :label="$t('Search')"
+                single-line
+                hide-details
+              ></v-text-field>
+            </v-toolbar>
+          </template>
+        <template v-slot:item.time="{ item }">
+          {{ moment(item.time).format("LLL") }}
+        </template>
+        </v-data-table>
+       </v-tab-item>
+        <v-tab-item key="list" class="bg">
         <v-data-table
           color="bg"
           :headers="headers"
@@ -102,12 +131,11 @@
               </v-chip>
              
             </template>
+            <template v-slot:item.Time="{ item }">
+              {{ moment(item.Time).format("LLL") }}
+            </template>
         </v-data-table>
       </v-tab-item>
-       <v-tab-item key="events" class="bg">
-         
-       </v-tab-item>
-       
        
     </v-tabs-items>
   </v-card>
@@ -131,6 +159,7 @@
  <script>
 import appData from "../modules/appData";
 import appUtils from "../modules/appUtils";
+const moment = require("moment");
 
 let page = {
   name: "Logs",
@@ -151,6 +180,11 @@ let page = {
     logLevel: 1000,
     comp: null,
     serverName: null,
+    eventsHeaders: [],
+    eventsRows: [],
+    eventsSearch : "",
+    eventsLoading: false,
+    moment,
     appData,
   }),
   methods: {
@@ -248,6 +282,31 @@ let page = {
         .catch((error) => console.log(error))
         .finally(() => (this.loading = false));
     },
+    refreshEvents: function(){
+      this.eventsLoading = true;
+      appUtils
+        .get({
+          url: "api/events",
+        })
+        .then((response) => {
+          this.eventsLoading = false;
+          console.log(response.data);
+          if (response.data.status == 1) {
+            console.log(`status: ${response.data.status}`);
+            this.eventsRows = response.data.events;
+          } else {
+            console.log(`status: ${response.data.status}`);
+          }
+        })
+        .catch((error) => console.log(error))
+        .finally(() => (this.loading = false));
+        this.eventsHeaders = [
+          { text: this.$t("Time"), value: "time" },
+          { text: this.$t("Event Type"), value: "eventTypeStr" },
+          { text: this.$t("User"), value: "email" },
+          { text: this.$t("Information"), value: "extrainfo" },
+        ];
+    },
   },
   created: function () {
     let bcItems = [
@@ -282,6 +341,9 @@ let page = {
   watch: {
     tab: function (newVal) {
       console.log(`tab: ${newVal}`);
+      if (newVal == 0) {
+        this.refreshEvents();
+      }
       
     },
     
