@@ -11,7 +11,6 @@
           <v-tab key="approval"> Device approval </v-tab>
           <v-tab key="auth"> Authentication </v-tab>
           <v-tab key="rules"> Device Rules </v-tab>
-          <v-tab key="other" v-if="true"> Other </v-tab>
         </v-tabs>
       </template>
     </v-toolbar>
@@ -35,13 +34,13 @@
                 label="Manualy approve/reset devices"
                 class="mb-4"
                 value="1"
-                v-bind="attrs"
+                
                 v-on="on"
               ></v-radio>
               <v-radio
                 label="Both"
                 value="2"
-                v-bind="attrs"
+                
                 v-on="on"
               ></v-radio>
             </v-radio-group>
@@ -62,7 +61,7 @@
                 <v-radio
                   :label="$t('Email to a dedicated email address')"
                   value="emailnotif"
-                  v-bind="attrs"
+                  
                   v-on="on"
                 ></v-radio>
               </v-radio-group>
@@ -287,48 +286,7 @@
         </v-card>
       </v-tab-item>
 
-      <v-tab-item key="other" v-if="true">
-        <v-form>
-          <v-container>
-            <v-row>
-              <v-col>
-                <v-textarea
-                  :label="$t('deviceApproval')"
-                  v-model="deviceApprovalStr"
-                />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col>
-                <v-textarea
-                  :label="$t('authentication')"
-                  v-model="authenticationStr"
-                />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col>
-                <v-textarea
-                  :label="$t('deviceRules')"
-                  v-model="deviceRulesStr"
-                />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" sm="6" md="3">
-                <v-btn
-                  color="primary"
-                  class="mr-4"
-                  @click="saveDetails"
-                  v-bind:loading="loading"
-                >
-                  Save
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-form>
-      </v-tab-item>
+      
     </v-tabs-items>
     <v-dialog
       v-model="dialog"
@@ -386,12 +344,8 @@ let page = {
     authentication: {},
     deviceRules: {},
     loading: true,
-
     snackbarSave: false,
     snackbarText: "",
-    deviceApprovalStr: "",
-    authenticationStr: "",
-    deviceRulesStr: "",
     approveType: "selfapprove",
     notifType: "pushnotif",
     emailRules: [],
@@ -440,11 +394,7 @@ let page = {
             } else {
               this.notifType = "emailnotif";
             }
-            this.deviceApprovalStr = JSON.stringify(
-              this.deviceApproval,
-              null,
-              2
-            );
+            
           } else {
             console.log(`status: ${response.data.status}`);
           }
@@ -470,11 +420,7 @@ let page = {
             } else {
               this.authentication.passcodeType = "0";
             }
-            this.authenticationStr = JSON.stringify(
-              this.authentication,
-              null,
-              2
-            );
+            
           } else {
             console.log(`status: ${response.data.status}`);
           }
@@ -491,7 +437,6 @@ let page = {
           if (response.data.status == 1) {
             console.log(`status: ${response.data.status}`);
             this.deviceRules = response.data;
-            this.deviceRulesStr = JSON.stringify(this.deviceRules, null, 2);
           } else {
             console.log(`status: ${response.data.status}`);
           }
@@ -666,12 +611,6 @@ let page = {
         })
         .catch((error) => console.log(error))
         .finally(() => (this.loading = false));
-    },
-    saveDetails: function () {
-      console.log("saveDetails");
-      //this.deleteDeviceRule(3,"My Title","Test1234567");
-      //this.authentication = JSON.parse(this.authenticationStr);
-      //this.updateAuthentication();
     },
   },
 

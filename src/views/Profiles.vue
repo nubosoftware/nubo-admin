@@ -178,8 +178,8 @@ let page = {
     appData,
   }),
   methods: {
-    updateOptions(options) {
-      console.log("update:options", options);
+    updateOptions() {
+      //console.log("update:options", options);
       this.refresh();
     },
 
@@ -208,7 +208,7 @@ let page = {
           url: `api/approvals/${encodeURIComponent(item.email)}/${encodeURIComponent(item.deviceid)}/${encodeURIComponent(item.approvalType)}`,
         })
         .then((response) => {
-          console.log(response.data);
+          //console.log(response.data);
           if (response.data.status == 1) {
             console.log(`status: ${response.data.status}`);
             for( var i = 0; i < this.approvalRows.length; i++){ 
@@ -231,7 +231,7 @@ let page = {
           url: "api/approvals",
         })
         .then((response) => {
-          console.log(response.data);
+          //console.log(response.data);
           this.approvalLoad = false;
           if (response.data.status == 1) {
             console.log(`status: ${response.data.status}`);
@@ -265,14 +265,14 @@ let page = {
         .finally(() => (this.loading = false));
     },
     loadOnline: function () {
-      console.log("loadOnline");
+      //console.log("loadOnline");
       this.onlineLoad = true;
       appUtils
         .get({
           url: "api/onlineProfiles",
         })
         .then((response) => {
-          console.log(response.data);
+          //console.log(response.data);
           this.onlineLoad = false;
           if (response.data.status == 1) {
             //console.log(`status: ${response.data.status}`);
@@ -315,7 +315,7 @@ let page = {
           },
         })
         .then((response) => {
-          console.log(response.data);
+          //console.log(response.data);
           if (response.data.status == 1) {
             this.rows = response.data.profiles;
             this.totalItems = response.data.totalItems;
@@ -354,7 +354,7 @@ let page = {
   },
   watch: {
     tab: function (newVal) {
-      console.log(`tab: ${newVal}`);
+      //console.log(`tab: ${newVal}`);
       if (newVal == 1) {
         this.loadOnline();
       } else if (newVal == 2) {

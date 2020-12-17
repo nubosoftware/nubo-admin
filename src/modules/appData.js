@@ -117,7 +117,7 @@ const appData = {
         }
         let hasPerm = false;
         let v = (perms["@/"] ? perms["@/"] : perms["/"]);
-        console.log("v: " + v);
+        //console.log("v: " + v);
         if (perm != "@/" && v && (v == "rw")) {
             hasPerm = true;
         } else {
@@ -127,7 +127,7 @@ const appData = {
             }
 
         }
-        console.log(`checkPermission ${perm},${accessType}: ${hasPerm}`);
+        //console.log(`checkPermission ${perm},${accessType}: ${hasPerm}`);
         return hasPerm;
     },
 };

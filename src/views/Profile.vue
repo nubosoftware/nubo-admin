@@ -548,7 +548,7 @@ export default {
         console.log("loadDetails new profile..");
         return;
       }
-      console.log("Loading details...");
+      //console.log("Loading details...");
       appUtils
       .get({
         url:
@@ -556,9 +556,9 @@ export default {
           encodeURIComponent(this.profileID),
       })
       .then((response) => {
-        console.log(response.data);
+        //console.log(response.data);
         if (response.data.status == 1) {
-          console.log("Success");
+          //console.log("Success");
           this.details = response.data.details;
           this.details.email = this.profileID;
           let m = moment(this.details.lastActivityTime);
@@ -754,7 +754,7 @@ export default {
       console.log("resetLogin");
     },
     updatePageHead : function () {
-      console.log("updatePageHead");
+      //console.log("updatePageHead");
       let bcItems = [
         {
           text: this.$t("control-panel"),
@@ -798,7 +798,7 @@ export default {
   },
   watch: {
     tab: function (newVal) {
-      console.log(`tab: ${newVal}`);
+      //console.log(`tab: ${newVal}`);
 
       if (newVal == 1) {
         // activities yab

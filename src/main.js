@@ -8,7 +8,7 @@ import i18n from './i18n'
 import VueNotification from "@kugatsu/vuenotification";
 
 Vue.config.productionTip = false
-Vue.use(require("moment"));
+    //Vue.use(require("moment"));
 Vue.use(VueNotification, {
     timer: 20,
     warning: {

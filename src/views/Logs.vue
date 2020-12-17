@@ -340,7 +340,7 @@ let page = {
   },
   watch: {
     tab: function (newVal) {
-      console.log(`tab: ${newVal}`);
+      //console.log(`tab: ${newVal}`);
       if (newVal == 0) {
         this.refreshEvents();
       }

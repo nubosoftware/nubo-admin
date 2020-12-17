@@ -84,12 +84,17 @@ export default {
     snackbarSave: false,
     snackbarText: "",
     lastSessionsOptions: {},
+    onlineUsers: {},
+    platforms: {},
+    onlineDevices: {},
+    storage: {},
+    deviceTypes: {},
+    lastSessions: {},
     appData
   }),
   methods: {
     fillData () {
       let colors = this.$vuetify.theme.themes.light;
-      console.log(colors.success);
       this.onlineUsers = {
         datasets: [{
             data: [this.dashboard.onlineUsers, this.dashboard.totalUsers ],
@@ -203,7 +208,7 @@ export default {
           url: "api/dashboard"
         })
         .then(response => {
-          console.log(response.data);
+          //console.log(response.data);
           if (response.data.status == 1) {
             console.log(`status: ${response.data.status}`);
             this.dashboard = response.data;

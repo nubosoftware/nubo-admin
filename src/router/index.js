@@ -24,7 +24,7 @@ const routes = [{
     },
     {
         path: '/Profile/:id',
-        name: 'Profile',
+        name: 'ProfileEdit',
         component: () =>
             import ( /* webpackChunkName: "about" */ '../views/Profile.vue'),
     },
@@ -42,13 +42,13 @@ const routes = [{
     },
     {
         path: '/Group/:groupName/:adDomain',
-        name: 'Group',
+        name: 'GroupAD',
         component: () =>
             import ( /* webpackChunkName: "about" */ '../views/Group.vue'),
     },
     {
         path: '/Group/:groupName',
-        name: 'Group',
+        name: 'GroupName',
         component: () =>
             import ( /* webpackChunkName: "about" */ '../views/Group.vue'),
     },
@@ -91,7 +91,7 @@ const routes = [{
     },
     {
         path: '/App/:packageName',
-        name: 'Apps',
+        name: 'App',
         component: () =>
             import ( /* webpackChunkName: "about" */ '../views/AppDetails.vue'),
     },
@@ -109,7 +109,7 @@ const routes = [{
     },
     {
         path: '/Reports/:reportCode',
-        name: 'Reports',
+        name: 'Report',
         component: () =>
             import ( /* webpackChunkName: "about" */ '../views/Reports.vue'),
     },

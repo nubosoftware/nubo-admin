@@ -19,11 +19,12 @@ module.exports = {
             localeDir: 'locales',
             enableInSFC: true
         },
-        moment: {
-            locales: [
-                ''
-            ]
-        }
+        /*
+                moment: {
+                    locales: [
+                        'en'
+                    ]
+                }*/
     },
     publicPath: process.env.NODE_ENV === 'production' ? '/html/admin/' : '/'
 

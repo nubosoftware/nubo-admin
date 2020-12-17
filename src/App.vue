@@ -127,7 +127,7 @@ export default {
   methods: {
     updatePage: function (items) {
       //this.moduleName = moduleName;
-      console.log("updatePage: items: " + items);
+      //console.log("updatePage: items: " + items);
       if (Array.isArray(items)) {
         this.items = items;
       } else {
@@ -166,7 +166,7 @@ export default {
       this.$router.push("/Login");
     },
     checkLoginLoop: function(prevLoginToken){
-      console.log("checkLoginLoop: "+prevLoginToken);
+      //console.log("checkLoginLoop: "+prevLoginToken);
       let thisPage = this;
       setTimeout(function(){
         if (appData.adminLoginToken && appData.adminLoginToken != "" && appData.adminLoginToken == prevLoginToken) {
@@ -177,7 +177,7 @@ export default {
             .then((response) => {
               
               if (response.data.status == 1) {
-                console.log("Login is valid...");
+                //console.log("Login is valid...");
                 thisPage.checkLoginLoop(prevLoginToken);
               } else {
                 console.log("Login Error");
