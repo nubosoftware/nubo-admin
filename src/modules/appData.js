@@ -52,6 +52,8 @@ const appData = {
     load: () => {
         console.log("Loading app data..");
         appData.isAuthenticated = localStorage.getItem("isAuthenticated");
+        if (appData.isAuthenticated == "false") appData.isAuthenticated = false;
+        console.log(`Loading app data appData.isAuthenticated: ${appData.isAuthenticated}`);
         appData.adminLoginToken = localStorage.getItem("adminLoginToken");
         appData.mainDomain = localStorage.getItem("mainDomain");
         appData.firstname = localStorage.getItem("firstname");
@@ -112,7 +114,7 @@ const appData = {
 
     checkPermission: (perm, accessType) => {
         let perms = appData.permissions;
-        if (!perms) {
+        if (!perms || !appData.isAuthenticated) {
             return false;
         }
         let hasPerm = false;

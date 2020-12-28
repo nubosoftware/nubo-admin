@@ -132,14 +132,11 @@ const routes = [{
             import ( /* webpackChunkName: "about" */ '../views/Logs.vue'),
     },
     {
-        path: '/about',
-        name: 'About',
-        // route level code-splitting
-        // this generates a separate chunk (about.[hash].js) for this route
-        // which is lazy-loaded when the route is visited.
+        path: '/Message',
+        name: 'Message',
         component: () =>
-            import ( /* webpackChunkName: "about" */ '../views/About.vue'),
-        props: { newsletterPopup: false }
+            import ('../views/Message.vue'),
+        props: true,
     }
 ]
 
@@ -147,8 +144,17 @@ const router = new VueRouter({
     routes
 })
 
+
+const noLoginRoutes = {
+    "About": 1,
+    "Message": 1,
+};
+
 router.beforeEach((to, from, next) => {
-    if (to.name !== 'Login' && !appData.isAuthenticated) next({ name: 'Login' })
-    else next()
+    if (to.name !== 'Login' && !appData.isAuthenticated && !(noLoginRoutes[to.name])) {
+        console.log("Detect no login in route: " + to.name);
+        //console.log(to);
+        next({ name: 'Login' })
+    } else next()
 })
 export default router

@@ -16,6 +16,7 @@
         <v-list-item-content>
           
         <v-select
+          v-if="appData.isAuthenticated"
           :items="appData.orgs"
           :label="$t('Organization')"
           item-text="domainName"
@@ -28,7 +29,7 @@
 
       <v-divider></v-divider>
 
-      <v-list dense nav>
+      <v-list dense nav v-if="appData.isAuthenticated">
         <v-list-item
           v-for="item in menuItems"
           :key="item.title"
@@ -54,7 +55,7 @@
       elevate-on-scroll
     >
       <v-app-bar-nav-icon v-if="!drawer" @click="drawer = true"> </v-app-bar-nav-icon>
-      <v-breadcrumbs :items="items" divider=">"></v-breadcrumbs>
+      <v-breadcrumbs v-if="appData.isAuthenticated" :items="items" divider=">"></v-breadcrumbs>
       <v-spacer></v-spacer>
       
       <v-menu
@@ -117,10 +118,6 @@ export default {
     moduleName: "Control Panel",
     menuItems: [],
     items: [
-      {
-        text: "Text",
-        href: "/",
-      },
     ],
     appData,
   }),
@@ -183,12 +180,14 @@ export default {
                 console.log("Login Error");
                 console.log(response.data);
                 appData.adminLoginToken = "";
+                appData.isAuthenticated = false;
                 thisPage.$router.push("/Login");
               }
             }).catch((error) => {
               console.log("Login Error");
               console.log(error);
               appData.adminLoginToken = "";
+              appData.isAuthenticated = false;
               thisPage.$router.push("/Login");
             })
         }
@@ -196,8 +195,10 @@ export default {
     },
     updatePermissions: function() {
       let items = [
-        { title: this.$t("Dashboard"), icon: "mdi-chart-bar" , link: "/" },
       ];
+      if (appData.isAuthenticated) {
+         items.push({ title: this.$t("Dashboard"), icon: "mdi-chart-bar" , link: "/" });
+      }
       if (appData.checkPermission("/profiles","r")) {
         items.push({ title: this.$t("Profiles"), icon: "mdi-account-multiple-outline", link: "/Profiles" });
       }
@@ -224,14 +225,17 @@ export default {
     },
   },
   created: function () {
-    this.items = [{
-      text: this.$t("control-panel"),
-      href: "/#/",
-      disabled: false,
-    }];
+    console.log(`this.appData.isAuthenticated: ${this.appData.isAuthenticated}`);
+    if (this.appData.isAuthenticated) {
+      this.items = [{
+        text: this.$t("control-panel"),
+        href: "/#/",
+        disabled: false,
+      }];
+    }
     this.defItems = this.items;
     this.updatePermissions();
-    if (appData.adminLoginToken && appData.adminLoginToken != "") {
+    if (appData.adminLoginToken && appData.adminLoginToken != "" && appData.isAuthenticated) {
       this.checkLoginLoop(appData.adminLoginToken);
     }
   },
