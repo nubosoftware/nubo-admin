@@ -684,7 +684,7 @@ export default {
         .req({
           method,
           url:
-          "/api/profiles/" +
+          "api/profiles/" +
           encodeURIComponent(this.profileID),
           data: {
             first: this.details.firstname,
@@ -758,17 +758,17 @@ export default {
       let bcItems = [
         {
           text: this.$t("control-panel"),
-          href: "/#/",
+          to: "/",
           disabled: false,
         },
         {
           text: this.$t("Profiles"),
-          href: "/#/Profiles",
+          to: "/Profiles",
           disabled: false,
         },
         {
           text: (this.profileID != "" ? this.profileID : this.$t("New Profile")),
-          href: "/#/Profile/" + this.profileID,
+          to: "/Profile/" + this.profileID,
           disabled: false,
         },
       ];

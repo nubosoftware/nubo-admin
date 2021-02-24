@@ -434,17 +434,17 @@ export default {
             let bcItems = [
               {
                 text: this.$t("control-panel"),
-                href: "/#/",
+                to: "/",
                 disabled: false,
               },
               {
                 text: this.$t("Apps"),
-                href: "/#/Apps",
+                to: "/Apps",
                 disabled: false,
               },
               {
                 text: this.details.appname,
-                href: "/#/App/" + this.$route.params.packageName,
+                to: "/App/" + this.$route.params.packageName,
                 disabled: false,
               },
             ];
@@ -642,17 +642,17 @@ export default {
     let bcItems = [
       {
         text: this.$t("control-panel"),
-        href: "/#/",
+        to: "/",
         disabled: false,
       },
       {
         text: this.$t("Apps"),
-        href: "/#/Apps",
+        to: "/Apps",
         disabled: false,
       },
       {
         text: this.$route.params.packageName,
-        href: "/#/App/" + this.$route.params.packageName,
+        to: "/App/" + this.$route.params.packageName,
         disabled: false,
       },
     ];

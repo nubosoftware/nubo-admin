@@ -245,17 +245,17 @@ let page = {
       let bcItems = [
         {
           text: this.$t("control-panel"),
-          href: "/#/",
+          to: "/",
           disabled: false,
         },
         {
           text: this.$t("Admins"),
-          href: "/#/Admins",
+          to: "/Admins",
           disabled: false,
         },
         {
           text: this.email,
-          href: "/#/Admin/" + this.email,
+          to: "/Admin/" + this.email,
           disabled: false,
         },
       ];

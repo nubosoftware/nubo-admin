@@ -376,17 +376,17 @@ let page = {
       let bcItems = [
         {
           text: this.$t("control-panel"),
-          href: "/#/",
+          to: "/",
           disabled: false,
         },
         {
           text: this.$t("Groups"),
-          href: "/#/Groups",
+          to: "/Groups",
           disabled: false,
         },
         {
           text: (this.newgroup ? this.$t("New Group") : this.groupName),
-          href: "/#/Group/" + this.groupName + "/" + this.adDomain,
+          to: "/Group/" + this.groupName + "/" + this.adDomain,
           disabled: false,
         },
       ];

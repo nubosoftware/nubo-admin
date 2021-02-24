@@ -23,7 +23,7 @@
                   :label="$t('Enter your password')"
                   v-model="password"
                   min="8"
-                  :append-icon="e1 ? 'visibility' : 'visibility_off'"
+                  :append-icon="e1 ? 'mdi-eye ' : 'mdi-eye-off'"
                   :append-icon-cb="() => (e1 = !e1)"
                   @click:append="() => (e1 = !e1)"
                   :type="e1 ? 'password' : 'text'"
@@ -36,7 +36,7 @@
                   :label="$t('Re-enter your password')"
                   v-model="passwordCheck"
                   min="8"
-                  :append-icon="e2 ? 'visibility' : 'visibility_off'"
+                  :append-icon="e2 ? 'eye' : 'mdi-eye-off'"
                   :append-icon-cb="() => (e2 = !e2)"
                   @click:append="() => (e2 = !e2)"
                   :type="e2 ? 'password' : 'text'"
@@ -94,7 +94,7 @@
 
 
 <style>
-@import "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons";
+
 .loginOverlay {
   background: rgba(33, 150, 243, 0.3);
 }

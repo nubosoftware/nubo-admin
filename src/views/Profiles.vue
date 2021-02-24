@@ -332,12 +332,12 @@ let page = {
     let bcItems = [
       {
         text: this.$t("control-panel"),
-        href: "/#/",
+        to: "/",
         disabled: false,
       },
       {
         text: this.$t("Profiles"),
-        href: "/#/Profiles",
+        to: "/Profiles",
         disabled: false,
       },
     ];

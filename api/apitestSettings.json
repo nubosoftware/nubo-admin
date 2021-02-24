@@ -2,5 +2,6 @@
     "username": "a@jpdc.local",
     "password": "123654",
     "apiurl": "http://labil.nubosoftware.com:8080",
+    "selectedDomain": "nubodemo.com",
     "activationkey": "8359855415d5e9ae84569be7dd46cecdb8959b5a5cbe9dd1c8b3ed046c3fa0284c31569f02c926a76fc31ccf5a116378"
 }

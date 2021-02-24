@@ -134,12 +134,12 @@ export default {
       let bcItems = [
         {
           text: this.$t("control-panel"),
-          href: "/#/",
+          to: "/",
           disabled: false,
         },
         {
           text: this.$t("Reports"),
-          href: "/#/Reports",
+          to: "/Reports",
           disabled: false,
         },
       ];
@@ -155,7 +155,7 @@ export default {
       });
       bcItems.push({
         text: this.reportName,
-        href: "/#/Reports/" + this.reportCode,
+        to: "/Reports/" + this.reportCode,
         disabled: false,
       });
       this.$emit("updatePage", bcItems);

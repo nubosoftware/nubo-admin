@@ -220,11 +220,11 @@ let page = {
   created: function() {
     let bcItems = [{
       text: this.$t("control-panel"),
-      href: "/#/",
+      to: "/",
       disabled: false,
     }, {
       text: this.$t("Administrators"),
-      href: "/#/Admins",
+      to: "/Admins",
       disabled: false,
     }];
     this.$emit("updatePage", bcItems);

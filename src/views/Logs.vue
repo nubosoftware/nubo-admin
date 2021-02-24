@@ -312,12 +312,12 @@ let page = {
     let bcItems = [
       {
         text: this.$t("control-panel"),
-        href: "/#/",
+        to: "/",
         disabled: false,
       },
       {
         text: this.$t("Logs"),
-        href: "/#/Logs",
+        to: "/Logs",
         disabled: false,
       },
     ];

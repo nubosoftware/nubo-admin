@@ -399,17 +399,17 @@ let page = {
     let bcItems = [
       {
         text: this.$t("control-panel"),
-        href: "/#/",
+        to: "/",
         disabled: false,
       },
       {
         text: this.$t("LDAP"),
-        href: "/#/LDAP",
+        to: "/LDAP",
         disabled: false,
       },
       {
         text: this.addomain,
-        href: "/#/LDAP/" + encodeURIComponent(this.addomain),
+        to: "/LDAP/" + encodeURIComponent(this.addomain),
         disabled: false,
       },
     ];

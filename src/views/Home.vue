@@ -228,7 +228,7 @@ export default {
   created: function() {
     let bcItems = [{
       text: this.$t("control-panel"),
-      href: "/#/",
+      to: "/",
       disabled: false,
     }];
     this.$emit("updatePage", bcItems);

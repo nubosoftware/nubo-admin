@@ -15,6 +15,7 @@
     "chart.js": "^2.9.4",
     "core-js": "^3.6.5",
     "cors-anywhere": "^0.4.3",
+    "extract-zip": "^2.0.1",
     "gsap": "^3.5.1",
     "jsrsasign": "^10.0.4",
     "moment": "^2.29.1",
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "@intlify/vue-i18n-loader": "^1.0.0",
+    "@mdi/font": "^5.8.55",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-plugin-router": "^4.5.8",

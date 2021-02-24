@@ -229,7 +229,7 @@ export default {
     if (this.appData.isAuthenticated) {
       this.items = [{
         text: this.$t("control-panel"),
-        href: "/#/",
+        to: "/",
         disabled: false,
       }];
     }

@@ -167,12 +167,12 @@ let page = {
     let bcItems = [
       {
         text: this.$t("control-panel"),
-        href: "/#/",
+        to: "/",
         disabled: false
       },
       {
         text: this.$t("Exchange Setup"),
-        href: "/#/EmailSetup",
+        to: "/EmailSetup",
         disabled: false
       }
     ];

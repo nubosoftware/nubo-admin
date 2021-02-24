@@ -41,6 +41,7 @@ async function main() {
                 password: settings.password,
                 deviceid: "APITest",
                 deviceName: "API",
+                selectedDomain: settings.selectedDomain,
                 activationkey: settings.activationkey //"0837e76290cf554edd2203d24702c83e7c7d3f538fc61e6025d586c31bf43db72d2961331819b7bd2f4453cdd0b04c73"
             }
         });

@@ -1,8 +1,21 @@
 #%RAML 1.0
-title: Nubo Admin
+title: Nubo Admin API
 version: v1
 baseUri: https://api.nubosoftware.com/api/
+description: |
+  <p>This API is designed to automate administrator operations of the Nubo system.</p>
+  <p>This is a REST based API which returns output in JSON format.<br>
+  For your convenience, we can receive input parameters using three different techniques:<br>
+    URL query parameters.<br>
+    Post data encoded as application/x-www-form-urlencoded.<br>
+    Post data encoded as JSON string.<br>
+  </p>
+  <p>Each access to the API must be authenticated by using the "Authorization" http header with "OAuth" authentication type and an authentication token.<br>
+    Retrieve the authentication token with the /auth method.
+  </p>
 /auth:
+  description: |
+    Authentication methods - You must authenticate using the following authentication methods before accessing the API.
   post:
     description: |
         Log in to the admin API.<br>
@@ -20,11 +33,40 @@ baseUri: https://api.nubosoftware.com/api/
           required: true
           type: string
           example: "********"
+      deviceid:
+          description: "Identifier of the device used for connecting"
+          required: true
+          type: string
+          example: "API_DEVICE"
+      deviceName:
+          description: "Name of the device used for connecting"
+          required: false
+          type: string
+          example: "API"
+      selectedDomain:
+          description: |
+            The organization's domain to be used.<br>
+            All requests from this login session will be directed to the chosen organization.
+          required: false
+          type: string
+          example: "mydomain.com"
+      activationkey:
+          description: |
+            Activation key that was previously returned by the /auth command and activated by the user.<br>
+            In case an activation key is missing, the auth command will generate an activation key and send an activation email.
+          required: false
+          type: string
+          example: "845b38840cc8e12ddee5aa26a12bf3c6af3b68aeb85130d10ce5a97a2b1147c0e9edc900b3a94094212f3514cbe42937"
     responses:
       200:
+        description: |
+          JSON output with status field:<br>
+          Status 1 is a successful login and all other statuses are errors or login failures.<br>
+          Status 200 is activation pending, which enables you to activate your access and re-try to authenticate with the activation key supplied.
         body:
           application/json:
-              example: |
+            examples:
+              Success: |
                 {
                   "status": 1,
                   "message": "Login was successful",
@@ -34,9 +76,100 @@ baseUri: https://api.nubosoftware.com/api/
                   "lastname": "Doe",
                   "orgname": "My Company Inc."
                 }
+              Activation Required: |
+                {
+                  "status": 200,
+                  "message": "Please activate admin login",
+                  "activationkey":"845b38840cc8e12ddee5aa26a12bf3c6af3b68aeb85130d10ce5a97a2b1147c0e9edc900b3a94094212f3514cbe42937"
+                }
+  /validate:
+    post:
+      description: |
+        Check if the given activation key is allows you to log in to the control panel.
+      queryParameters:
+        email:
+          description: "User name (Email)"
+          required: true
+          type: string
+          example: "admin@mydomain.com"
+        deviceid:
+          description: "Identifier of the device used for connecting"
+          required: true
+          type: string
+          example: "API_DEVICE"
+        activationkey:
+          description: "Activation key that was previously returned by the /auth command"
+          required: true
+          type: string
+          example: "845b38840cc8e12ddee5aa26a12bf3c6af3b68aeb85130d10ce5a97a2b1147c0e9edc900b3a94094212f3514cbe42937"
+      responses:
+        200:
+          description: |
+            JSON output with status field and message. <br>
+            Available statuses: <br>
+            201: Activation is valid<br>
+            200: Activation is pending<br>
+            202: Reset password is pending<br>
+            0:  Activation not found<br>
+          body:
+            application/json:
+              examples:
+                Valid: |
+                  {
+                    "status": 201,
+                    "message": "Activation is valid"
+                  }
+                Pending: |
+                  {
+                    "status": 200,
+                    "message": "Activation pending"
+                  }
+  /reset:
+    post:
+      description: |
+        Start the reset password process for an admin user. <br>
+        The admin user will get a reset password link to reset the password.
+      queryParameters:
+        userName:
+          description: "User name (Email)"
+          required: true
+          type: string
+          example: "admin@mydomain.com"
+        deviceid:
+          description: "Identifier of the device"
+          required: true
+          type: string
+          example: "API_DEVICE"
+        deviceName:
+          description: "Name of the device"
+          required: false
+          type: string
+          example: "API"
+        activationkey:
+          description: 'Activation key that was previously returned by the "/auth" command'
+          required: true
+          type: string
+          example: "845b38840cc8e12ddee5aa26a12bf3c6af3b68aeb85130d10ce5a97a2b1147c0e9edc900b3a94094212f3514cbe42937"
+      responses:
+        200:
+          description: |
+            JSON output with status field and message. <br>
+            Available statuses: <br>
+            200: Activation is pending<br>
+            0:  Error<br>
+          body:
+            application/json:
+              example:
+                {
+                  "status": 200,
+                  "message": "Please activate admin login",
+                  "activationkey":"845b38840cc8e12ddee5aa26a12bf3c6af3b68aeb85130d10ce5a97a2b1147c0e9edc900b3a94094212f3514cbe42937"
+                }
 /profiles:
+    description: |
+      Various operations on profiles (users)
     get:
-        description: Get list of profiles (users).
+        description: Get a list of profiles (users).
         queryParameters:
             adminFilter:
               description: |
@@ -56,7 +189,7 @@ baseUri: https://api.nubosoftware.com/api/
                 type: number
                 example: 1000
             offset:
-                description: "Rows to skip"
+                description: "Number of rows to skip before fetching rows"
                 required: false
                 type: number
                 example: 0
@@ -116,10 +249,18 @@ baseUri: https://api.nubosoftware.com/api/
                             "isMore":false
                             }
     /{email}:
+        description: | 
+          Actions per specific profile.
+        uriParameters:
+          email:
+            description: User name (email).
+            required: true
+            type: string
+            example: "1234@nub4est.co"
         get:
             description: | 
               Get profile information. <br>
-              Return user details as well as list of user's apps, devices, and groups.
+              Return user details, as well as lists of user's apps, devices, and groups.
             responses:
                 200:
                     body:
@@ -272,7 +413,7 @@ baseUri: https://api.nubosoftware.com/api/
                                 ]
                               }
         post:
-            description: Update profile information
+            description: Update profile information.
             queryParameters:
                 first:
                     description: "First name"
@@ -314,7 +455,7 @@ baseUri: https://api.nubosoftware.com/api/
                               "message": "The profile was updated successfully"
                             }
         put:
-            description: Add profile
+            description: Add profile.
             queryParameters:
                 first:
                     description: "First name"
@@ -356,7 +497,7 @@ baseUri: https://api.nubosoftware.com/api/
                               "message": "The profile was added successfully"
                             }
         delete:
-            description: Delete profile
+            description: Delete profile.
             responses:
               200:
                   body:
@@ -366,13 +507,94 @@ baseUri: https://api.nubosoftware.com/api/
                               "status": 1,
                               "message": "The profile was deleted successfully"
                             }
+    /{email}/invite:
+      put:
+        description: Send an invitation email to the user.
+        responses:
+          200:
+              body:
+                  application/json:
+                      example: |
+                        {
+                          "status": "1",
+                          "message": "Request was fulfilled"
+                        }
+    /{email}/activate:
+      put:
+        description: Enable or disable the profile.
+        queryParameters:
+          activate:
+              description: "Y - Enable, N - Disable"
+              required: true
+              type: string
+              example: "Y"
+        responses:
+          200:
+              body:
+                  application/json:
+                      example: |
+                        {
+                          "status": "1",
+                          "message": "Request was fulfilled"
+                        }
+/onlineProfiles:
+  get:
+    description: List all online profiles and devices.
+    responses:
+          200:
+              body:
+                  application/json:
+                      example: |
+                        {
+                          "status": 1,
+                          "message": "Request was fulfilled",
+                          "profiles": [
+                            {
+                              "email": "test@nubodemo.com",
+                              "username": "test@nubodemo.com",
+                              "firstname": "A",
+                              "lastname": "A",
+                              "isactive": 1,
+                              "imageurl": null,
+                              "isadmin": 1,
+                              "user_devices": [
+                                {
+                                  "imei": "AABBCCDD",
+                                  "devicename": "Samsung_SM-G973F",
+                                  "gateway": "1",
+                                  "platform": "2"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+/devices:
+  /{email}/{deviceid}:
+    post:
+      description: Operations on a specific user device (e.g. end session or disable access).
+      queryParameters:
+          action:
+              description: |
+                Action to perform on the device. The available options are:<br>
+                  "endSession" - End the current logged in session.<br>
+                  "disable" - Disable access from this device.<br>
+                  "enable" - Enable access from this device.<br>
+              required: true
+              type: string
+              example: "endSession"
+      responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": 1,
+                    "message": "Request was fulfilled"
+                  }
 /groups:
-    description: |
-            Actions on specific group.<br>
-            If group was imported from A.D, groupName parameter shoud be &lt;Group Name&gt;#&lt;A.D Domain&gt; <br>
-            e.g. Administrators#nub4est.co
+    description: Various operations on groups.
     get:
-        description: Get list of groups.
+        description: Get the list of groups.
         responses:
           200:
               body:
@@ -415,11 +637,19 @@ baseUri: https://api.nubosoftware.com/api/
                           ]
                         }
     /{groupName}:
+        description: |
+          Actions on a specific group.
+        uriParameters:
+          groupName:
+            description: |
+              Group name.<br>
+              If the group was imported from A.D, groupName parameter should be &lt;Group Name&gt;#&lt;A.D Domain&gt;.<br>
+            required: true
+            type: string
+            example: Administrators#nub4est.co"
         get:
             description: |
-              Get group information.<br>
-              If group was imported from A.D, groupName parameter shoud be &lt;Group Name&gt;#&lt;A.D Domain&gt; <br>
-              e.g. Administrators#domain.com
+              Get group information.
             responses:
               200:
                   body:
@@ -448,7 +678,7 @@ baseUri: https://api.nubosoftware.com/api/
                               "apps": []
                             }
         delete:
-            description: Delete group
+            description: Delete group.
             responses:
               200:
                   body:
@@ -459,7 +689,7 @@ baseUri: https://api.nubosoftware.com/api/
                               "message": "The group was deleted successfully"
                             }
         put:
-            description: Create new group
+            description: Create new group.
             queryParameters:
                 email:
                     description: "Array of emails to be added to this group"
@@ -477,10 +707,10 @@ baseUri: https://api.nubosoftware.com/api/
                             }
         /addProfiles:
             post:
-                description: Add profiles to group
+                description: Add profiles to group.
                 queryParameters:
                     email:
-                        description: "Array of emails to be added to this group"
+                        description: "Array of emails to be added to group"
                         required: false
                         type: string
                         example: "user@domain.com"
@@ -495,10 +725,10 @@ baseUri: https://api.nubosoftware.com/api/
                                 }
         /removeProfiles:
             post:
-                description: Remove profiles from group
+                description: Remove profiles from group.
                 queryParameters:
                     email:
-                        description: "Array of emails to be removed from this group"
+                        description: "Array of emails to be removed from group"
                         required: false
                         type: string
                         example: "user@domain.com"
@@ -511,6 +741,554 @@ baseUri: https://api.nubosoftware.com/api/
                                   "status": "1",
                                   "message": "The profiles were removed from the group successfully"
                                 }
+/apps:
+    description: |
+            Actions on apps.
+    get:
+        description: Get a list of available apps.
+        responses:
+          200:
+              body:
+                  application/json:
+                      example: |
+                        {
+                          "status": "1",
+                          "message": "The request was fulfilled",
+                          "apps": [
+                            {
+                              "packageName": "com.android.calendar",
+                              "versionName": "Nubo-7.0.7",
+                              "versionCode": "100",
+                              "appName": "Calendar",
+                              "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.android.calendar.100.png",
+                              "price": "0",
+                              "description": "",
+                              "downloadCounter": 56,
+                              "summary": "Time management",
+                              "categories": "Tools"
+                            },
+                            {
+                              "packageName": "com.android.camera",
+                              "versionName": "Nubo-3.0",
+                              "versionCode": "3",
+                              "appName": "Camera",
+                              "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.android.camera.3.png",
+                              "price": "0",
+                              "description": "Use this app to take photos and videos you wish to keep private, and not displayed on your physical device. All photos and videos are securely kept in the virtual remote device.",
+                              "downloadCounter": 56,
+                              "summary": "Secure Camera",
+                              "categories": "Photography"
+                            },
+                            {
+                              "packageName": "com.android.chrome",
+                              "versionName": "87.0.4280.141",
+                              "versionCode": "428014121",
+                              "appName": "Chrome",
+                              "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.android.chrome.428014121.png",
+                              "price": "0",
+                              "description": "",
+                              "downloadCounter": 1,
+                              "summary": "",
+                              "categories": ""
+                            },
+                            {
+                              "packageName": "com.android.contacts",
+                              "versionName": "Nubo-3.0",
+                              "versionCode": "100001",
+                              "appName": "Contacts",
+                              "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.android.contacts.100001.png",
+                              "price": "0",
+                              "description": "Use this app to securely manage your private contact list. The address book is securely kept in the virtual remote device.",
+                              "downloadCounter": 58,
+                              "summary": "Secure Address Book",
+                              "categories": "Communication"
+                            },
+                            {
+                              "packageName": "com.android.dialer",
+                              "versionName": "3.00.00",
+                              "versionCode": "30000",
+                              "appName": "Phone",
+                              "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.android.dialer.30000.png",
+                              "price": "0",
+                              "description": "Use this app to securely make voice calls without leaving a trace on your physical device. The call history is securely kept in the virtual remote device, and the voice communication is encrypted.",
+                              "downloadCounter": 55,
+                              "summary": "Secure Voice Calls",
+                              "categories": "Communication"
+                            },
+                            {
+                              "packageName": "com.android.email",
+                              "versionName": "Nubo-7.0.7",
+                              "versionCode": "550007",
+                              "appName": "Email",
+                              "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.android.email.550007.png",
+                              "price": "0",
+                              "description": "",
+                              "downloadCounter": 59,
+                              "summary": "Secure Email",
+                              "categories": "Communication"
+                            },
+                            {
+                              "packageName": "com.nubo.appstore",
+                              "versionName": "3.0.0.10",
+                              "versionCode": "1008002",
+                              "appName": "Store",
+                              "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.nubo.appstore.1008002.png",
+                              "price": "0",
+                              "description": "This app allows you to install apps that have been hand-picked and specifically approved as secure and private.",
+                              "downloadCounter": 71,
+                              "summary": "Secure App Store",
+                              "categories": "Productivity,Tools"
+                            },
+                            {
+                              "packageName": "com.nubo.browser",
+                              "versionName": "4.5.3",
+                              "versionCode": "100",
+                              "appName": "Browser",
+                              "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.nubo.browser.100.png",
+                              "price": "0",
+                              "description": "",
+                              "downloadCounter": 1,
+                              "summary": "",
+                              "categories": ""
+                            },
+                            {
+                              "packageName": "com.nubo.controlpanel",
+                              "versionName": "3.0.0.12",
+                              "versionCode": "23",
+                              "appName": "Control Panel",
+                              "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.nubo.controlpanel.23.png",
+                              "price": "0",
+                              "description": "Use this app to manage your Nubo environment. Manage profiles, groups, apps, and various settings.",
+                              "downloadCounter": 42,
+                              "summary": " Administrator Console",
+                              "categories": "Tools"
+                            },
+                            {
+                              "packageName": "com.nubo.filemanager",
+                              "versionName": "2.3.1.2",
+                              "versionCode": "49",
+                              "appName": "Files",
+                              "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.nubo.filemanager.49.png",
+                              "price": "0",
+                              "description": "",
+                              "downloadCounter": 55,
+                              "summary": "Secure File Manager",
+                              "categories": "Productivity,Tools"
+                            },
+                            {
+                              "packageName": "com.nubo.gallery",
+                              "versionName": "v1.1.1",
+                              "versionCode": "37",
+                              "appName": "Gallery",
+                              "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.nubo.gallery.37.png",
+                              "price": "0",
+                              "description": "Use this app to access and view your private photos and videos. All media files added/saved can be securely viewed using the Gallery app.",
+                              "downloadCounter": 53,
+                              "summary": "Secure Photo Gallery",
+                              "categories": "Photography, Gallery"
+                            },
+                            {
+                              "packageName": "com.nubo.launcher.nubo",
+                              "versionName": "nubo-3.0.2",
+                              "versionCode": "30913",
+                              "appName": "Launcher",
+                              "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.nubo.launcher.nubo.30913.png",
+                              "price": "0",
+                              "description": "",
+                              "downloadCounter": 55,
+                              "summary": "Launcher",
+                              "categories": "Tools"
+                            },
+                            {
+                              "packageName": "com.nubo.notes",
+                              "versionName": "3.1.6",
+                              "versionCode": "13",
+                              "appName": "Notes",
+                              "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.nubo.notes.13.png",
+                              "price": "0",
+                              "description": "Use this app to create short text notes you wish to keep private, and not saved on your physical device.",
+                              "downloadCounter": 56,
+                              "summary": "Secure Note-Taking",
+                              "categories": "Productivity"
+                            },
+                            {
+                              "packageName": "com.nubo.sip",
+                              "versionName": "1.0.04",
+                              "versionCode": "13",
+                              "appName": "Voice Call",
+                              "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.nubo.sip.13.png",
+                              "price": "0",
+                              "description": "Use this app to securely make voice calls without leaving a trace on your physical device. The call history is securely kept in the virtual remote device, and the voice communication is encrypted.",
+                              "downloadCounter": 56,
+                              "summary": "Secure Voice Calls",
+                              "categories": "Communication"
+                            },
+                            {
+                              "packageName": "org.pf.messages",
+                              "versionName": "3.0.03",
+                              "versionCode": "79",
+                              "appName": "Messages",
+                              "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/org.pf.messages.79.png",
+                              "price": "0",
+                              "description": "Use this app to securely send and receive worry-free text messages. The chat history is securely kept in the virtual remote device, and not on the physical device itself.",
+                              "downloadCounter": 55,
+                              "summary": "Secure Messaging App",
+                              "categories": "Communication"
+                            },
+                          ]
+                        }
+    put:
+      description: |
+        Install or update APK in the app repository.<br>
+        This method returns a result before full installation ends. <br>
+        Use the "/apps/{appid}/checkUploadStatus" method to check the installation status.
+      queryParameters:
+          fileName:
+              description: | 
+                Name of an APK file that was previously uploaded using "/upload" method.
+              required: true
+              type: string
+              example: "com.android.chrome_87.0.4280.141.apk"
+      responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": 1,
+                    "message": "Installation in progress",
+                    "packageName": "com.android.chrome",
+                    "versionName": "87.0.4280.141",
+                    "versionCode": "428014121",
+                    "maindomain": "nubodemo.com",
+                    "appName": "Chrome"
+                  }
+    /{appid}:
+      uriParameters:
+          appid:
+            description: App ID is the Android app's package name.
+            required: true
+            type: string
+            example: "com.android.chrome"
+      get:
+        description: |
+          Return app information with the list of profiles that were directly assigned to the app (emails), the groups that were assigned to the app (groups), and the profiles that were indirectly assigned for being a member of a group (groupusers).
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": 1,
+                    "message": null,
+                    "emails": [
+                      {
+                        "email": "aaron.j@nubodemo.com",
+                        "firstname": "Aaron",
+                        "lastname": "Jenkins"
+                      }
+                    ],
+                    "groups": [
+                      {
+                        "groupName": "aaaaa",
+                        "adDomain": ""
+                      }
+                    ],
+                    "groupusers": [
+                      {
+                        "email": "bernice.wilson@nubodemo.com",
+                        "firstname": "Bernice",
+                        "lastname": "Wilson"
+                      },
+                      {
+                        "email": "earl.reyna@nubodemo.com",
+                        "firstname": "Earl",
+                        "lastname": "Reyna"
+                      },
+                      {
+                        "email": "tayah.moyer@nubodemo.com",
+                        "firstname": "Tayah",
+                        "lastname": "Moyer"
+                      },
+                      {
+                        "email": "test@nubodemo.com",
+                        "firstname": "A",
+                        "lastname": "A"
+                      }
+                    ],
+                    "totalNumOfUsers": 5,
+                    "appDetails": {
+                      "packagename": "com.adobe.reader",
+                      "versionname": "20.9.1.15848",
+                      "versioncode": "1920915848",
+                      "appname": "Adobe Acrobat",
+                      "description": "",
+                      "summary": null,
+                      "categories": null,
+                      "imageurl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.adobe.reader.1920915848.png",
+                      "maindomain": "nubodemo.com",
+                      "price": "0",
+                      "status": 0,
+                      "err": ""
+                    }
+                  }
+      post:
+        description: |
+          Update app details.
+        queryParameters:
+          appDescription:
+              description: "App's description"
+              required: false
+              type: string
+              example: "Use this app to view PDF files."
+          appName:
+              description: "App's name"
+              required: false
+              type: string
+              example: "Adobe Acrobat"
+          appSummary:
+              description: "Short summary"
+              required: false
+              type: string
+              example: "View PDFs"
+          appCategories:
+              description: "List of App Store categories"
+              required: false
+              type: string
+              example: "Productivity,Tools"
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": "1",
+                    "message": "Request was fulfilled"
+                  }
+      delete:
+        description: |
+          Delete the app from the app repository.
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": "1",
+                    "message": "Request was fulfilled"
+                  }
+      /install:
+        post:
+          description: |
+            Install the app on a list of profiles or groups.
+          queryParameters:
+            email:
+                description: "A list of emails to install the app on"
+                required: false
+                type: string
+                example: "user@mydomain.com"
+            groupName:
+                description: "A list of group names to install the app on"
+                required: false
+                type: string
+                example: "All"
+            adDomain:
+                description: "A list of A.D. domain groups"
+                required: false
+                type: string
+                example: "nubotest.com"
+            appStoreOnly:
+                description: "If this parameter value is 1, list the app in the profile's App Store and skip installation process"
+                required: false
+                type: number
+                example: "0"
+          responses:
+            200:
+              body:
+                application/json:
+                  example: |
+                    {
+                      "status": 1,
+                      "message": "Apps installed successfully",
+                      "numUsers": 10
+                    }
+      /uninstall:
+        post:
+          description: |
+            Uninstall the app on a list of profiles or groups.
+          queryParameters:
+            email:
+                description: "A list of emails to uninstall the app on"
+                required: false
+                type: string
+                example: "user@mydomain.com"
+            groupName:
+                description: "A list of group names to uninstall the app on"
+                required: false
+                type: string
+                example: "All"
+            adDomain:
+                description: "A list of A.D. domain groups"
+                required: false
+                type: string
+                example: "nubotest.com"
+          responses:
+            200:
+              body:
+                application/json:
+                  example: |
+                    {
+                      "status": 1,
+                      "message": "Request was fulfilled",
+                      "totalNumOfUsers": 7
+                    }
+      /checkUploadStatus:
+        get:
+          description: |
+            Check the status of app upload<br>
+            Possible values of  apkStatus return parameter:<br>
+            1: Processing apk<br>
+            2: Installing app<br>
+            0: Installed finished<br>
+          responses:
+            200:
+              body:
+                application/json:
+                  example: |
+                    {
+                      "status": "1",
+                      "message": "",
+                      "apkStatus": 1
+                    }
+/upload:
+  post:
+    description: Upload file to the admin storage. Uploaded files can be referenced by the /apps/put method to install and app.
+    body:
+      multipart/form-data:
+        formParameters:
+          file:
+            description: The file to be uploaded
+            required: true
+            type: file
+    responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                  "status": 1,
+                  "message": "File uploaded",
+                  "uploadFileName": "myapp.apk"
+                }
+/notifications:
+    put:
+      description: Send notification to a Nubo user.
+      queryParameters:
+          email:
+              description: "Email of a profile"
+              required: true
+              type: string
+              example: "user@mydomain.com"
+          titleText:
+              description: "Notification title"
+              required: true
+              type: string
+              example: "Test Notification"
+          notifyTime:
+              description: "Notification text"
+              required: true
+              type: string
+              example: "Test Notification"
+          notifyLocation:
+              description: "Additional text"
+              required: true
+              type: string
+              example: "Test Notification"
+          appName:
+              description: "ID of app inside Nubo"
+              required: false
+              type: string
+              example: "com.nubo.gallery"
+          authKey:
+              description: "Authentication key for the app"
+              required: false
+              type: string
+              example: "AAABBBCCC"
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                  "status": "1",
+                  "message": "Request was fulfilled"
+                }
+/logs:
+    get:
+      description: Get log events from the central log repository.
+      queryParameters:
+          u:
+              description: "User ID. Retrieve logs only related to this user"
+              required: false
+              type: string
+              example: "user@mydomain.com"
+          s:
+              description: "Start time"
+              required: false
+              type: date
+              example: "2021-12-31T23:38:17.000Z"
+          limit:
+              description: "Maximum number of rows to fetch"
+              required: false
+              type: number
+              example: "10"
+          offset:
+              description: "Number of rows to skip before fetching rows"
+              required: false
+              type: number
+              example: "100"
+          level:
+              description: "Log level"
+              required: false
+              type: number
+              example: "4"
+          sortBy:
+              description: "List of sort fields"
+              required: false
+              type: string
+              example: "LogLevel"
+          sortDesc:
+              description: "For each sort field, a boolean value indicate if to sort in ascending (false) or descending (true)"
+              required: false
+              type: boolean
+              example: "true"
+          comp:
+              description: "Component type"
+              required: false
+              type: string
+              example: "nubomanagement"
+          serverName:
+              description: "Server name"
+              required: false
+              type: string
+              example: "server.mydomain.com"
+          search:
+              description: "Search for specific string"
+              required: false
+              type: string
+              example: "install"
+    /getFilters:
+      get:
+        description: Get the possible values for component type and server name.
+/events:
+    get:
+      description: Get security events from the database.
+      queryParameters:
+          s:
+              description: "Start time"
+              required: false
+              type: date
+              example: "2021-12-31T23:38:17.000Z"
 /ldap:
     get:
         description: Get list of LDAP domains and their details.
@@ -637,7 +1415,7 @@ baseUri: https://api.nubosoftware.com/api/
                     "message": "Starting LDAP sync"
                   }
       put:
-        description: Set new LDAP domain or LDAP connection paramters for existing domain.
+        description: Set new LDAP domain or LDAP connection parameters for existing domain.
         queryParameters:
           host:
               description: "LDAP host name"
@@ -679,7 +1457,7 @@ baseUri: https://api.nubosoftware.com/api/
                     "message": "LDAP domain was updated succesfully"
                   }
       delete:
-        description: "Delete the LDAP domain"
+        description: "Delete the LDAP domain."
         responses:
           200:
             body:
@@ -691,8 +1469,53 @@ baseUri: https://api.nubosoftware.com/api/
                   }
 /admins:
   /{email}:
+    get:
+      description: Return the admin information including the permissions granted to the admin.
+      responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": "1",
+                    "message": "Request was fulfilled",
+                    "details": {
+                      "email": "aaron.j@nubodemo.com",
+                      "username": "aaron.j@nubodemo.com",
+                      "firstname": "Aaron",
+                      "lastname": "Jenkins",
+                      "isactive": 1,
+                      "isadmin": 1,
+                      "admin": {
+                        "email": "aaron.j@nubodemo.com",
+                        "maindomain": "nubodemo.com",
+                        "permissions": "{\"/profiles\":\"rw\",\"/groups\":\"rw\",\"/apps\":\"ri\",\"/reports\":\"r\"}",
+                        "createdAt": "2020-12-02T13:18:23.000Z",
+                        "updatedAt": "2021-02-24T07:24:54.000Z"
+                      }
+                    }
+                  }
     put:
-      description: Add new admin
+      description: Add new admin or change permission to existing admin.
+      queryParameters:
+          permissions:
+              description: |
+                JSON object with the set of the admin permissions<br>
+                The following permission keys are available:<br>
+                  "/profiles" - Access and operations to profiles<br>
+                  "/groups" - Access and operations to groups<br>
+                  "/apps" - Access and operations to groups<br>
+                  "/reports" - Access to reports<br>
+                  "/" - Organization admin - have all the above permission with the ability to setup domain configurations<br>
+                  "@/" - Site admin. Can access all organizations as admin and also can configure site level queryParameters<br><br>
+
+                  Each permission key should attach an access level value. The following values are available:<br>
+                  "r" - Read only. Can read or list object but cannot do modifications.<br>
+                  "rw" - Read and write. Can read,list,update and delete objects.<br>
+                  "ri" - Read and install/uninstall. Special level available only in the /apps permission.<br>
+              required: true
+              type: string
+              example: '{"/profiles":"rw","/groups":"rw","/apps":"ri","/reports":"r"}'
       responses:
           200:
             body:
@@ -703,7 +1526,7 @@ baseUri: https://api.nubosoftware.com/api/
                     "message": "The admin was added successfully"
                   }
     delete:
-      description: Remove admin
+      description: Remove admin.
       responses:
           200:
             body:
@@ -713,7 +1536,136 @@ baseUri: https://api.nubosoftware.com/api/
                     "status": "1",
                     "message": "The admin was removed successfully"
                   }
-
-
+/orgs:
+  get:
+    description: Get the list of all organizations.
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              {
+                "status": 1,
+                "message": "Request was fulfilled",
+                "orgs": [
+                  {
+                    "maindomain": "kitkat.com",
+                    "orgname": "Kitkat",
+                    "inviteurl": "https://nubosoftware.com/app-download.html"
+                  },
+                  {
+                    "maindomain": "nougat.com",
+                    "orgname": "Nougat",
+                    "inviteurl": "https://nubosoftware.com/app-download.html"
+                  },
+                  {
+                    "maindomain": "nubodemo.com",
+                    "orgname": "Nubo Demo",
+                    "inviteurl": "https://nubosoftware.com/app-download.html"
+                  }
+                ]
+              }
+  /{maindomain}:
+    post:
+      description: Update organization information or insert new organization.
+      queryParameters:
+          orgname:
+              description: "Display name"
+              required: false
+              type: string
+              example: "Acme Corporation"
+          inviteurl:
+              description: "URL to send with profile invitation"
+              required: false
+              type: string
+              example: "https://nubosoftware.com/app-download.html"
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                  "status": 1,
+                  "message": "Request was fulfilled"
+                }
+    put:
+      description: Change the select organization for this login session. All following request with the same login session will access data from the selected organization.
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                  "status": 1,
+                  "message": "Request was fulfilled"
+                }
+/platforms:
+  get:
+    description: List all available platforms - both running and stopped platforms.
+    responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": "1",
+                    "message": "Request was fulfilled",
+                    "platforms": [
+                      {
+                        "platID": 2,
+                        "status": "running",
+                        "sessions": "1",
+                        "platform_ip": "192.168.123.43"
+                      },
+                      {
+                        "platID": 3,
+                        "status": "available",
+                        "sessions": 0,
+                        "platform_ip": ""
+                      }
+                    ]
+                  }
+  /{platformid}:
+    put:
+      description: |
+        Start a platform.<br>
+        This long operation method returns a "notifToken" value that can be used with the /longOperations method to query the status of the operation.
+      responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": "1",
+                    "message": "Request was fulfilled",
+                    "notifToken": "8fc9024cce23d7571f45ddd79a9ff5941f484e66cab36a4d28ad44035c418af55d8a6e5763b20362c4399dc44c91aa06"
+                  }
+    delete:
+      description: |
+        Stop a platform.<br>
+        This long operation method returns a "notifToken" value that can be used with the /longOperations method to query the status of the operation.
+      responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": "1",
+                    "message": "Request was fulfilled",
+                    "notifToken": "8fc9024cce23d7571f45ddd79a9ff5941f484e66cab36a4d28ad44035c418af55d8a6e5763b20362c4399dc44c91aa06"
+                  }
+/longOperations:
+  /{notifToken}:
+    get:
+      description: Check the status of a long operation, such as starting a platform.
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                  "status": "1",
+                  "message": "Platform was started successfully"
+                }
 
 
