@@ -133,6 +133,7 @@
             <v-chip v-if="item.approvalType == 'reset biometric'">{{$t('Reset Biometric Key')}}</v-chip>
             <v-chip v-if="item.approvalType == 'admin'">{{$t('Activate Control Panel')}}</v-chip>
             <v-chip v-if="item.approvalType == 'admin reset'">{{$t('Reset Admin Password')}}</v-chip>
+            <v-chip v-if="item.approvalType == 'reset otp'">{{$t('Reset OTP Code')}}</v-chip>
           </template>
           
           <template v-slot:item.actions="{ item }">

@@ -1,15 +1,15 @@
 <!DOCTYPE HTML>
 <html>
   <head>
-    <title>Nubo Admin API documentation</title>
+    <title>Nubo Admin API</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="generator" content="https://github.com/raml2html/raml2html 7.6.0">
-    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css">
-    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <meta name="generator" content="https://github.com/raml2html/raml2html 7.7.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/default.min.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
     <script type="text/javascript">
       $(document).ready(function() {
         $('.page-header pre code, .top-resource-description pre code, .modal-body pre code').each(function(i, block) {
@@ -185,14 +185,27 @@
       <div class="row">
         <div class="col-md-9" role="main">
           <div class="page-header">
-            <h1>Nubo Admin API documentation <small>version v1</small></h1>
+            <h1>Nubo Admin API <small>version v1</small></h1>
             <p>https://api.nubosoftware.com/api/</p>
+            <p>This API is designed to automate administrator operations of the Nubo system.</p>
+            <p>This is a REST based API which returns output in JSON format.<br>
+              For your convenience, we can receive input parameters using three different techniques:<br>
+              URL query parameters.<br>
+              Post data encoded as application/x-www-form-urlencoded.<br>
+              Post data encoded as JSON string.<br>
+            </p>
+            <p>Each access to the API must be authenticated by using the "Authorization" http header with "OAuth" authentication type and an authentication token.<br>
+              Retrieve the authentication token with the /auth method.
+            </p>
           </div>
           <div class="panel panel-default">
             <div class="panel-heading">
               <h3 id="auth" class="panel-title">/auth</h3>
             </div>
             <div class="panel-body">
+              <div class="top-resource-description">
+                <p>Authentication methods - You must authenticate using the following authentication methods before accessing the API.</p>
+              </div>
               <div class="panel-group">
                 <div class="panel panel-white resource-modal">
                   <div class="panel-heading">
@@ -277,15 +290,63 @@
                                     <pre><code>********</code></pre>
                                   </div>
                                 </li>
+                                <li>
+                                  <strong>deviceid</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>Identifier of the device used for connecting</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>API_DEVICE</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>deviceName</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>Name of the device used for connecting</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>API</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>selectedDomain</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>The organization&#39;s domain to be used.<br>
+                                    All requests from this login session will be directed to the chosen organization.</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>mydomain.com</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>activationkey</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>Activation key that was previously returned by the /auth command and activated by the user.<br>
+                                    In case an activation key is missing, the auth command will generate an activation key and send an activation email.</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>845b38840cc8e12ddee5aa26a12bf3c6af3b68aeb85130d10ce5a97a2b1147c0e9edc900b3a94094212f3514cbe42937</code></pre>
+                                  </div>
+                                </li>
                               </ul>
                             </div>
                             <div class="tab-pane" id="auth_post_response">
                               <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <p>JSON output with status field:<br>
+                                Status 1 is a successful login and all other statuses are errors or login failures.<br>
+                                Status 200 is activation pending, which enables you to activate your access and re-try to authenticate with the activation key supplied.</p>
                               <h3>Body</h3>
                               <p><strong>Media type</strong>: application/json</p>
                               <p><strong>Type</strong>: any</p>
-                              <p><strong>Example</strong>:</p>
+                              <p><strong>Examples</strong>:</p>
                               <div class="examples">
+                                <p>
+                                  <strong>Success</strong>:<br />
+                                </p>
                                 <pre><code>{
   "status": 1,
   "message": "Login was successful",
@@ -296,6 +357,266 @@
   "orgname": "My Company Inc."
 }
 </code></pre>
+                                <p>
+                                  <strong>Activation Required</strong>:<br />
+                                </p>
+                                <pre><code>{
+  "status": 200,
+  "message": "Please activate admin login",
+  "activationkey":"845b38840cc8e12ddee5aa26a12bf3c6af3b68aeb85130d10ce5a97a2b1147c0e9edc900b3a94094212f3514cbe42937"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_auth_validate">
+                        <span class="parent">/auth</span>/validate
+                      </a>
+                      <span class="methods">
+            <a href="#auth_validate_post">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_post">post</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_auth_validate" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#auth_validate_post'" class="list-group-item">
+                          <span class="badge badge_post">post</span>
+                          <div class="method_description">
+                            <p>Check if the given activation key is allows you to log in to the control panel.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="auth_validate_post">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_post">post</span>
+                            <span class="parent">/auth</span>/validate
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Check if the given activation key is allows you to log in to the control panel.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#auth_validate_post_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#auth_validate_post_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="auth_validate_post_request">
+                              <h3>Query Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>email</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>User name (Email)</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>admin@mydomain.com</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>deviceid</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>Identifier of the device used for connecting</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>API_DEVICE</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>activationkey</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>Activation key that was previously returned by the /auth command</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>845b38840cc8e12ddee5aa26a12bf3c6af3b68aeb85130d10ce5a97a2b1147c0e9edc900b3a94094212f3514cbe42937</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="auth_validate_post_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <p>JSON output with status field and message. <br>
+                                Available statuses: <br>
+                                201: Activation is valid<br>
+                                200: Activation is pending<br>
+                                202: Reset password is pending<br>
+                                0: Activation not found<br></p>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Examples</strong>:</p>
+                              <div class="examples">
+                                <p>
+                                  <strong>Valid</strong>:<br />
+                                </p>
+                                <pre><code>{
+  "status": 201,
+  "message": "Activation is valid"
+}
+</code></pre>
+                                <p>
+                                  <strong>Pending</strong>:<br />
+                                </p>
+                                <pre><code>{
+  "status": 200,
+  "message": "Activation pending"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_auth_reset">
+                        <span class="parent">/auth</span>/reset
+                      </a>
+                      <span class="methods">
+            <a href="#auth_reset_post">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_post">post</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_auth_reset" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#auth_reset_post'" class="list-group-item">
+                          <span class="badge badge_post">post</span>
+                          <div class="method_description">
+                            <p>Start the reset password process for an admin user. <br>
+                              The admin user will get a reset password link to reset the password.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="auth_reset_post">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_post">post</span>
+                            <span class="parent">/auth</span>/reset
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Start the reset password process for an admin user. <br>
+                              The admin user will get a reset password link to reset the password.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#auth_reset_post_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#auth_reset_post_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="auth_reset_post_request">
+                              <h3>Query Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>userName</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>User name (Email)</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>admin@mydomain.com</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>deviceid</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>Identifier of the device</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>API_DEVICE</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>deviceName</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>Name of the device</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>API</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>activationkey</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>Activation key that was previously returned by the "/auth" command</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>845b38840cc8e12ddee5aa26a12bf3c6af3b68aeb85130d10ce5a97a2b1147c0e9edc900b3a94094212f3514cbe42937</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="auth_reset_post_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <p>JSON output with status field and message. <br>
+                                Available statuses: <br>
+                                200: Activation is pending<br>
+                                0: Error<br></p>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": 200,
+  "message": "Please activate admin login",
+  "activationkey": "845b38840cc8e12ddee5aa26a12bf3c6af3b68aeb85130d10ce5a97a2b1147c0e9edc900b3a94094212f3514cbe42937"
+}</code></pre>
                               </div>
                             </div>
                           </div>
@@ -312,6 +633,9 @@
               <h3 id="profiles" class="panel-title">/profiles</h3>
             </div>
             <div class="panel-body">
+              <div class="top-resource-description">
+                <p>Various operations on profiles (users)</p>
+              </div>
               <div class="panel-group">
                 <div class="panel panel-white resource-modal">
                   <div class="panel-heading">
@@ -333,7 +657,7 @@
                         <div onclick="window.location.href = '#profiles_get'" class="list-group-item">
                           <span class="badge badge_get">get</span>
                           <div class="method_description">
-                            <p>Get list of profiles (users).</p>
+                            <p>Get a list of profiles (users).</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
@@ -352,7 +676,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Get list of profiles (users).</p>
+                            <p>Get a list of profiles (users).</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -405,7 +729,7 @@
                                   <strong>offset</strong>:
                                   <em>(number)
       </em>
-                                  <p>Rows to skip</p>
+                                  <p>Number of rows to skip before fetching rows</p>
                                   <p><strong>Example</strong>:</p>
                                   <div class="examples">
                                     <pre><code>0</code></pre>
@@ -525,33 +849,36 @@
                   </div>
                   <div id="panel_profiles__email_" class="panel-collapse collapse">
                     <div class="panel-body">
+                      <div class="resource-description">
+                        <p>Actions per specific profile.</p>
+                      </div>
                       <div class="list-group">
                         <div onclick="window.location.href = '#profiles__email__get'" class="list-group-item">
                           <span class="badge badge_get">get</span>
                           <div class="method_description">
                             <p>Get profile information. <br>
-                              Return user details as well as list of user&#39;s apps, devices, and groups.</p>
+                              Return user details, as well as lists of user&#39;s apps, devices, and groups.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
                         <div onclick="window.location.href = '#profiles__email__post'" class="list-group-item">
                           <span class="badge badge_post">post</span>
                           <div class="method_description">
-                            <p>Update profile information</p>
+                            <p>Update profile information.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
                         <div onclick="window.location.href = '#profiles__email__put'" class="list-group-item">
                           <span class="badge badge_put">put</span>
                           <div class="method_description">
-                            <p>Add profile</p>
+                            <p>Add profile.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
                         <div onclick="window.location.href = '#profiles__email__delete'" class="list-group-item">
                           <span class="badge badge_delete">delete</span>
                           <div class="method_description">
-                            <p>Delete profile</p>
+                            <p>Delete profile.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
@@ -571,7 +898,7 @@
                         <div class="modal-body">
                           <div class="alert alert-info">
                             <p>Get profile information. <br>
-                              Return user details as well as list of user&#39;s apps, devices, and groups.</p>
+                              Return user details, as well as lists of user&#39;s apps, devices, and groups.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -593,6 +920,11 @@
                                   <strong>email</strong>:
                                   <em><span class="required">required </span>(string)
       </em>
+                                  <p>User name (email).</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>1234@nub4est.co</code></pre>
+                                  </div>
                                 </li>
                               </ul>
                             </div>
@@ -769,7 +1101,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Update profile information</p>
+                            <p>Update profile information.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -791,6 +1123,11 @@
                                   <strong>email</strong>:
                                   <em><span class="required">required </span>(string)
       </em>
+                                  <p>User name (email).</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>1234@nub4est.co</code></pre>
+                                  </div>
                                 </li>
                               </ul>
                               <h3>Query Parameters</h3>
@@ -888,7 +1225,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Add profile</p>
+                            <p>Add profile.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -910,6 +1247,11 @@
                                   <strong>email</strong>:
                                   <em><span class="required">required </span>(string)
       </em>
+                                  <p>User name (email).</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>1234@nub4est.co</code></pre>
+                                  </div>
                                 </li>
                               </ul>
                               <h3>Query Parameters</h3>
@@ -1007,7 +1349,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Delete profile</p>
+                            <p>Delete profile.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -1029,6 +1371,11 @@
                                   <strong>email</strong>:
                                   <em><span class="required">required </span>(string)
       </em>
+                                  <p>User name (email).</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>1234@nub4est.co</code></pre>
+                                  </div>
                                 </li>
                               </ul>
                             </div>
@@ -1052,6 +1399,400 @@
                     </div>
                   </div>
                 </div>
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_profiles__email__invite">
+                        <span class="parent">/profiles</span>/{email}/invite
+                      </a>
+                      <span class="methods">
+            <a href="#profiles__email__invite_put">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_put">put</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_profiles__email__invite" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#profiles__email__invite_put'" class="list-group-item">
+                          <span class="badge badge_put">put</span>
+                          <div class="method_description">
+                            <p>Send an invitation email to the user.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="profiles__email__invite_put">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_put">put</span>
+                            <span class="parent">/profiles</span>/{email}/invite
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Send an invitation email to the user.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#profiles__email__invite_put_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#profiles__email__invite_put_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="profiles__email__invite_put_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>email</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="profiles__email__invite_put_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "Request was fulfilled"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_profiles__email__activate">
+                        <span class="parent">/profiles</span>/{email}/activate
+                      </a>
+                      <span class="methods">
+            <a href="#profiles__email__activate_put">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_put">put</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_profiles__email__activate" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#profiles__email__activate_put'" class="list-group-item">
+                          <span class="badge badge_put">put</span>
+                          <div class="method_description">
+                            <p>Enable or disable the profile.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="profiles__email__activate_put">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_put">put</span>
+                            <span class="parent">/profiles</span>/{email}/activate
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Enable or disable the profile.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#profiles__email__activate_put_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#profiles__email__activate_put_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="profiles__email__activate_put_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>email</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                </li>
+                              </ul>
+                              <h3>Query Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>activate</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>Y - Enable, N - Disable</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>Y</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="profiles__email__activate_put_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "Request was fulfilled"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 id="onlineprofiles" class="panel-title">/onlineProfiles</h3>
+            </div>
+            <div class="panel-body">
+              <div class="panel-group">
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_onlineprofiles">
+                        <span class="parent"></span>/onlineProfiles
+                      </a>
+                      <span class="methods">
+            <a href="#onlineprofiles_get">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_get">get</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_onlineprofiles" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#onlineprofiles_get'" class="list-group-item">
+                          <span class="badge badge_get">get</span>
+                          <div class="method_description">
+                            <p>List all online profiles and devices.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="onlineprofiles_get">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_get">get</span>
+                            <span class="parent"></span>/onlineProfiles
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>List all online profiles and devices.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#onlineprofiles_get_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="onlineprofiles_get_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": 1,
+  "message": "Request was fulfilled",
+  "profiles": [
+    {
+      "email": "test@nubodemo.com",
+      "username": "test@nubodemo.com",
+      "firstname": "A",
+      "lastname": "A",
+      "isactive": 1,
+      "imageurl": null,
+      "isadmin": 1,
+      "user_devices": [
+        {
+          "imei": "AABBCCDD",
+          "devicename": "Samsung_SM-G973F",
+          "gateway": "1",
+          "platform": "2"
+        }
+      ]
+    }
+  ]
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 id="devices" class="panel-title">/devices</h3>
+            </div>
+            <div class="panel-body">
+              <div class="panel-group">
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_devices__email___deviceid_">
+                        <span class="parent">/devices</span>/{email}/{deviceid}
+                      </a>
+                      <span class="methods">
+            <a href="#devices__email___deviceid__post">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_post">post</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_devices__email___deviceid_" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#devices__email___deviceid__post'" class="list-group-item">
+                          <span class="badge badge_post">post</span>
+                          <div class="method_description">
+                            <p>Operations on a specific user device (e.g. end session or disable access).</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="devices__email___deviceid__post">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_post">post</span>
+                            <span class="parent">/devices</span>/{email}/{deviceid}
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Operations on a specific user device (e.g. end session or disable access).</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#devices__email___deviceid__post_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#devices__email___deviceid__post_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="devices__email___deviceid__post_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>email</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                </li>
+                                <li>
+                                  <strong>deviceid</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                </li>
+                              </ul>
+                              <h3>Query Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>action</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>Action to perform on the device. The available options are:<br>
+                                    "endSession" - End the current logged in session.<br>
+                                    "disable" - Disable access from this device.<br>
+                                    "enable" - Enable access from this device.<br></p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>endSession</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="devices__email___deviceid__post_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": 1,
+  "message": "Request was fulfilled"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1061,9 +1802,7 @@
             </div>
             <div class="panel-body">
               <div class="top-resource-description">
-                <p>Actions on specific group.<br>
-                  If group was imported from A.D, groupName parameter shoud be &lt;Group Name&gt;#&lt;A.D Domain&gt; <br>
-                  e.g. Administrators#nub4est.co</p>
+                <p>Various operations on groups.</p>
               </div>
               <div class="panel-group">
                 <div class="panel panel-white resource-modal">
@@ -1086,7 +1825,7 @@
                         <div onclick="window.location.href = '#groups_get'" class="list-group-item">
                           <span class="badge badge_get">get</span>
                           <div class="method_description">
-                            <p>Get list of groups.</p>
+                            <p>Get the list of groups.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
@@ -1105,7 +1844,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Get list of groups.</p>
+                            <p>Get the list of groups.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -1195,27 +1934,28 @@
                   </div>
                   <div id="panel_groups__groupname_" class="panel-collapse collapse">
                     <div class="panel-body">
+                      <div class="resource-description">
+                        <p>Actions on a specific group.</p>
+                      </div>
                       <div class="list-group">
                         <div onclick="window.location.href = '#groups__groupname__get'" class="list-group-item">
                           <span class="badge badge_get">get</span>
                           <div class="method_description">
-                            <p>Get group information.<br>
-                              If group was imported from A.D, groupName parameter shoud be &lt;Group Name&gt;#&lt;A.D Domain&gt; <br>
-                              e.g. Administrators#domain.com</p>
+                            <p>Get group information.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
                         <div onclick="window.location.href = '#groups__groupname__delete'" class="list-group-item">
                           <span class="badge badge_delete">delete</span>
                           <div class="method_description">
-                            <p>Delete group</p>
+                            <p>Delete group.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
                         <div onclick="window.location.href = '#groups__groupname__put'" class="list-group-item">
                           <span class="badge badge_put">put</span>
                           <div class="method_description">
-                            <p>Create new group</p>
+                            <p>Create new group.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
@@ -1234,9 +1974,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Get group information.<br>
-                              If group was imported from A.D, groupName parameter shoud be &lt;Group Name&gt;#&lt;A.D Domain&gt; <br>
-                              e.g. Administrators#domain.com</p>
+                            <p>Get group information.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -1258,6 +1996,12 @@
                                   <strong>groupName</strong>:
                                   <em><span class="required">required </span>(string)
       </em>
+                                  <p>Group name.<br>
+                                    If the group was imported from A.D, groupName parameter should be &lt;Group Name&gt;#&lt;A.D Domain&gt;.<br></p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>Administrators#nub4est.co"</code></pre>
+                                  </div>
                                 </li>
                               </ul>
                             </div>
@@ -1310,7 +2054,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Delete group</p>
+                            <p>Delete group.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -1332,6 +2076,12 @@
                                   <strong>groupName</strong>:
                                   <em><span class="required">required </span>(string)
       </em>
+                                  <p>Group name.<br>
+                                    If the group was imported from A.D, groupName parameter should be &lt;Group Name&gt;#&lt;A.D Domain&gt;.<br></p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>Administrators#nub4est.co"</code></pre>
+                                  </div>
                                 </li>
                               </ul>
                             </div>
@@ -1366,7 +2116,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Create new group</p>
+                            <p>Create new group.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -1388,6 +2138,12 @@
                                   <strong>groupName</strong>:
                                   <em><span class="required">required </span>(string)
       </em>
+                                  <p>Group name.<br>
+                                    If the group was imported from A.D, groupName parameter should be &lt;Group Name&gt;#&lt;A.D Domain&gt;.<br></p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>Administrators#nub4est.co"</code></pre>
+                                  </div>
                                 </li>
                               </ul>
                               <h3>Query Parameters</h3>
@@ -1444,7 +2200,7 @@
                         <div onclick="window.location.href = '#groups__groupname__addprofiles_post'" class="list-group-item">
                           <span class="badge badge_post">post</span>
                           <div class="method_description">
-                            <p>Add profiles to group</p>
+                            <p>Add profiles to group.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
@@ -1463,7 +2219,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Add profiles to group</p>
+                            <p>Add profiles to group.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -1485,6 +2241,12 @@
                                   <strong>groupName</strong>:
                                   <em><span class="required">required </span>(string)
       </em>
+                                  <p>Group name.<br>
+                                    If the group was imported from A.D, groupName parameter should be &lt;Group Name&gt;#&lt;A.D Domain&gt;.<br></p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>Administrators#nub4est.co"</code></pre>
+                                  </div>
                                 </li>
                               </ul>
                               <h3>Query Parameters</h3>
@@ -1493,7 +2255,7 @@
                                   <strong>email</strong>:
                                   <em>(string)
       </em>
-                                  <p>Array of emails to be added to this group</p>
+                                  <p>Array of emails to be added to group</p>
                                   <p><strong>Example</strong>:</p>
                                   <div class="examples">
                                     <pre><code>user@domain.com</code></pre>
@@ -1541,7 +2303,7 @@
                         <div onclick="window.location.href = '#groups__groupname__removeprofiles_post'" class="list-group-item">
                           <span class="badge badge_post">post</span>
                           <div class="method_description">
-                            <p>Remove profiles from group</p>
+                            <p>Remove profiles from group.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
@@ -1560,7 +2322,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Remove profiles from group</p>
+                            <p>Remove profiles from group.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -1582,6 +2344,12 @@
                                   <strong>groupName</strong>:
                                   <em><span class="required">required </span>(string)
       </em>
+                                  <p>Group name.<br>
+                                    If the group was imported from A.D, groupName parameter should be &lt;Group Name&gt;#&lt;A.D Domain&gt;.<br></p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>Administrators#nub4est.co"</code></pre>
+                                  </div>
                                 </li>
                               </ul>
                               <h3>Query Parameters</h3>
@@ -1590,7 +2358,7 @@
                                   <strong>email</strong>:
                                   <em>(string)
       </em>
-                                  <p>Array of emails to be removed from this group</p>
+                                  <p>Array of emails to be removed from group</p>
                                   <p><strong>Example</strong>:</p>
                                   <div class="examples">
                                     <pre><code>user@domain.com</code></pre>
@@ -1611,6 +2379,1578 @@
 }
 </code></pre>
                               </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 id="apps" class="panel-title">/apps</h3>
+            </div>
+            <div class="panel-body">
+              <div class="top-resource-description">
+                <p>Actions on apps.</p>
+              </div>
+              <div class="panel-group">
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_apps">
+                        <span class="parent"></span>/apps
+                      </a>
+                      <span class="methods">
+            <a href="#apps_get">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_get">get</span>
+                      </a>
+                      <a href="#apps_put">
+
+                        <!-- modal shown by hashchange event -->
+                        <span class="badge badge_put">put</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_apps" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#apps_get'" class="list-group-item">
+                          <span class="badge badge_get">get</span>
+                          <div class="method_description">
+                            <p>Get a list of available apps.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                        <div onclick="window.location.href = '#apps_put'" class="list-group-item">
+                          <span class="badge badge_put">put</span>
+                          <div class="method_description">
+                            <p>Install or update APK in the app repository.<br>
+                              This method returns a result before full installation ends. <br>
+                              Use the "/apps/{appid}/checkUploadStatus" method to check the installation status.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="apps_get">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_get">get</span>
+                            <span class="parent"></span>/apps
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Get a list of available apps.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#apps_get_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="apps_get_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "The request was fulfilled",
+  "apps": [
+    {
+      "packageName": "com.android.calendar",
+      "versionName": "Nubo-7.0.7",
+      "versionCode": "100",
+      "appName": "Calendar",
+      "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.android.calendar.100.png",
+      "price": "0",
+      "description": "",
+      "downloadCounter": 56,
+      "summary": "Time management",
+      "categories": "Tools"
+    },
+    {
+      "packageName": "com.android.camera",
+      "versionName": "Nubo-3.0",
+      "versionCode": "3",
+      "appName": "Camera",
+      "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.android.camera.3.png",
+      "price": "0",
+      "description": "Use this app to take photos and videos you wish to keep private, and not displayed on your physical device. All photos and videos are securely kept in the virtual remote device.",
+      "downloadCounter": 56,
+      "summary": "Secure Camera",
+      "categories": "Photography"
+    },
+    {
+      "packageName": "com.android.chrome",
+      "versionName": "87.0.4280.141",
+      "versionCode": "428014121",
+      "appName": "Chrome",
+      "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.android.chrome.428014121.png",
+      "price": "0",
+      "description": "",
+      "downloadCounter": 1,
+      "summary": "",
+      "categories": ""
+    },
+    {
+      "packageName": "com.android.contacts",
+      "versionName": "Nubo-3.0",
+      "versionCode": "100001",
+      "appName": "Contacts",
+      "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.android.contacts.100001.png",
+      "price": "0",
+      "description": "Use this app to securely manage your private contact list. The address book is securely kept in the virtual remote device.",
+      "downloadCounter": 58,
+      "summary": "Secure Address Book",
+      "categories": "Communication"
+    },
+    {
+      "packageName": "com.android.dialer",
+      "versionName": "3.00.00",
+      "versionCode": "30000",
+      "appName": "Phone",
+      "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.android.dialer.30000.png",
+      "price": "0",
+      "description": "Use this app to securely make voice calls without leaving a trace on your physical device. The call history is securely kept in the virtual remote device, and the voice communication is encrypted.",
+      "downloadCounter": 55,
+      "summary": "Secure Voice Calls",
+      "categories": "Communication"
+    },
+    {
+      "packageName": "com.android.email",
+      "versionName": "Nubo-7.0.7",
+      "versionCode": "550007",
+      "appName": "Email",
+      "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.android.email.550007.png",
+      "price": "0",
+      "description": "",
+      "downloadCounter": 59,
+      "summary": "Secure Email",
+      "categories": "Communication"
+    },
+    {
+      "packageName": "com.nubo.appstore",
+      "versionName": "3.0.0.10",
+      "versionCode": "1008002",
+      "appName": "Store",
+      "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.nubo.appstore.1008002.png",
+      "price": "0",
+      "description": "This app allows you to install apps that have been hand-picked and specifically approved as secure and private.",
+      "downloadCounter": 71,
+      "summary": "Secure App Store",
+      "categories": "Productivity,Tools"
+    },
+    {
+      "packageName": "com.nubo.browser",
+      "versionName": "4.5.3",
+      "versionCode": "100",
+      "appName": "Browser",
+      "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.nubo.browser.100.png",
+      "price": "0",
+      "description": "",
+      "downloadCounter": 1,
+      "summary": "",
+      "categories": ""
+    },
+    {
+      "packageName": "com.nubo.controlpanel",
+      "versionName": "3.0.0.12",
+      "versionCode": "23",
+      "appName": "Control Panel",
+      "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.nubo.controlpanel.23.png",
+      "price": "0",
+      "description": "Use this app to manage your Nubo environment. Manage profiles, groups, apps, and various settings.",
+      "downloadCounter": 42,
+      "summary": " Administrator Console",
+      "categories": "Tools"
+    },
+    {
+      "packageName": "com.nubo.filemanager",
+      "versionName": "2.3.1.2",
+      "versionCode": "49",
+      "appName": "Files",
+      "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.nubo.filemanager.49.png",
+      "price": "0",
+      "description": "",
+      "downloadCounter": 55,
+      "summary": "Secure File Manager",
+      "categories": "Productivity,Tools"
+    },
+    {
+      "packageName": "com.nubo.gallery",
+      "versionName": "v1.1.1",
+      "versionCode": "37",
+      "appName": "Gallery",
+      "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.nubo.gallery.37.png",
+      "price": "0",
+      "description": "Use this app to access and view your private photos and videos. All media files added/saved can be securely viewed using the Gallery app.",
+      "downloadCounter": 53,
+      "summary": "Secure Photo Gallery",
+      "categories": "Photography, Gallery"
+    },
+    {
+      "packageName": "com.nubo.launcher.nubo",
+      "versionName": "nubo-3.0.2",
+      "versionCode": "30913",
+      "appName": "Launcher",
+      "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.nubo.launcher.nubo.30913.png",
+      "price": "0",
+      "description": "",
+      "downloadCounter": 55,
+      "summary": "Launcher",
+      "categories": "Tools"
+    },
+    {
+      "packageName": "com.nubo.notes",
+      "versionName": "3.1.6",
+      "versionCode": "13",
+      "appName": "Notes",
+      "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.nubo.notes.13.png",
+      "price": "0",
+      "description": "Use this app to create short text notes you wish to keep private, and not saved on your physical device.",
+      "downloadCounter": 56,
+      "summary": "Secure Note-Taking",
+      "categories": "Productivity"
+    },
+    {
+      "packageName": "com.nubo.sip",
+      "versionName": "1.0.04",
+      "versionCode": "13",
+      "appName": "Voice Call",
+      "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.nubo.sip.13.png",
+      "price": "0",
+      "description": "Use this app to securely make voice calls without leaving a trace on your physical device. The call history is securely kept in the virtual remote device, and the voice communication is encrypted.",
+      "downloadCounter": 56,
+      "summary": "Secure Voice Calls",
+      "categories": "Communication"
+    },
+    {
+      "packageName": "org.pf.messages",
+      "versionName": "3.0.03",
+      "versionCode": "79",
+      "appName": "Messages",
+      "imageUrl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/org.pf.messages.79.png",
+      "price": "0",
+      "description": "Use this app to securely send and receive worry-free text messages. The chat history is securely kept in the virtual remote device, and not on the physical device itself.",
+      "downloadCounter": 55,
+      "summary": "Secure Messaging App",
+      "categories": "Communication"
+    },
+  ]
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="apps_put">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_put">put</span>
+                            <span class="parent"></span>/apps
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Install or update APK in the app repository.<br>
+                              This method returns a result before full installation ends. <br>
+                              Use the "/apps/{appid}/checkUploadStatus" method to check the installation status.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#apps_put_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#apps_put_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="apps_put_request">
+                              <h3>Query Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>fileName</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>Name of an APK file that was previously uploaded using "/upload" method.</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>com.android.chrome_87.0.4280.141.apk</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="apps_put_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": 1,
+  "message": "Installation in progress",
+  "packageName": "com.android.chrome",
+  "versionName": "87.0.4280.141",
+  "versionCode": "428014121",
+  "maindomain": "nubodemo.com",
+  "appName": "Chrome"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_apps__appid_">
+                        <span class="parent">/apps</span>/{appid}
+                      </a>
+                      <span class="methods">
+            <a href="#apps__appid__get">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_get">get</span>
+                      </a>
+                      <a href="#apps__appid__post">
+
+                        <!-- modal shown by hashchange event -->
+                        <span class="badge badge_post">post</span>
+                      </a>
+                      <a href="#apps__appid__delete">
+
+                        <!-- modal shown by hashchange event -->
+                        <span class="badge badge_delete">delete</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_apps__appid_" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#apps__appid__get'" class="list-group-item">
+                          <span class="badge badge_get">get</span>
+                          <div class="method_description">
+                            <p>Return app information with the list of profiles that were directly assigned to the app (emails), the groups that were assigned to the app (groups), and the profiles that were indirectly assigned for being a member of a group (groupusers).</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                        <div onclick="window.location.href = '#apps__appid__post'" class="list-group-item">
+                          <span class="badge badge_post">post</span>
+                          <div class="method_description">
+                            <p>Update app details.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                        <div onclick="window.location.href = '#apps__appid__delete'" class="list-group-item">
+                          <span class="badge badge_delete">delete</span>
+                          <div class="method_description">
+                            <p>Delete the app from the app repository.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="apps__appid__get">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_get">get</span>
+                            <span class="parent">/apps</span>/{appid}
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Return app information with the list of profiles that were directly assigned to the app (emails), the groups that were assigned to the app (groups), and the profiles that were indirectly assigned for being a member of a group (groupusers).</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#apps__appid__get_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#apps__appid__get_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="apps__appid__get_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>appid</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>App ID is the Android app&#39;s package name.</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>com.android.chrome</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="apps__appid__get_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": 1,
+  "message": null,
+  "emails": [
+    {
+      "email": "aaron.j@nubodemo.com",
+      "firstname": "Aaron",
+      "lastname": "Jenkins"
+    }
+  ],
+  "groups": [
+    {
+      "groupName": "aaaaa",
+      "adDomain": ""
+    }
+  ],
+  "groupusers": [
+    {
+      "email": "bernice.wilson@nubodemo.com",
+      "firstname": "Bernice",
+      "lastname": "Wilson"
+    },
+    {
+      "email": "earl.reyna@nubodemo.com",
+      "firstname": "Earl",
+      "lastname": "Reyna"
+    },
+    {
+      "email": "tayah.moyer@nubodemo.com",
+      "firstname": "Tayah",
+      "lastname": "Moyer"
+    },
+    {
+      "email": "test@nubodemo.com",
+      "firstname": "A",
+      "lastname": "A"
+    }
+  ],
+  "totalNumOfUsers": 5,
+  "appDetails": {
+    "packagename": "com.adobe.reader",
+    "versionname": "20.9.1.15848",
+    "versioncode": "1920915848",
+    "appname": "Adobe Acrobat",
+    "description": "",
+    "summary": null,
+    "categories": null,
+    "imageurl": "https://api.nubosoftware.com:6443/appstore/nubodemo.com/repo/icons/com.adobe.reader.1920915848.png",
+    "maindomain": "nubodemo.com",
+    "price": "0",
+    "status": 0,
+    "err": ""
+  }
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="apps__appid__post">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_post">post</span>
+                            <span class="parent">/apps</span>/{appid}
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Update app details.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#apps__appid__post_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#apps__appid__post_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="apps__appid__post_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>appid</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>App ID is the Android app&#39;s package name.</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>com.android.chrome</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                              <h3>Query Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>appDescription</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>App&#39;s description</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>Use this app to view PDF files.</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>appName</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>App&#39;s name</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>Adobe Acrobat</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>appSummary</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>Short summary</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>View PDFs</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>appCategories</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>List of App Store categories</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>Productivity,Tools</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="apps__appid__post_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "Request was fulfilled"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="apps__appid__delete">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_delete">delete</span>
+                            <span class="parent">/apps</span>/{appid}
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Delete the app from the app repository.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#apps__appid__delete_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#apps__appid__delete_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="apps__appid__delete_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>appid</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>App ID is the Android app&#39;s package name.</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>com.android.chrome</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="apps__appid__delete_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "Request was fulfilled"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_apps__appid__install">
+                        <span class="parent">/apps/{appid}</span>/install
+                      </a>
+                      <span class="methods">
+            <a href="#apps__appid__install_post">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_post">post</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_apps__appid__install" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#apps__appid__install_post'" class="list-group-item">
+                          <span class="badge badge_post">post</span>
+                          <div class="method_description">
+                            <p>Install the app on a list of profiles or groups.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="apps__appid__install_post">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_post">post</span>
+                            <span class="parent">/apps/{appid}</span>/install
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Install the app on a list of profiles or groups.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#apps__appid__install_post_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#apps__appid__install_post_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="apps__appid__install_post_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>appid</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>App ID is the Android app&#39;s package name.</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>com.android.chrome</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                              <h3>Query Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>email</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>A list of emails to install the app on</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>user@mydomain.com</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>groupName</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>A list of group names to install the app on</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>All</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>adDomain</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>A list of A.D. domain groups</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>nubotest.com</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>appStoreOnly</strong>:
+                                  <em>(number)
+      </em>
+                                  <p>If this parameter value is 1, list the app in the profile&#39;s App Store and skip installation process</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>0</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="apps__appid__install_post_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": 1,
+  "message": "Apps installed successfully",
+  "numUsers": 10
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_apps__appid__uninstall">
+                        <span class="parent">/apps/{appid}</span>/uninstall
+                      </a>
+                      <span class="methods">
+            <a href="#apps__appid__uninstall_post">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_post">post</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_apps__appid__uninstall" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#apps__appid__uninstall_post'" class="list-group-item">
+                          <span class="badge badge_post">post</span>
+                          <div class="method_description">
+                            <p>Uninstall the app on a list of profiles or groups.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="apps__appid__uninstall_post">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_post">post</span>
+                            <span class="parent">/apps/{appid}</span>/uninstall
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Uninstall the app on a list of profiles or groups.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#apps__appid__uninstall_post_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#apps__appid__uninstall_post_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="apps__appid__uninstall_post_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>appid</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>App ID is the Android app&#39;s package name.</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>com.android.chrome</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                              <h3>Query Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>email</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>A list of emails to uninstall the app on</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>user@mydomain.com</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>groupName</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>A list of group names to uninstall the app on</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>All</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>adDomain</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>A list of A.D. domain groups</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>nubotest.com</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="apps__appid__uninstall_post_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": 1,
+  "message": "Request was fulfilled",
+  "totalNumOfUsers": 7
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_apps__appid__checkuploadstatus">
+                        <span class="parent">/apps/{appid}</span>/checkUploadStatus
+                      </a>
+                      <span class="methods">
+            <a href="#apps__appid__checkuploadstatus_get">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_get">get</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_apps__appid__checkuploadstatus" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#apps__appid__checkuploadstatus_get'" class="list-group-item">
+                          <span class="badge badge_get">get</span>
+                          <div class="method_description">
+                            <p>App uploading status<br>
+                              Possible values of apkStatus return parameter:<br>
+                              1: Processing apk<br>
+                              2: Installing app<br>
+                              0: Installation finished<br></p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="apps__appid__checkuploadstatus_get">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_get">get</span>
+                            <span class="parent">/apps/{appid}</span>/checkUploadStatus
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>App uploading status<br>
+                              Possible values of apkStatus return parameter:<br>
+                              1: Processing apk<br>
+                              2: Installing app<br>
+                              0: Installation finished<br></p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#apps__appid__checkuploadstatus_get_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#apps__appid__checkuploadstatus_get_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="apps__appid__checkuploadstatus_get_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>appid</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>App ID is the Android app&#39;s package name.</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>com.android.chrome</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="apps__appid__checkuploadstatus_get_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "",
+  "apkStatus": 1
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 id="upload" class="panel-title">/upload</h3>
+            </div>
+            <div class="panel-body">
+              <div class="panel-group">
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_upload">
+                        <span class="parent"></span>/upload
+                      </a>
+                      <span class="methods">
+            <a href="#upload_post">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_post">post</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_upload" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#upload_post'" class="list-group-item">
+                          <span class="badge badge_post">post</span>
+                          <div class="method_description">
+                            <p>Upload file to the admin storage. Uploaded files can be used by the /apps/put method to install an APK file.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="upload_post">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_post">post</span>
+                            <span class="parent"></span>/upload
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Upload file to the admin storage. Uploaded files can be used by the /apps/put method to install an APK file.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#upload_post_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#upload_post_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="upload_post_request">
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: multipart/form-data</p>
+                              <p><strong>Type</strong>: any</p>
+                            </div>
+                            <div class="tab-pane" id="upload_post_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": 1,
+  "message": "File uploaded",
+  "uploadFileName": "myapp.apk"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 id="notifications" class="panel-title">/notifications</h3>
+            </div>
+            <div class="panel-body">
+              <div class="panel-group">
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_notifications">
+                        <span class="parent"></span>/notifications
+                      </a>
+                      <span class="methods">
+            <a href="#notifications_put">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_put">put</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_notifications" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#notifications_put'" class="list-group-item">
+                          <span class="badge badge_put">put</span>
+                          <div class="method_description">
+                            <p>Send notification to a Nubo user.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="notifications_put">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_put">put</span>
+                            <span class="parent"></span>/notifications
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Send notification to a Nubo user.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#notifications_put_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#notifications_put_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="notifications_put_request">
+                              <h3>Query Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>email</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>Profile email</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>user@mydomain.com</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>titleText</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>Notification title</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>Test Notification</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>notifyTime</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>Notification text</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>Test Notification</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>notifyLocation</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>Additional text</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>Test Notification</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>appName</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>App ID inside Nubo</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>com.nubo.gallery</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>authKey</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>App authentication key</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>AAABBBCCC</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="notifications_put_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "Request was fulfilled"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 id="logs" class="panel-title">/logs</h3>
+            </div>
+            <div class="panel-body">
+              <div class="panel-group">
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_logs">
+                        <span class="parent"></span>/logs
+                      </a>
+                      <span class="methods">
+            <a href="#logs_get">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_get">get</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_logs" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#logs_get'" class="list-group-item">
+                          <span class="badge badge_get">get</span>
+                          <div class="method_description">
+                            <p>Get log events from the central log repository.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="logs_get">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_get">get</span>
+                            <span class="parent"></span>/logs
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Get log events from the central log repository.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#logs_get_request" data-toggle="tab">Request</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="logs_get_request">
+                              <h3>Query Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>u</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>User ID. Retrieve logs only related to this user</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>user@mydomain.com</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>s</strong>:
+                                  <em>(date)
+      </em>
+                                  <p>Starting time</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>2021-12-31T23:38:17.000Z</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>limit</strong>:
+                                  <em>(number)
+      </em>
+                                  <p>Maximum number of rows to fetch</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>10</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>offset</strong>:
+                                  <em>(number)
+      </em>
+                                  <p>Number of rows to skip before fetching rows</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>100</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>level</strong>:
+                                  <em>(number)
+      </em>
+                                  <p>Log level</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>4</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>sortBy</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>List of sort fields</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>LogLevel</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>sortDesc</strong>:
+                                  <em>(boolean)
+      </em>
+                                  <p>For each sort field, a Boolean value indicates if to sort in ascending (false) order or descending (true) order</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>true</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>comp</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>Component type</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>nubomanagement</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>serverName</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>Server name</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>server.mydomain.com</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>search</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>Search specific string</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>install</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_logs_getfilters">
+                        <span class="parent">/logs</span>/getFilters
+                      </a>
+                      <span class="methods">
+            <a href="#logs_getfilters_get">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_get">get</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_logs_getfilters" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#logs_getfilters_get'" class="list-group-item">
+                          <span class="badge badge_get">get</span>
+                          <div class="method_description">
+                            <p>Get possible values per component type and server name.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="logs_getfilters_get">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_get">get</span>
+                            <span class="parent">/logs</span>/getFilters
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Get possible values per component type and server name.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 id="events" class="panel-title">/events</h3>
+            </div>
+            <div class="panel-body">
+              <div class="panel-group">
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_events">
+                        <span class="parent"></span>/events
+                      </a>
+                      <span class="methods">
+            <a href="#events_get">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_get">get</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_events" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#events_get'" class="list-group-item">
+                          <span class="badge badge_get">get</span>
+                          <div class="method_description">
+                            <p>Get security events from the database.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="events_get">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_get">get</span>
+                            <span class="parent"></span>/events
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Get security events from the database.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#events_get_request" data-toggle="tab">Request</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="events_get_request">
+                              <h3>Query Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>s</strong>:
+                                  <em>(date)
+      </em>
+                                  <p>Start time</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>2021-12-31T23:38:17.000Z</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
                             </div>
                           </div>
                         </div>
@@ -1647,7 +3987,7 @@
                         <div onclick="window.location.href = '#ldap_get'" class="list-group-item">
                           <span class="badge badge_get">get</span>
                           <div class="method_description">
-                            <p>Get list of LDAP domains and their details.</p>
+                            <p>Get a list of LDAP domains and their details.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
@@ -1666,7 +4006,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Get list of LDAP domains and their details.</p>
+                            <p>Get a list of LDAP domains and their details.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -1743,28 +4083,28 @@
                         <div onclick="window.location.href = '#ldap__ldapdomain__get'" class="list-group-item">
                           <span class="badge badge_get">get</span>
                           <div class="method_description">
-                            <p>Get list of OUs for the selected ldap domain.</p>
+                            <p>Get a list of OUs for the selected ldap domain.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
                         <div onclick="window.location.href = '#ldap__ldapdomain__post'" class="list-group-item">
                           <span class="badge badge_post">post</span>
                           <div class="method_description">
-                            <p>Set list of synced OUs and start sync process.</p>
+                            <p>Set a list of synced OUs and start sync process.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
                         <div onclick="window.location.href = '#ldap__ldapdomain__put'" class="list-group-item">
                           <span class="badge badge_put">put</span>
                           <div class="method_description">
-                            <p>Set new LDAP domain or LDAP connection paramters for existing domain.</p>
+                            <p>Set a new LDAP domain or LDAP connection parameters for an existing domain.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
                         <div onclick="window.location.href = '#ldap__ldapdomain__delete'" class="list-group-item">
                           <span class="badge badge_delete">delete</span>
                           <div class="method_description">
-                            <p>Delete the LDAP domain</p>
+                            <p>Delete the LDAP domain.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
@@ -1783,7 +4123,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Get list of OUs for the selected ldap domain.</p>
+                            <p>Get a list of OUs for the selected ldap domain.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -1913,7 +4253,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Set list of synced OUs and start sync process.</p>
+                            <p>Set a list of synced OUs and start sync process.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -1982,7 +4322,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Set new LDAP domain or LDAP connection paramters for existing domain.</p>
+                            <p>Set a new LDAP domain or LDAP connection parameters for an existing domain.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -2101,7 +4441,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Delete the LDAP domain</p>
+                            <p>Delete the LDAP domain.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -2162,9 +4502,14 @@
                         <span class="parent">/admins</span>/{email}
                       </a>
                       <span class="methods">
-            <a href="#admins__email__put">
+            <a href="#admins__email__get">
 <!-- modal shown by hashchange event -->
-              <span class="badge badge_put">put</span>
+              <span class="badge badge_get">get</span>
+                      </a>
+                      <a href="#admins__email__put">
+
+                        <!-- modal shown by hashchange event -->
+                        <span class="badge badge_put">put</span>
                       </a>
                       <a href="#admins__email__delete">
 
@@ -2177,19 +4522,97 @@
                   <div id="panel_admins__email_" class="panel-collapse collapse">
                     <div class="panel-body">
                       <div class="list-group">
+                        <div onclick="window.location.href = '#admins__email__get'" class="list-group-item">
+                          <span class="badge badge_get">get</span>
+                          <div class="method_description">
+                            <p>Return the admin information, including the permissions granted to the admin.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
                         <div onclick="window.location.href = '#admins__email__put'" class="list-group-item">
                           <span class="badge badge_put">put</span>
                           <div class="method_description">
-                            <p>Add new admin</p>
+                            <p>Add a new admin or change permission to an existing admin.</p>
                           </div>
                           <div class="clearfix"></div>
                         </div>
                         <div onclick="window.location.href = '#admins__email__delete'" class="list-group-item">
                           <span class="badge badge_delete">delete</span>
                           <div class="method_description">
-                            <p>Remove admin</p>
+                            <p>Remove admin.</p>
                           </div>
                           <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="admins__email__get">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_get">get</span>
+                            <span class="parent">/admins</span>/{email}
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Return the admin information, including the permissions granted to the admin.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#admins__email__get_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#admins__email__get_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="admins__email__get_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>email</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="admins__email__get_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "Request was fulfilled",
+  "details": {
+    "email": "aaron.j@nubodemo.com",
+    "username": "aaron.j@nubodemo.com",
+    "firstname": "Aaron",
+    "lastname": "Jenkins",
+    "isactive": 1,
+    "isadmin": 1,
+    "admin": {
+      "email": "aaron.j@nubodemo.com",
+      "maindomain": "nubodemo.com",
+      "permissions": "{\"/profiles\":\"rw\",\"/groups\":\"rw\",\"/apps\":\"ri\",\"/reports\":\"r\"}",
+      "createdAt": "2020-12-02T13:18:23.000Z",
+      "updatedAt": "2021-02-24T07:24:54.000Z"
+    }
+  }
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -2206,7 +4629,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Add new admin</p>
+                            <p>Add a new admin or change permission to an existing admin.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -2228,6 +4651,30 @@
                                   <strong>email</strong>:
                                   <em><span class="required">required </span>(string)
       </em>
+                                </li>
+                              </ul>
+                              <h3>Query Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>permissions</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                  <p>JSON object with a set of admin permissions.<br>
+                                    The following permission keys are available:<br>
+                                    "/profiles" - Access and operations to profiles.<br>
+                                    "/groups" - Access and operations to groups.<br>
+                                    "/apps" - Access and operations to groups.<br>
+                                    "/reports" - Access to reports.<br>
+                                    "/" - Organization admin - Enable all the above permissions, as well as configure organization level parameters.<br>
+                                    "@/" - Site admin. Can access all organizations as organization admin, as well as configure site level parameters.<br><br></p>
+                                  <p>Each permission key should include an access level value. The following values are available:<br>
+                                    "r" - Read only. Can read or list an object but cannot do modifications.<br>
+                                    "rw" - Read and write. Can read,list,update and delete objects.<br>
+                                    "ri" - Read and install/uninstall. A special level, available only in the /apps permission.<br></p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>{"/profiles":"rw","/groups":"rw","/apps":"ri","/reports":"r"}</code></pre>
+                                  </div>
                                 </li>
                               </ul>
                             </div>
@@ -2262,7 +4709,7 @@
                         </div>
                         <div class="modal-body">
                           <div class="alert alert-info">
-                            <p>Remove admin</p>
+                            <p>Remove admin.</p>
                           </div>
 
                           <!-- Nav tabs -->
@@ -2310,15 +4757,642 @@
               </div>
             </div>
           </div>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 id="orgs" class="panel-title">/orgs</h3>
+            </div>
+            <div class="panel-body">
+              <div class="panel-group">
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_orgs">
+                        <span class="parent"></span>/orgs
+                      </a>
+                      <span class="methods">
+            <a href="#orgs_get">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_get">get</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_orgs" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#orgs_get'" class="list-group-item">
+                          <span class="badge badge_get">get</span>
+                          <div class="method_description">
+                            <p>Get the list of all organizations.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="orgs_get">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_get">get</span>
+                            <span class="parent"></span>/orgs
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Get the list of all organizations.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#orgs_get_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="orgs_get_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": 1,
+  "message": "Request was fulfilled",
+  "orgs": [
+    {
+      "maindomain": "kitkat.com",
+      "orgname": "Kitkat",
+      "inviteurl": "https://nubosoftware.com/app-download.html"
+    },
+    {
+      "maindomain": "nougat.com",
+      "orgname": "Nougat",
+      "inviteurl": "https://nubosoftware.com/app-download.html"
+    },
+    {
+      "maindomain": "nubodemo.com",
+      "orgname": "Nubo Demo",
+      "inviteurl": "https://nubosoftware.com/app-download.html"
+    }
+  ]
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_orgs__maindomain_">
+                        <span class="parent">/orgs</span>/{maindomain}
+                      </a>
+                      <span class="methods">
+            <a href="#orgs__maindomain__post">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_post">post</span>
+                      </a>
+                      <a href="#orgs__maindomain__put">
+
+                        <!-- modal shown by hashchange event -->
+                        <span class="badge badge_put">put</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_orgs__maindomain_" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#orgs__maindomain__post'" class="list-group-item">
+                          <span class="badge badge_post">post</span>
+                          <div class="method_description">
+                            <p>Update organization&#39;s information or insert a new organization.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                        <div onclick="window.location.href = '#orgs__maindomain__put'" class="list-group-item">
+                          <span class="badge badge_put">put</span>
+                          <div class="method_description">
+                            <p>Change the selected organization for this login session. All following requests with the same login session will access data from the selected organization.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="orgs__maindomain__post">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_post">post</span>
+                            <span class="parent">/orgs</span>/{maindomain}
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Update organization&#39;s information or insert a new organization.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#orgs__maindomain__post_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#orgs__maindomain__post_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="orgs__maindomain__post_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>maindomain</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                </li>
+                              </ul>
+                              <h3>Query Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>orgname</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>Display name</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>Acme Corporation</code></pre>
+                                  </div>
+                                </li>
+                                <li>
+                                  <strong>inviteurl</strong>:
+                                  <em>(string)
+      </em>
+                                  <p>URL to send with a profile invitation</p>
+                                  <p><strong>Example</strong>:</p>
+                                  <div class="examples">
+                                    <pre><code>https://nubosoftware.com/app-download.html</code></pre>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="orgs__maindomain__post_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": 1,
+  "message": "Request was fulfilled"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="orgs__maindomain__put">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_put">put</span>
+                            <span class="parent">/orgs</span>/{maindomain}
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Change the selected organization for this login session. All following requests with the same login session will access data from the selected organization.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#orgs__maindomain__put_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#orgs__maindomain__put_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="orgs__maindomain__put_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>maindomain</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="orgs__maindomain__put_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": 1,
+  "message": "Request was fulfilled"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 id="platforms" class="panel-title">/platforms</h3>
+            </div>
+            <div class="panel-body">
+              <div class="panel-group">
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_platforms">
+                        <span class="parent"></span>/platforms
+                      </a>
+                      <span class="methods">
+            <a href="#platforms_get">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_get">get</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_platforms" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#platforms_get'" class="list-group-item">
+                          <span class="badge badge_get">get</span>
+                          <div class="method_description">
+                            <p>List all available platforms - both running and idle platforms.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="platforms_get">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_get">get</span>
+                            <span class="parent"></span>/platforms
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>List all available platforms - both running and idle platforms.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#platforms_get_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="platforms_get_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "Request was fulfilled",
+  "platforms": [
+    {
+      "platID": 2,
+      "status": "running",
+      "sessions": "1",
+      "platform_ip": "192.168.123.43"
+    },
+    {
+      "platID": 3,
+      "status": "available",
+      "sessions": 0,
+      "platform_ip": ""
+    }
+  ]
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_platforms__platformid_">
+                        <span class="parent">/platforms</span>/{platformid}
+                      </a>
+                      <span class="methods">
+            <a href="#platforms__platformid__put">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_put">put</span>
+                      </a>
+                      <a href="#platforms__platformid__delete">
+
+                        <!-- modal shown by hashchange event -->
+                        <span class="badge badge_delete">delete</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_platforms__platformid_" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#platforms__platformid__put'" class="list-group-item">
+                          <span class="badge badge_put">put</span>
+                          <div class="method_description">
+                            <p>Start a platform.<br>
+                              This long operation method returns a "notifToken" value that can be used with the /longOperations method to query the status of the operation.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                        <div onclick="window.location.href = '#platforms__platformid__delete'" class="list-group-item">
+                          <span class="badge badge_delete">delete</span>
+                          <div class="method_description">
+                            <p>Stop a platform.<br>
+                              This long operation method returns a "notifToken" value that can be used with the /longOperations method to query the status of the operation.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="platforms__platformid__put">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_put">put</span>
+                            <span class="parent">/platforms</span>/{platformid}
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Start a platform.<br>
+                              This long operation method returns a "notifToken" value that can be used with the /longOperations method to query the status of the operation.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#platforms__platformid__put_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#platforms__platformid__put_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="platforms__platformid__put_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>platformid</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="platforms__platformid__put_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "Request was fulfilled",
+  "notifToken": "8fc9024cce23d7571f45ddd79a9ff5941f484e66cab36a4d28ad44035c418af55d8a6e5763b20362c4399dc44c91aa06"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="platforms__platformid__delete">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_delete">delete</span>
+                            <span class="parent">/platforms</span>/{platformid}
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Stop a platform.<br>
+                              This long operation method returns a "notifToken" value that can be used with the /longOperations method to query the status of the operation.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#platforms__platformid__delete_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#platforms__platformid__delete_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="platforms__platformid__delete_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>platformid</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="platforms__platformid__delete_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "Request was fulfilled",
+  "notifToken": "8fc9024cce23d7571f45ddd79a9ff5941f484e66cab36a4d28ad44035c418af55d8a6e5763b20362c4399dc44c91aa06"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 id="longoperations" class="panel-title">/longOperations</h3>
+            </div>
+            <div class="panel-body">
+              <div class="panel-group">
+                <div class="panel panel-white resource-modal">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <a class="collapsed" data-toggle="collapse" href="#panel_longoperations__notiftoken_">
+                        <span class="parent">/longOperations</span>/{notifToken}
+                      </a>
+                      <span class="methods">
+            <a href="#longoperations__notiftoken__get">
+<!-- modal shown by hashchange event -->
+              <span class="badge badge_get">get</span>
+                      </a>
+                      </span>
+                    </h4>
+                  </div>
+                  <div id="panel_longoperations__notiftoken_" class="panel-collapse collapse">
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <div onclick="window.location.href = '#longoperations__notiftoken__get'" class="list-group-item">
+                          <span class="badge badge_get">get</span>
+                          <div class="method_description">
+                            <p>Check the status of a long operation, such as starting a platform.</p>
+                          </div>
+                          <div class="clearfix"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal fade" tabindex="0" id="longoperations__notiftoken__get">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title" id="myModalLabel">
+                            <span class="badge badge_get">get</span>
+                            <span class="parent">/longOperations</span>/{notifToken}
+                          </h4>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-info">
+                            <p>Check the status of a long operation, such as starting a platform.</p>
+                          </div>
+
+                          <!-- Nav tabs -->
+                          <ul class="nav nav-tabs">
+                            <li class="active">
+                              <a href="#longoperations__notiftoken__get_request" data-toggle="tab">Request</a>
+                            </li>
+                            <li>
+                              <a href="#longoperations__notiftoken__get_response" data-toggle="tab">Response</a>
+                            </li>
+                          </ul>
+
+                          <!-- Tab panes -->
+                          <div class="tab-content">
+                            <div class="tab-pane active" id="longoperations__notiftoken__get_request">
+                              <h3>URI Parameters</h3>
+                              <ul>
+                                <li>
+                                  <strong>notifToken</strong>:
+                                  <em><span class="required">required </span>(string)
+      </em>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="tab-pane" id="longoperations__notiftoken__get_response">
+                              <h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2>
+                              <h3>Body</h3>
+                              <p><strong>Media type</strong>: application/json</p>
+                              <p><strong>Type</strong>: any</p>
+                              <p><strong>Example</strong>:</p>
+                              <div class="examples">
+                                <pre><code>{
+  "status": "1",
+  "message": "Platform was started successfully"
+}
+</code></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="col-md-3">
           <div id="sidebar" class="hidden-print affix" role="complementary">
             <ul class="nav nav-pills nav-stacked">
               <li><a href="#auth">/auth</a></li>
               <li><a href="#profiles">/profiles</a></li>
+              <li><a href="#onlineprofiles">/onlineProfiles</a></li>
+              <li><a href="#devices">/devices</a></li>
               <li><a href="#groups">/groups</a></li>
+              <li><a href="#apps">/apps</a></li>
+              <li><a href="#upload">/upload</a></li>
+              <li><a href="#notifications">/notifications</a></li>
+              <li><a href="#logs">/logs</a></li>
+              <li><a href="#events">/events</a></li>
               <li><a href="#ldap">/ldap</a></li>
               <li><a href="#admins">/admins</a></li>
+              <li><a href="#orgs">/orgs</a></li>
+              <li><a href="#platforms">/platforms</a></li>
+              <li><a href="#longoperations">/longOperations</a></li>
             </ul>
           </div>
         </div>

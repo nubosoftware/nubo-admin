@@ -111,6 +111,16 @@ const appData = {
         //appData.activationkey = "";
         appData.commit();
     },
+    resetOrgs: (orgs) => {
+        appData.orgs = orgs;
+        appData.orgs.forEach((element) => {
+            if (!element.orgname || element.orgname == "") {
+                element.domainName = element.maindomain;
+            } else {
+                element.domainName = `${element.orgname} - ${element.maindomain}`;
+            }
+        });
+    },
 
     checkPermission: (perm, accessType) => {
         let perms = appData.permissions;

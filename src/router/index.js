@@ -108,6 +108,24 @@ const routes = [{
             import ( /* webpackChunkName: "about" */ '../views/Security.vue'),
     },
     {
+        path: '/Orgs',
+        name: 'Orgs',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Orgs.vue'),
+    },
+    {
+        path: '/Org/:domain',
+        name: 'Org',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Org.vue'),
+    },
+    {
+        path: '/Org/',
+        name: 'Org',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Org.vue'),
+    },
+    {
         path: '/Reports/:reportCode',
         name: 'Report',
         component: () =>

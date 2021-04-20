@@ -267,14 +267,8 @@ export default {
                 appData.lastname = response.data.lastname;
                 appData.imageurl = response.data.imageurl;
                 appData.email = this.email;
-                appData.orgs = response.data.orgs;
-                appData.orgs.forEach((element) => {
-                  if (!element.orgname || element.orgname == "") {
-                    element.domainName = element.maindomain;
-                  } else {
-                    element.domainName = `${element.orgname} - ${element.maindomain}`;
-                  }
-                });
+                appData.resetOrgs(response.data.orgs);
+                
                 appData.siteAdmin = response.data.siteAdmin;
                 appData.siteAdminDomain = response.data.siteAdminDomain;
                 try {

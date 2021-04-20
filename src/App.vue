@@ -210,6 +210,9 @@ export default {
       }
       if (appData.checkPermission("@/","rw")) {
         items.push({ title: this.$t("Platforms"), icon: "mdi-server", link: "/Platforms" });
+        items.push({ title: this.$t("Organizations"), icon: "mdi-domain", link: "/Orgs" });
+      } else if (appData.checkPermission("/","rw")) {
+        items.push({ title: this.$t("Organization"), icon: "mdi-server", link: "/Org/"+appData.mainDomain });
       }
       if (appData.checkPermission("/","rw")) {
         items.push({ title: this.$t("Logs"), icon: "mdi-list-status", link: "/Logs" });

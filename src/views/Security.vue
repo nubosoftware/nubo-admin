@@ -184,6 +184,16 @@
               
             </v-container>
 
+            <v-container  v-if="(authentication.clientauthtype == 2 || authentication.clientauthtype == 3 || authentication.clientauthtype == 4) && (authentication.secondauthmethod > 1)">
+              <v-select
+            class="ma-4"
+              :items="otpTypes"
+              :label="$t('OTP methods')"
+              v-model="authentication.otptype"
+            ></v-select>
+              
+            </v-container>
+
             <v-btn
               color="primary"
               class="ma-4"
@@ -487,7 +497,8 @@ let page = {
         minChars: this.authentication.passcodeMinChars,
         expirationDays: this.authentication.passcodeExpirationDays.toString(10),
         clientauthtype: this.authentication.clientauthtype,
-        secondauthmethod: this.authentication.secondauthmethod
+        secondauthmethod: this.authentication.secondauthmethod,
+        otptype: this.authentication.otptype,
       };
       console.log("updateAuthentication: "+JSON.stringify(data));
       appUtils
@@ -666,6 +677,10 @@ let page = {
       { text: this.$t("Biometric only"), value: 1},
       { text: this.$t("OTP only"), value: 2},
       { text: this.$t("Biometric or OTP"), value: 3},
+    ];
+    this.otpTypes = [
+      { text: this.$t("Time-based One-time Password (TOTP)"), value: 0},
+      { text: this.$t("SMS"), value: 1},
     ];
 
     this.refresh();

@@ -1,18 +1,24 @@
 #%RAML 1.0
 title: Nubo Admin API
 version: v1
+
+documentation:
+  - title: Home
+    content: |
+        <p>This API is designed to automate administrator operations of the Nubo system.</p>
+        <p>This is a REST based API which returns output in JSON format.<br>
+        For your convenience, we can receive input parameters using three different techniques:<br>
+          URL query parameters.<br>
+          Post data encoded as application/x-www-form-urlencoded.<br>
+          Post data encoded as JSON string.<br>
+        </p>
+        <p>Each access to the API must be authenticated by using the "Authorization" http header with "OAuth" authentication type and an authentication token.<br>
+          Retrieve the authentication token with the /auth method.
+        </p>
+  - title: Legal
+    content: |
+      Copyright © 2021, <a href="https://nubosoftware.com">Nubo Software Ltd.</a>
 baseUri: https://api.nubosoftware.com/api/
-description: |
-  <p>This API is designed to automate administrator operations of the Nubo system.</p>
-  <p>This is a REST based API which returns output in JSON format.<br>
-  For your convenience, we can receive input parameters using three different techniques:<br>
-    URL query parameters.<br>
-    Post data encoded as application/x-www-form-urlencoded.<br>
-    Post data encoded as JSON string.<br>
-  </p>
-  <p>Each access to the API must be authenticated by using the "Authorization" http header with "OAuth" authentication type and an authentication token.<br>
-    Retrieve the authentication token with the /auth method.
-  </p>
 /auth:
   description: |
     Authentication methods - You must authenticate using the following authentication methods before accessing the API.
@@ -1145,11 +1151,11 @@ description: |
       /checkUploadStatus:
         get:
           description: |
-            Check the status of app upload<br>
+            App uploading status<br>
             Possible values of  apkStatus return parameter:<br>
             1: Processing apk<br>
             2: Installing app<br>
-            0: Installed finished<br>
+            0: Installation finished<br>
           responses:
             200:
               body:
@@ -1162,7 +1168,7 @@ description: |
                     }
 /upload:
   post:
-    description: Upload file to the admin storage. Uploaded files can be referenced by the /apps/put method to install and app.
+    description: Upload file to the admin storage. Uploaded files can be used by the /apps/put method to install an APK file.
     body:
       multipart/form-data:
         formParameters:
@@ -1185,7 +1191,7 @@ description: |
       description: Send notification to a Nubo user.
       queryParameters:
           email:
-              description: "Email of a profile"
+              description: "Profile email"
               required: true
               type: string
               example: "user@mydomain.com"
@@ -1205,12 +1211,12 @@ description: |
               type: string
               example: "Test Notification"
           appName:
-              description: "ID of app inside Nubo"
+              description: "App ID inside Nubo"
               required: false
               type: string
               example: "com.nubo.gallery"
           authKey:
-              description: "Authentication key for the app"
+              description: "App authentication key"
               required: false
               type: string
               example: "AAABBBCCC"
@@ -1233,7 +1239,7 @@ description: |
               type: string
               example: "user@mydomain.com"
           s:
-              description: "Start time"
+              description: "Starting time"
               required: false
               type: date
               example: "2021-12-31T23:38:17.000Z"
@@ -1258,7 +1264,7 @@ description: |
               type: string
               example: "LogLevel"
           sortDesc:
-              description: "For each sort field, a boolean value indicate if to sort in ascending (false) or descending (true)"
+              description: "For each sort field, a Boolean value indicates if to sort in ascending (false) order or descending (true) order"
               required: false
               type: boolean
               example: "true"
@@ -1273,13 +1279,13 @@ description: |
               type: string
               example: "server.mydomain.com"
           search:
-              description: "Search for specific string"
+              description: "Search specific string"
               required: false
               type: string
               example: "install"
     /getFilters:
       get:
-        description: Get the possible values for component type and server name.
+        description: Get possible values per component type and server name.
 /events:
     get:
       description: Get security events from the database.
@@ -1291,7 +1297,7 @@ description: |
               example: "2021-12-31T23:38:17.000Z"
 /ldap:
     get:
-        description: Get list of LDAP domains and their details.
+        description: Get a list of LDAP domains and their details.
         responses:
           200:
             body:
@@ -1313,7 +1319,7 @@ description: |
                   }
     /{ldapDomain}:
       get:
-        description: Get list of OUs for the selected ldap domain.
+        description: Get a list of OUs for the selected ldap domain.
         responses:
           200:
             body:
@@ -1398,7 +1404,7 @@ description: |
                     ]
                   }
       post:
-        description: Set list of synced OUs and start sync process.
+        description: Set a list of synced OUs and start sync process.
         queryParameters:
           orgUnits:
               description: "List of OUs to sync"
@@ -1415,7 +1421,7 @@ description: |
                     "message": "Starting LDAP sync"
                   }
       put:
-        description: Set new LDAP domain or LDAP connection parameters for existing domain.
+        description: Set a new LDAP domain or LDAP connection parameters for an existing domain.
         queryParameters:
           host:
               description: "LDAP host name"
@@ -1470,7 +1476,7 @@ description: |
 /admins:
   /{email}:
     get:
-      description: Return the admin information including the permissions granted to the admin.
+      description: Return the admin information, including the permissions granted to the admin.
       responses:
           200:
             body:
@@ -1496,23 +1502,23 @@ description: |
                     }
                   }
     put:
-      description: Add new admin or change permission to existing admin.
+      description: Add a new admin or change permission to an existing admin.
       queryParameters:
           permissions:
               description: |
-                JSON object with the set of the admin permissions<br>
+                JSON object with a set of admin permissions.<br>
                 The following permission keys are available:<br>
-                  "/profiles" - Access and operations to profiles<br>
-                  "/groups" - Access and operations to groups<br>
-                  "/apps" - Access and operations to groups<br>
-                  "/reports" - Access to reports<br>
-                  "/" - Organization admin - have all the above permission with the ability to setup domain configurations<br>
-                  "@/" - Site admin. Can access all organizations as admin and also can configure site level queryParameters<br><br>
+                  "/profiles" - Access and operations to profiles.<br>
+                  "/groups" - Access and operations to groups.<br>
+                  "/apps" - Access and operations to groups.<br>
+                  "/reports" - Access to reports.<br>
+                  "/" - Organization admin - Enable all the above permissions, as well as configure organization level parameters.<br>
+                  "@/" - Site admin. Can access all organizations as organization admin, as well as configure site level parameters.<br><br>
 
-                  Each permission key should attach an access level value. The following values are available:<br>
-                  "r" - Read only. Can read or list object but cannot do modifications.<br>
+                  Each permission key should include an access level value. The following values are available:<br>
+                  "r" - Read only. Can read or list an object but cannot do modifications.<br>
                   "rw" - Read and write. Can read,list,update and delete objects.<br>
-                  "ri" - Read and install/uninstall. Special level available only in the /apps permission.<br>
+                  "ri" - Read and install/uninstall. A special level, available only in the /apps permission.<br>
               required: true
               type: string
               example: '{"/profiles":"rw","/groups":"rw","/apps":"ri","/reports":"r"}'
@@ -1567,7 +1573,7 @@ description: |
               }
   /{maindomain}:
     post:
-      description: Update organization information or insert new organization.
+      description: Update organization's information or insert a new organization.
       queryParameters:
           orgname:
               description: "Display name"
@@ -1575,7 +1581,7 @@ description: |
               type: string
               example: "Acme Corporation"
           inviteurl:
-              description: "URL to send with profile invitation"
+              description: "URL to send with a profile invitation"
               required: false
               type: string
               example: "https://nubosoftware.com/app-download.html"
@@ -1589,7 +1595,7 @@ description: |
                   "message": "Request was fulfilled"
                 }
     put:
-      description: Change the select organization for this login session. All following request with the same login session will access data from the selected organization.
+      description: Change the selected organization for this login session. All following requests with the same login session will access data from the selected organization.
       responses:
         200:
           body:
@@ -1601,7 +1607,7 @@ description: |
                 }
 /platforms:
   get:
-    description: List all available platforms - both running and stopped platforms.
+    description: List all available platforms - both running and idle platforms.
     responses:
           200:
             body:
