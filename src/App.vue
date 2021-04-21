@@ -199,6 +199,11 @@ export default {
       if (appData.isAuthenticated) {
          items.push({ title: this.$t("Dashboard"), icon: "mdi-chart-bar" , link: "/" });
       }
+      if (appData.checkPermission("@/","rw")) {
+        items.push({ title: this.$t("Organizations"), icon: "mdi-domain", link: "/Orgs" });
+      } else if (appData.checkPermission("/","rw")) {
+        items.push({ title: this.$t("Organization"), icon: "mdi-domain", link: "/Org/"+appData.mainDomain });
+      }
       if (appData.checkPermission("/profiles","r")) {
         items.push({ title: this.$t("Profiles"), icon: "mdi-account-multiple-outline", link: "/Profiles" });
       }
@@ -210,10 +215,7 @@ export default {
       }
       if (appData.checkPermission("@/","rw")) {
         items.push({ title: this.$t("Platforms"), icon: "mdi-server", link: "/Platforms" });
-        items.push({ title: this.$t("Organizations"), icon: "mdi-domain", link: "/Orgs" });
-      } else if (appData.checkPermission("/","rw")) {
-        items.push({ title: this.$t("Organization"), icon: "mdi-server", link: "/Org/"+appData.mainDomain });
-      }
+      } 
       if (appData.checkPermission("/","rw")) {
         items.push({ title: this.$t("Logs"), icon: "mdi-list-status", link: "/Logs" });
         items.push({ title: this.$t("Exchange"), icon: "mdi-email", link: "/EmailSetup"});

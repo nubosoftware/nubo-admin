@@ -193,7 +193,7 @@ let page = {
           disabled: false,
         },
         {
-          text: this.$t("Orgs"),
+          text: this.$t("Organizations"),
           to: "/Orgs",
           disabled: false,
         },

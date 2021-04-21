@@ -112,7 +112,7 @@
           <v-treeview
             selectable
             item-disabled="locked"
-            selection-type="leaf"
+            selection-type="independent"
             :items="items"
             :value="value"
             open-all
@@ -270,6 +270,9 @@ let page = {
         orgUnits.push(this.ousList[ind].key);
       }
       console.log("Selected orgUnits: " + JSON.stringify(orgUnits));
+      if (orgUnits.length ==0) {
+        return;
+      }
       this.saveOULoading = true;
       appUtils
         .post({
@@ -373,6 +376,8 @@ let page = {
               }
             }
             //console.log("Items: " + JSON.stringify(this.items, null, 2));
+            console.log(`values: ${this.value}`);
+            this.inputValues = this.value;
           } else {
             console.log(`status: ${response.data.status}`);
           }
