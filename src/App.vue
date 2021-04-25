@@ -213,6 +213,9 @@ export default {
       if (appData.checkPermission("/apps","r")) {
         items.push({ title: this.$t("Apps"), icon: "mdi-apps", link: "/Apps" });
       }
+      if (appData.checkPermission("/profiles","r")) {
+        items.push({ title: this.$t("Telephony"), icon: "mdi-phone-voip", link: "/Telephony" });
+      }
       if (appData.checkPermission("@/","rw")) {
         items.push({ title: this.$t("Platforms"), icon: "mdi-server", link: "/Platforms" });
       } 

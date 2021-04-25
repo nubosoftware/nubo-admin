@@ -556,7 +556,7 @@ export default {
           encodeURIComponent(this.profileID),
       })
       .then((response) => {
-        //console.log(response.data);
+        console.log(response.data);
         if (response.data.status == 1) {
           //console.log("Success");
           this.details = response.data.details;
@@ -621,7 +621,7 @@ export default {
       appUtils
         .put({
           url:
-          "/api/profiles/" +
+          "api/profiles/" +
           encodeURIComponent(this.profileID)+"/invite",
         })
         .then((response) => {
@@ -645,7 +645,7 @@ export default {
       appUtils
         .delete({
           url:
-          "/api/profiles/" +
+          "api/profiles/" +
           encodeURIComponent(this.profileID),
         })
         .then((response) => {

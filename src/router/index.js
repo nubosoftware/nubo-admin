@@ -150,6 +150,12 @@ const routes = [{
             import ( /* webpackChunkName: "about" */ '../views/Logs.vue'),
     },
     {
+        path: '/Telephony',
+        name: 'Telephony',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Telephony.vue'),
+    },
+    {
         path: '/Message',
         name: 'Message',
         component: () =>
