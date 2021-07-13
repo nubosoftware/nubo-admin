@@ -42,6 +42,14 @@
           {{$t("Error")}}
         </v-chip>
         <v-chip
+          v-if="item.status == 'revive'"
+          class="ma-2"
+          color="warning"
+          text-color="white"
+        >
+          {{$t("Revive")}}
+        </v-chip>
+        <v-chip
           v-if="item.status == 'starting'"
           class="ma-2"
           color="warning"

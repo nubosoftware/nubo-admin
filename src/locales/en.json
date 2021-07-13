@@ -288,5 +288,6 @@
     "OTP only": "OTP only",
     "Biometric or OTP": "Biometric or OTP",
     "Time-based One-time Password (TOTP)": "Time-based One-time Password (TOTP)",
-    "SMS": "SMS"
+    "SMS": "SMS",
+    "Revive": "Revive"
 }
