@@ -144,6 +144,12 @@ const routes = [{
             import ( /* webpackChunkName: "about" */ '../views/Platforms.vue'),
     },
     {
+        path: '/Platform/:platID',
+        name: 'Platform',
+        component: () =>
+            import ('../views/Platform.vue'),
+    },
+    {
         path: '/Logs',
         name: 'Logs',
         component: () =>
