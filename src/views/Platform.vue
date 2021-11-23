@@ -11,6 +11,29 @@
      
     </v-card-title>
     <v-container>
+    <v-row v-if="details.platform_type != ''"> 
+      <v-col cols="12" sm="6" md="3">
+            <v-text-field
+                v-model="staticIP"
+                :label="$t('Static IP')"
+            ></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="6" md="3"  >
+            <v-text-field
+                v-model="vmName"
+                :label="$t('VM Name')"
+            ></v-text-field>
+        </v-col>
+         <v-col cols="12" sm="6" md="3" >
+            <v-btn
+              color="primary"
+              class="mr-4"
+              @click="saveStaticParams"
+            >
+              {{$t('Save')}}
+            </v-btn>
+        </v-col>
+    </v-row>
     <v-row>
         <v-col cols="12" sm="6" md="3">
             <v-text-field
@@ -156,6 +179,8 @@ let page = {
     search: "",
     totalItems: 0,
     loading: true,
+    staticIP: "",
+    vmName: "",
     options: {},
     details: {},
     appData,
@@ -182,6 +207,33 @@ let page = {
         return `${mb.toFixed(1)} mb`;
       }
       return `${gb.toFixed(1)} gb`;
+    },
+    saveStaticParams: function() {
+      appUtils.post({
+            url: "api/platforms/"+ encodeURIComponent(this.platID),
+            data: {
+                ip: this.staticIP,
+                vmname: this.vmName
+            }
+        }).then((response) => {
+            console.log(response.data);
+            if (response.data.status == 1) {
+                console.log("Success");
+                
+                this.snackbarText = this.$t("Static Parameters Saved");
+                this.snackbarSave = true;
+                this.loadDetails();
+
+            } else {
+                console.log(`status: ${response.data.status}`);
+
+                this.snackbarText = this.$t("Error");
+                this.snackbarSave = true;
+            }
+            this.refresh();
+        })
+        .catch((error) => console.log(error))
+        .finally(() => (this.loading = false));
     },
     killSession: function(item,event) {
         event.stopPropagation();
@@ -218,6 +270,7 @@ let page = {
           clearTimeout(this.refreshTimeout);
           this.refreshTimeout = null;
       }
+      const firstTime = (!this.details.platform_type);
       appUtils
         .get({
           url: "api/platforms/" + encodeURIComponent(this.platID),
@@ -242,9 +295,14 @@ let page = {
                 this.details.memActive = this.printMem(this.details.params.memActive);
                 this.details.lastCheckTime = this.details.params.lastCheckTime ? moment(this.details.params.lastCheckTime).format("LLL") : "";
                 this.details.lastCheckStatus = this.details.params.lastCheckStatus ? this.details.params.lastCheckStatus.toUpperCase() : "";
+                if (this.details.platform_type != '' && firstTime) {
+                  this.staticIP = this.details.params.ip;
+                  this.vmName = this.details.params.vmname;
+
+                }
             }
             this.details.platform_status = capitalize(this.details.platform_status);
-            this.refreshTimeout = setTimeout(this.refresh,2000);
+            this.refreshTimeout = setTimeout(this.refresh,10000);
           } else {
             console.log(`status: ${response.data.status}`);
             this.$router.push("/Login");
