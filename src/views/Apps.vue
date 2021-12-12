@@ -787,10 +787,17 @@ let page = {
       { text: this.$t("Package"), value: "packageName" },
       { text: "Actions", value: "actions", sortable: false },
     ];
-    this.appTypes = [
-      { text: this.$t("Android (APK)"), value: "apk" },
-      { text: this.$t("Linux (DEB)"), value: "deb" },
-    ];
+    this.appTypes = [];
+    if (appData.isMobile()) {
+      this.appTypes.push({ text: this.$t("Android (APK)"), value: "apk" });
+    }
+    if (appData.isDesktop()) {
+      this.appTypes.push({ text: this.$t("Linux (DEB)"), value: "deb" });      
+    }     
+    if (this.appTypes.length > 0) {
+      this.appType = this.appTypes[0].value;
+    }    
+    
     this.fileRules = [
       () => {
         if (this.uploadSelectedFile && this.aptPackage ) {

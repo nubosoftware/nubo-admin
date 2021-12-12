@@ -7,7 +7,7 @@ const appData = {
 
     // configuration
     //postURL: "/",
-    postURL: production ? "/" : "http://labil.nubosoftware.com:8080/",
+    postURL: production ? "/" : "http://127.0.0.1:8080/", //"http://labil.nubosoftware.com:8080/",
     proxyURL: production ? null : "http://127.0.0.1:9080/", //"http://localhost:9080/",
 
     // loaded users params
@@ -27,6 +27,8 @@ const appData = {
     siteAdmin: false,
     permissions: {},
     orgs: [],
+    deviceTypes: [],
+    edition: "",
 
     // additional data
     moduleName: "",
@@ -46,6 +48,8 @@ const appData = {
         localStorage.setItem("activationkey", appData.activationkey);
         localStorage.setItem("siteAdmin", appData.siteAdmin);
         localStorage.setItem("siteAdminDomain", appData.siteAdminDomain);
+        localStorage.setItem("edition", appData.edition);
+        localStorage.setItem("deviceTypes", JSON.stringify(appData.deviceTypes));
         localStorage.setItem("permissions", JSON.stringify(appData.permissions));
 
     },
@@ -86,6 +90,17 @@ const appData = {
         appData.activationkey = localStorage.getItem("activationkey");
         appData.siteAdmin = localStorage.getItem("siteAdmin");
         appData.siteAdminDomain = localStorage.getItem("siteAdminDomain");
+        appData.edition = localStorage.getItem("edition");
+        let deviceTypesStr = localStorage.getItem("deviceTypes");
+        if (deviceTypesStr && deviceTypesStr != "") {
+            try {
+                appData.deviceTypes = JSON.parse(deviceTypesStr);
+            } catch (err) {
+                console.log(err);
+                appData.deviceTypes = [];
+            }
+        }
+        console.log(`edition: ${appData.edition}, deviceTypes: ${appData.deviceTypes}`);
         let permStr = localStorage.getItem("permissions");
         if (permStr && permStr != "") {
             try {
@@ -142,6 +157,16 @@ const appData = {
         //console.log(`checkPermission ${perm},${accessType}: ${hasPerm}`);
         return hasPerm;
     },
+
+    isEnterpriseEdition: () => {
+        return (appData.edition == "enterprise");
+    },
+    isMobile: () => {
+        return (appData.deviceTypes.indexOf("mobile") >= 0);
+    },
+    isDesktop: () => {
+        return (appData.deviceTypes.indexOf("desktop") >= 0);
+    }
 };
 
 

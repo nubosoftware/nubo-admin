@@ -213,7 +213,7 @@ export default {
       if (appData.checkPermission("/apps","r")) {
         items.push({ title: this.$t("Apps"), icon: "mdi-apps", link: "/Apps" });
       }
-      if (appData.checkPermission("/profiles","r")) {
+      if (appData.isEnterpriseEdition() && appData.checkPermission("/profiles","r")) {
         items.push({ title: this.$t("Telephony"), icon: "mdi-phone-voip", link: "/Telephony" });
       }
       if (appData.checkPermission("@/","rw")) {
@@ -221,12 +221,14 @@ export default {
       } 
       if (appData.checkPermission("/","rw")) {
         items.push({ title: this.$t("Logs"), icon: "mdi-list-status", link: "/Logs" });
-        items.push({ title: this.$t("Exchange"), icon: "mdi-email", link: "/EmailSetup"});
-        items.push({ title: this.$t("Active Directory"), icon: "mdi-microsoft" , link: "/LDAP" });
+        if (appData.isEnterpriseEdition()) {
+          items.push({ title: this.$t("Exchange"), icon: "mdi-email", link: "/EmailSetup"});
+          items.push({ title: this.$t("Active Directory"), icon: "mdi-microsoft" , link: "/LDAP" });
+        }
         items.push({ title: this.$t("Administrators"), icon: "mdi-account-tie" , link: "/Admins" });
         items.push({ title: this.$t("Security"), icon: "mdi-shield-account", link: "/Security" });
       }
-      if (appData.checkPermission("/reports","r")) {
+      if (appData.isEnterpriseEdition() && appData.checkPermission("/reports","r")) {
         items.push({ title: this.$t("Reports"), icon: "mdi-file-document-multiple-outline" , link: "/Reports"});
       }
       this.menuItems = items;

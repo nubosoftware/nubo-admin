@@ -284,6 +284,14 @@ export default {
                   response.data.orgname && response.data.orgname != ""
                     ? response.data.orgname
                     : response.data.mainDomain;
+                appData.edition = response.data.edition;
+                if (!appData.edition) {
+                   appData.edition = "enterprise"; // default value for old systems
+                }
+                appData.deviceTypes = response.data.deviceTypes;
+                if (!appData.deviceTypes) {
+                  appData.deviceTypes = ["mobile"]; // default value for old systems
+                }
                 appData.commit();
                 this.$emit("checkLoginLoop", response.data.loginToken);
                 this.$emit("updatePermissions");
