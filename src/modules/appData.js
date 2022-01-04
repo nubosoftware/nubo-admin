@@ -7,7 +7,7 @@ const appData = {
 
     // configuration
     //postURL: "/",
-    postURL: production ? "/" : "http://127.0.0.1:8080/", //"http://labil.nubosoftware.com:8080/",
+    postURL: production ? "/" : "http://il2.nubosoftware.com:8080/", //"http://127.0.0.1:8080/", //"http://labil.nubosoftware.com:8080/",
     proxyURL: production ? null : "http://127.0.0.1:9080/", //"http://localhost:9080/",
 
     // loaded users params

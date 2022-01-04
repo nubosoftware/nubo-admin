@@ -21,7 +21,7 @@
             {{ $t("App Upload") }}
           </v-btn>
           <v-btn
-            v-if="appData.checkPermission('/apps', 'w')"
+            v-if="appData.isMobile() && appData.checkPermission('/apps', 'w')"
             color="primary"
             dark
             class="ma-2"

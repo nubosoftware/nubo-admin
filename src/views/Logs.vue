@@ -9,7 +9,7 @@
           <v-tabs-slider color="primary"></v-tabs-slider>
 
           <v-tab key="events"> {{ $t("Events") }} </v-tab>
-          <v-tab key="list" v-if="appData.checkPermission('@/','r')"> {{ $t("Syslog") }} </v-tab>
+          <v-tab key="list" v-if="appData.isEnterpriseEdition() && appData.checkPermission('@/','r')"> {{ $t("Syslog") }} </v-tab>
           
         </v-tabs>
       </template>
@@ -200,6 +200,9 @@ let page = {
 
     
     refresh: function () {
+      if (!this.appData.isEnterpriseEdition()) {
+        return;
+      }
       let limit =
         this.options.itemsPerPage > 0 ? this.options.itemsPerPage : 10000;
       let offset = (this.options.page - 1) * limit;
@@ -249,6 +252,9 @@ let page = {
       this.refresh();
     },
     getFilters: function () {
+      if (!this.appData.isEnterpriseEdition()) {
+        return;
+      }
       console.log("getFilters");
       appUtils
         .get({

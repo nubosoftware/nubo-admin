@@ -365,7 +365,13 @@ let page = {
     
     this.refresh();
   },
-  
+  beforeDestroy: function() {
+    console.log('lifecycle: beforeDestroy');
+    if (this.refreshTimeout) {
+          clearTimeout(this.refreshTimeout);
+          this.refreshTimeout = null;
+    }
+  }
 };
 
 export default page;

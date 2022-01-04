@@ -10,7 +10,7 @@
           <v-tabs-slider color="primary"></v-tabs-slider>
           <v-tab key="approval"> Device approval </v-tab>
           <v-tab key="auth"> Authentication </v-tab>
-          <v-tab key="rules"> Device Rules </v-tab>
+          <v-tab key="rules" v-if="appData.isMobile()" > Device Rules </v-tab>
         </v-tabs>
       </template>
     </v-toolbar>

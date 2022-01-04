@@ -38,7 +38,7 @@
                 </v-col>
                 <v-col cols="12" sm="7" md="4">
                   <v-card color="bg">
-                    <v-card-title>{{$t("Device Types")}}</v-card-title>
+                    <v-card-title>{{$t("Device Names")}}</v-card-title>
                     <pie-chart :chart-data="deviceTypes"></pie-chart>
                   </v-card>
                 </v-col>
@@ -95,6 +95,7 @@ export default {
   methods: {
     fillData () {
       let colors = this.$vuetify.theme.themes.light;
+      //console.log(`dashboard: ${JSON.stringify(this.dashboard,null,2)}`);
       this.onlineUsers = {
         datasets: [{
             data: [this.dashboard.onlineUsers, this.dashboard.totalUsers ],
@@ -119,20 +120,40 @@ export default {
             this.$t('Offline')
         ]
       };
-      this.deviceTypes = {
-        datasets: [{
-            data: [this.dashboard.androidDevices, this.dashboard.totalDevices,
-              this.dashboard.totalDevices - this.dashboard.onlineDevices - this.dashboard.iPhoneDevices ],
-            backgroundColor: [
-              colors.success , colors.error, colors.warning
-            ]
-        }],
-        labels: [
-            this.$t('Android'),
-            this.$t('iOS'),
-            this.$t('Other') 
-        ]
-      };
+      if (this.dashboard.deviceNames) {
+        const deviceTypesData = this.dashboard.deviceNames.map((item) => item.count );
+        const deviceTypesLabels = this.dashboard.deviceNames.map((item) =>  item.devicename );
+        const randomNum = () => Math.floor(Math.random() * (235 - 52 + 1) + 52);
+        const randomRGB = () => `rgb(${randomNum()}, ${randomNum()}, ${randomNum()})`;
+        const deviceTypesColors = this.dashboard.deviceNames.map(randomRGB);
+        //console.log(`deviceTypesColors: ${JSON.stringify(deviceTypesColors,null,2)}`);
+        //console.log(`colors.warning: ${colors.warning}`);
+        this.deviceTypes = {
+          datasets: [{
+              data: deviceTypesData,
+              backgroundColor: deviceTypesColors          
+          }],
+          labels: deviceTypesLabels
+        };
+        // backgroundColor: [
+        //         colors.success , colors.error, colors.warning
+        //       ]
+      } else {
+        this.deviceTypes = {
+          datasets: [{
+              data: [this.dashboard.androidDevices, this.dashboard.iPhoneDevices,
+                this.dashboard.totalDevices - this.dashboard.androidDevices - this.dashboard.iPhoneDevices ],
+              backgroundColor: [
+                colors.success , colors.error, colors.warning
+              ]
+          }],
+          labels: [
+              this.$t('Android'),
+              this.$t('iOS'),
+              this.$t('Other') 
+          ]
+        };
+      }
       this.platforms = {
         datasets: [{
             data: [this.dashboard.runningPlatforms, this.dashboard.availablePlatforms - this.dashboard.runningPlatforms ],

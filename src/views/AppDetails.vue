@@ -399,6 +399,10 @@ export default {
     },
 
     loadDetails: function () {
+      if (this.refreshTimeout) {
+          clearTimeout(this.refreshTimeout);
+          this.refreshTimeout = null;
+      }
       appUtils
         .get({
           url:
@@ -407,7 +411,7 @@ export default {
         .then((response) => {
           console.log(response.data);
           if (response.data.status == 1) {
-            console.log("Success");
+            console.log("loadDetails: Success");
             this.details = response.data.appDetails;
             this.totalNumOfUsers = response.data.totalNumOfUsers;
             this.rows = response.data.emails;
@@ -449,6 +453,7 @@ export default {
               },
             ];
             this.$emit("updatePage", bcItems);
+            this.refreshTimeout = setTimeout(this.loadDetails,5000);
           } else {
             console.log(`status: ${response.data.status}`);
             this.$router.push("/Login");
@@ -581,7 +586,7 @@ export default {
         })
         .then((response) => {
           console.log(response.data);
-          if (response.data.status == 1) {
+          if (response.data.status == 1 || response.data.status == 2) {
             this.addSelectedLoading = false;
             this.snackbarText = this.$t("Added");
             this.snackbarSave = true;
@@ -667,6 +672,14 @@ export default {
       { text: this.$t("Email"), value: "email" },
     ];
     this.loadDetails();
+  },
+  
+  beforeDestroy: function () {
+    console.log('lifecycle: beforeDestroy');
+    if (this.refreshTimeout) {
+          clearTimeout(this.refreshTimeout);
+          this.refreshTimeout = null;
+    }
   },
   watch: {
     tab: function (newVal) {
