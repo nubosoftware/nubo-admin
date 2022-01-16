@@ -9,7 +9,7 @@
           <v-tabs-slider color="primary"></v-tabs-slider>
 
           <v-tab key="events"> {{ $t("Events") }} </v-tab>
-          <v-tab key="list" v-if="appData.isEnterpriseEdition() && appData.checkPermission('@/','r')"> {{ $t("Syslog") }} </v-tab>
+          <v-tab key="list" v-if="appData.checkPermission('@/','r')"> {{ $t("Syslog") }} </v-tab>
           
         </v-tabs>
       </template>
@@ -200,13 +200,14 @@ let page = {
 
     
     refresh: function () {
-      if (!this.appData.isEnterpriseEdition()) {
+      /*if (!this.appData.isEnterpriseEdition()) {
         return;
-      }
+      }*/
       let limit =
         this.options.itemsPerPage > 0 ? this.options.itemsPerPage : 10000;
       let offset = (this.options.page - 1) * limit;
       let s = Math.round(new Date().getTime() / 1000 - 60 * 60 * 24 * 5);
+      console.log(`refresh..`);
       appUtils
         .post({
           url: "api/logs",
@@ -223,6 +224,7 @@ let page = {
           },
         })
         .then((response) => {
+          console.log(`refresh reponse..`);
           console.log(response.data);
           if (response.data.status == 1) {
             this.rows = response.data.logs;
@@ -252,9 +254,9 @@ let page = {
       this.refresh();
     },
     getFilters: function () {
-      if (!this.appData.isEnterpriseEdition()) {
+      /*if (!this.appData.isEnterpriseEdition()) {
         return;
-      }
+      }*/
       console.log("getFilters");
       appUtils
         .get({
