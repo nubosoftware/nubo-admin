@@ -62,6 +62,8 @@
             item-key="email"
             show-expand
             @click:row="rowClick"
+            :options.sync="onlineOptions"
+            @update:options="updateOnlineOptions"
             class="elevation-1 ma-4 bg"
           >
           <template v-slot:expanded-item="{ headers, item }">
@@ -91,6 +93,8 @@
             show-select
             item-key="item_key"
             v-model="selectedApprovals"
+            :options.sync="approvalOptions"
+            @update:options="updateApprovalOptions"
             class="elevation-1 ma-4 bg"
           >
           <template v-slot:top>
@@ -170,20 +174,32 @@ let page = {
     approvalRows: [],
     approvalHeads: [],
     approvalsExpanded: [],
+    approvalOptions: {},
     selectedApprovals: [],
     onlineLoad: false,
     onlineRows: [],
     onlineHeads: [],
     onlineExpanded: [],
+    onlineOptions: {},    
     devicesHeads: [],
     appData,
   }),
   methods: {
+    savePage: function () {
+      //console.log(`options: ${JSON.stringify(this.options,null,2)}`);
+      appUtils.savePageData(`${page.name}`,this,['options','search','approvalOptions','onlineOptions','tab']);
+    },
     updateOptions() {
       //console.log("update:options", options);
+      this.savePage();
       this.refresh();
     },
-
+    updateOnlineOptions() {
+      this.savePage();
+    },
+    updateApprovalOptions() {
+      this.savePage();
+    },
     rowClick: function (val) {
       console.log(`rowClick: ${val.email}`);
       this.$router.push("/Profile/" + val.email);
@@ -351,11 +367,13 @@ let page = {
       { text: this.$t("First Name"), value: "firstName" },
       { text: this.$t("Email"), value: "email" },
     ];
+    appUtils.loadPageData(`${page.name}`,this);
     //this.refresh();
   },
   watch: {
     tab: function (newVal) {
       //console.log(`tab: ${newVal}`);
+      this.savePage();
       if (newVal == 1) {
         this.loadOnline();
       } else if (newVal == 2) {
@@ -367,6 +385,7 @@ let page = {
     },
     search: function (newVal) {
       console.log(`search: ${newVal}`);
+      this.savePage();
       if (newVal.length > 1 || newVal.length == 0) {
         this.refresh();
       }

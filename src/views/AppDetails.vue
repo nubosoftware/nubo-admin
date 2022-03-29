@@ -291,8 +291,8 @@ import appData from "../modules/appData";
 import appUtils from "../modules/appUtils";
 const moment = require("moment");
 
-export default {
-  name: "Profile",
+let page = {
+  name: "AppDetails",
   components: {
     //HelloWorld
   },
@@ -336,8 +336,12 @@ export default {
     deleteItemName: "",
   }),
   methods: {
+    savePage: function () {      
+      appUtils.savePageData(`${page.name}`,this,['options','search']);
+    },
     updateOptions: function () {
       console.log("updateOptions");
+      this.savePage();
       this.refreshProfiles();
     },
     rowClick: function () {
@@ -536,7 +540,7 @@ export default {
       this.dialog = true;
       this.allSelected = [];
       this.addSelectedDisabled = true;
-      this.refreshProfiles();
+      //this.refreshProfiles();
     },
     addSelected: function () {
       console.log("addSelected");
@@ -670,7 +674,8 @@ export default {
       },
       { text: this.$t("First Name"), value: "firstName" },
       { text: this.$t("Email"), value: "email" },
-    ];
+    ];   
+    appUtils.loadPageData(page.name,this);
     this.loadDetails();
   },
   
@@ -687,6 +692,7 @@ export default {
     },
     search: function (newVal) {
       console.log(`search: ${newVal}`);
+      this.savePage();
       if (newVal.length > 1 || newVal.length == 0) {
         this.refreshProfiles();
       }
@@ -717,4 +723,6 @@ export default {
     },
   },
 };
+
+export default page;
 </script>

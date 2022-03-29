@@ -1,11 +1,16 @@
 <template>
   <v-card color="bg">
-    <v-card-title>{{ $t("Apps") }}</v-card-title>
+    <v-card-title>{{ $t("Apps") }}
+      
+    </v-card-title>
     <v-data-table
       :headers="headers"
       :items="rows"
+      :search="searchApps"
       :items-per-page="20"
       :loading="loading"
+      :options.sync="options"
+      @update:options="updateOptions"
       class="elevation-1 ma-4 bg"
       @click:row="rowClick"
     >
@@ -29,6 +34,12 @@
           >
             {{ $t("Generate Web App") }}
           </v-btn>
+          <v-spacer></v-spacer>
+     <v-text-field
+        v-model="searchApps"
+        append-icon="mdi-magnify"
+        label="Search"
+      ></v-text-field> 
         </v-toolbar>
       </template>
       <template v-slot:item.imageUrl="{ item }">
@@ -308,10 +319,11 @@ import appData from "../modules/appData";
 import appUtils from "../modules/appUtils";
 
 let page = {
-  name: "LDAP",
+  name: "Apps",
   data: () => ({
     headers: [],
     rows: [],
+    searchApps: "",
     search: "",
     totalItems: 0,
     loading: true,
@@ -347,6 +359,12 @@ let page = {
     appData,
   }),
   methods: {
+    savePage: function () {      
+      appUtils.savePageData(`${page.name}`,this,['options','searchApps']);
+    },
+    updateOptions() {      
+      this.savePage();
+    },
     rowClick: function (val) {
       console.log(`rowClick: ${val.packageName}`);
       this.$router.push("/App/" + val.packageName);
@@ -704,6 +722,9 @@ let page = {
       uploadSelectedFile() {
         this.uploadValid = this.$refs.uploadForm.validate();
       },
+      searchApps() {
+        this.savePage();
+      },
       appType() {
         this.aptPackage = "";
         this.filename = null;
@@ -808,6 +829,7 @@ let page = {
       }
       
     ];
+    appUtils.loadPageData(page.name,this);
     this.refresh();
   },
 };
