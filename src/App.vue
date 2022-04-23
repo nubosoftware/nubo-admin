@@ -221,6 +221,9 @@ export default {
       } 
       if (appData.checkPermission("/","rw")) {
         items.push({ title: this.$t("Logs"), icon: "mdi-list-status", link: "/Logs" });
+        if (appData.isDesktop()) {
+          items.push({ title: this.$t("Recordings"), icon: "mdi-record-rec", link: "/Recordings"});
+        }
         if (appData.isEnterpriseEdition()) {
           items.push({ title: this.$t("Exchange"), icon: "mdi-email", link: "/EmailSetup"});
           items.push({ title: this.$t("Active Directory"), icon: "mdi-microsoft" , link: "/LDAP" });

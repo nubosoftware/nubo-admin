@@ -167,7 +167,13 @@ const routes = [{
         component: () =>
             import ('../views/Message.vue'),
         props: true,
-    }
+    },
+    {
+        path: '/Recordings',
+        name: 'Recordings',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Recordings.vue'),
+    },
 ]
 
 const router = new VueRouter({
