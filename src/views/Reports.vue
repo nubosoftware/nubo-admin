@@ -497,11 +497,11 @@ export default {
 
     let nowDate = moment().format('YYYY-MM-DD');
     this.dateRanges = [
-      { value: "this_day", text: "This day", dvalue: {from: nowDate, to: nowDate}},
+      { value: "this_day", text: "Today", dvalue: {from: nowDate, to: nowDate}},
       { value: "last_7_days", text: "Last 7 days", dvalue: {from: moment().subtract(7, 'days').format('YYYY-MM-DD'), to: nowDate}},
       { value: "this_month", text: "This month", dvalue: {from: moment().startOf('month').format('YYYY-MM-DD'), to: nowDate}},
       { value: "last_month", text: "Last month", dvalue: {from: moment().subtract(1, 'months').format('YYYY-MM-DD'), to: nowDate}},
-      { value: "this_year", text: "This Year", dvalue: {from: moment().startOf('year').format('YYYY-MM-DD'), to: nowDate}},
+      { value: "this_year", text: "This year", dvalue: {from: moment().startOf('year').format('YYYY-MM-DD'), to: nowDate}},
       { value: "last_12_months", text: "Last 12 months", dvalue: {from: moment().subtract(12, 'months').format('YYYY-MM-DD'), to: nowDate}},
       { value: "custom", text: "Custom" },
     ];

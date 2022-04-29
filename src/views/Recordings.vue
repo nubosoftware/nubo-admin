@@ -613,7 +613,7 @@ let page = {
       this.dateRanges = [
         {
           value: "this_day",
-          text: "This day",
+          text: "Today",
           dvalue: { from: nowDate, to: nowDate },
         },
         {
@@ -642,7 +642,7 @@ let page = {
         },
         {
           value: "this_year",
-          text: "This Year",
+          text: "This year",
           dvalue: {
             from: moment().startOf("year").format("YYYY-MM-DD"),
             to: nowDate,

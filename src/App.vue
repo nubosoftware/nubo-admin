@@ -223,6 +223,9 @@ export default {
         items.push({ title: this.$t("Logs"), icon: "mdi-list-status", link: "/Logs" });
         if (appData.isDesktop()) {
           items.push({ title: this.$t("Recordings"), icon: "mdi-record-rec", link: "/Recordings"});
+          if (appData.isEnterpriseEdition()) { 
+            items.push({ title: this.$t("Firewalls"), icon: "mdi-fire", link: "/Firewalls"});
+          }
         }
         if (appData.isEnterpriseEdition()) {
           items.push({ title: this.$t("Exchange"), icon: "mdi-email", link: "/EmailSetup"});

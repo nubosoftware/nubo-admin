@@ -174,6 +174,18 @@ const routes = [{
         component: () =>
             import ( /* webpackChunkName: "about" */ '../views/Recordings.vue'),
     },
+    {
+        path: '/Firewalls',
+        name: 'Firewalls',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Firewalls.vue'),
+    },
+    {
+        path: '/Firewall/:firewall_id',
+        name: 'Firewall',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Firewall.vue'),
+    },
 ]
 
 const router = new VueRouter({
