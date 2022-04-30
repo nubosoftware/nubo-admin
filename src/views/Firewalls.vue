@@ -128,7 +128,7 @@ let page = {
     addFirewall: function() {
       let v = this.$refs.addForm.validate();
       if (!this.addValid) {
-        //console.log(`addValid: ${this.addValid}, v: ${v}`);
+        console.log(`addValid: ${this.addValid}, v: ${v}`);
         return;
       }
       this.dialogNew = false;
