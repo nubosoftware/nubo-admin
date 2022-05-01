@@ -147,7 +147,6 @@ let page = {
             this.addFirewallName = "";
             this.refresh();
             this.$router.push("/Firewall/" + response.data.firewall.firewall_id );
-            router
           } else {
             console.log(`status: ${response.data.status}`);
             this.snackbarText = this.$t("Error");
