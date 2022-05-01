@@ -63,7 +63,7 @@
           >
             <template v-slot:top>
               <v-toolbar flat color="bg">
-                <v-btn  color="primary" dark class="mb-2" @click="addRuleDialog = true">
+                <v-btn  color="primary" dark class="mb-2" @click="editRuleItem = null ; addRuleDialog = true">
                   {{ $t("Add Outbound Rule") }}
                 </v-btn>
               </v-toolbar>
@@ -73,9 +73,13 @@
               <div v-else>{{item.dport}}</div>
             </template>
             <template v-slot:item.actions="{ item }">
+              <v-icon  small @click="editRule(item)" class="mx-2">
+                mdi-pencil
+              </v-icon>
               <v-icon  small @click="deleteRule(item)" class="mx-2">
                 mdi-delete
               </v-icon>
+
             </template>
           </v-data-table>
           <v-dialog v-model="addRuleDialog" max-width="800px" overlay-color="bg">
@@ -103,12 +107,11 @@
                     </v-col>
 
                     <v-col cols="12" sm="6" md="3" >
-                      <v-combobox class="bg" background-color="bg"
-                      
+                      <v-combobox class="bg" background-color="bg"                      
                        :label="$t('Port')"
-                       :items="dportItems"                   
+                       :items="dportItems"                       
                        v-model="dport"
-                       :rules="dportRules"                        
+                       :rules="dportRules"                                 
                       ></v-combobox>
                      
                     </v-col>
@@ -350,6 +353,7 @@ let page = {
     ipRules: [],
     dportRules: [],
     addRuleForm: true,
+    editRuleItem: null,
   }),
   methods: {
     savePage: function () {      
@@ -440,7 +444,37 @@ let page = {
       }      
 
     },
-
+    editRule: async function(item) {
+      try {
+        let rule_id = item.rule_id;
+       
+        await appUtils
+        .get({
+          url:
+            `api/firewall/${this.firewall_id}/rule`,
+            params: {
+              rule_id
+            },          
+        });        
+        this.editRuleItem = item;
+        this.destination=item.destination;
+        if (item.dport == 0) {
+          this.dport = 'All';
+        }
+        else {
+          this.dport = item.dport;
+        }
+        
+        this.prot = item.prot;
+        this.addRuleDialog = true;
+        
+      } catch (err) {
+        console.error(`Error: ${err}`,err);
+        this.addRuleDialog = false;
+        this.snackbarText = "Error";
+        this.snackbarSave = true;
+      }      
+    },
     addRule: async function() {
       let v = this.$refs.ruleForm.validate();
       if (!this.addRuleForm) {
@@ -459,21 +493,30 @@ let page = {
         }
         if (dport == 'All') dport = '0';
         let description = this.description;
-        await appUtils
-        .put({
-          url:
-            `api/firewall/${this.firewall_id}/rule`,
-          data: {
+        let data = {
             destination,
             prot,
             dport,
             description
-          },
+        };
+        let method = appUtils.put;
+        if (this.editRuleItem && this.editRuleItem.rule_id) {
+          method = appUtils.post;
+          data.rule_id= this.editRuleItem.rule_id;
+        }
+        await method({
+          url:
+            `api/firewall/${this.firewall_id}/rule`,
+          data
         });        
         
         this.saveLoading = false;
         this.addRuleDialog = false;
-        this.snackbarText = "Added";
+        if (this.editRuleItem && this.editRuleItem.rule_id) {
+          this.snackbarText = "Updated";
+        } else {
+          this.snackbarText = "Added";
+        }
         this.snackbarSave = true;
         this.loadDetails();
       } catch (err) {
@@ -493,6 +536,7 @@ let page = {
         }
       }
       if (!port || isNaN(port) || parseInt(port) != port ) {
+        console.log(`Validate port error. port: "${port}"`);
         return false;
       }
       return true;
@@ -513,8 +557,7 @@ let page = {
       }
       let ip = arr[0];
       return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip);
-
-    },   
+    },    
 
     loadDetails: function () {
       if (this.refreshTimeout) {
@@ -577,8 +620,10 @@ let page = {
               'All',
               '80 (HTTP)',
               '443 (HTTPS)',
-              '22 (SSH)'
-            ];
+              '22 (SSH)',
+              '3389 (RDP)',
+              '5900 (VNC)',
+            ];            
             this.protItems = [
               'tcp','udp','icmp'
             ];
