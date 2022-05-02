@@ -39,7 +39,7 @@
               ></v-text-field>
             </v-toolbar>
           </template>
-        <template v-slot:item.time="{ item }">
+        <template v-slot:[`item.time`]="{ item }">
           {{ moment(item.time).format("LLL") }}
         </template>
         </v-data-table>
@@ -72,7 +72,7 @@
               ></v-text-field>
             </v-toolbar>
           </template>
-          <template v-slot:header.ComponentType="{ header }">
+          <template v-slot:[`header.ComponentType`]="{ header }">
             <v-combobox
               v-model="selectComponentType"
               :items="itemsComponentType"
@@ -81,7 +81,7 @@
               @change="compChanged"
             ></v-combobox>
           </template>
-          <template v-slot:header.ServerName="{ header }">
+          <template v-slot:[`header.ServerName`]="{ header }">
             <v-combobox
               v-model="selectServerName"
               :items="itemsServerName"
@@ -90,7 +90,7 @@
               @change="serverNameChanged"
             ></v-combobox>
           </template>
-          <template v-slot:header.LogLevel="{ header }">
+          <template v-slot:[`header.LogLevel`]="{ header }">
             <v-combobox
               v-model="selectLogLevel"
               :items="itemsLogLevel"
@@ -99,7 +99,7 @@
               @change="logLevelChanged"
             ></v-combobox>
           </template>
-          <template v-slot:item.LogLevel="{ item }">
+          <template v-slot:[`item.LogLevel`]="{ item }">
               <v-chip
                 v-if="item.LogLevel <= 3"
                 class="ma-2"
@@ -131,7 +131,7 @@
               </v-chip>
              
             </template>
-            <template v-slot:item.Time="{ item }">
+            <template v-slot:[`item.Time`]="{ item }">
               {{ moment(item.Time).format("LLL") }}
             </template>
         </v-data-table>

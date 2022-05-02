@@ -27,7 +27,7 @@
             </v-btn>
       </v-toolbar>
     </template>
-    <template v-slot:item.actions="{ item }">
+    <template v-slot:[`item.actions`]="{ item }">
       <v-icon v-if="item.email != appData.email" small @click="$router.push('/Admin/' + item.email)" class="mx-2"> mdi-pencil </v-icon>
       <v-icon v-if="item.email != appData.email" small @click="deleteAdmin(item)" class="mx-2"> mdi-delete </v-icon>
     </template>

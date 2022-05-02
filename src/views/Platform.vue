@@ -137,7 +137,7 @@
       class="ma-4 bg"
     >
 
-    <template v-slot:item.actions="{ item }">
+    <template v-slot:[`item.actions`]="{ item }">
              <v-icon  small @click="killSession(item,$event)" class="mx-2"> mdi-stop </v-icon>
     </template>
       

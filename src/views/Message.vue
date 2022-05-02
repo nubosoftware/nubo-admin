@@ -24,7 +24,7 @@
 import appData from '../modules/appData';
 
 export default {
-  name: 'Message',
+  name: 'MessagePage',
   data: () => ({ 
     message: "",
     statusColor: "primary",

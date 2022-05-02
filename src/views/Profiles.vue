@@ -115,7 +115,7 @@
             </v-toolbar>
           </template>
 
-          <template #group.header="{ isOpen, toggle, group,headers }">
+          <template #[`group.header`]="{ isOpen, toggle, group,headers }">
              <td :colspan="headers.length" class="accent">
             <v-btn @click="toggle" icon>
               <v-icon>
@@ -130,7 +130,7 @@
               {{$t("Device ID")}}: {{item.deviceid}}
             </td>
           </template>
-          <template v-slot:item.approvalType="{ item }">
+          <template v-slot:[`item.approvalType`]="{ item }">
             <v-chip v-if="item.approvalType == 'activate'">{{$t('Activate Device')}}</v-chip>
             <v-chip v-if="item.approvalType == 'unlock passcode'">{{$t('Unlock Device')}}</v-chip>
             <v-chip v-if="item.approvalType == 'reset passcode'">{{$t('Reset Password')}}</v-chip>
@@ -140,7 +140,7 @@
             <v-chip v-if="item.approvalType == 'reset otp'">{{$t('Reset OTP Code')}}</v-chip>
           </template>
           
-          <template v-slot:item.actions="{ item }">
+          <template v-slot:[`item.actions`]="{ item }">
             <v-icon  v-if="appData.checkPermission('/profiles','w')" @click="approveItem(item,true)" color="success" class="mx-2"> mdi-check-bold </v-icon>
             <v-icon  v-if="appData.checkPermission('/profiles','w')" @click="approveItem(item,false)" color="error" class="mx-2"> mdi-close-thick </v-icon>
           </template>
@@ -161,7 +161,7 @@ import appData from "../modules/appData";
 import appUtils from "../modules/appUtils";
 
 let page = {
-  name: "Profiles",
+  name: "ProfilesPage",
   data: () => ({
     tab: {},
     headers: [],

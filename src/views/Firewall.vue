@@ -68,11 +68,11 @@
                 </v-btn>
               </v-toolbar>
             </template>
-            <template v-slot:item.dport="{ item }">
+            <template v-slot:[`item.dport`]="{ item }">
               <div v-if="item.dport == '0'">{{$t("All")}}</div>              
               <div v-else>{{item.dport}}</div>
             </template>
-            <template v-slot:item.actions="{ item }">
+            <template v-slot:[`item.actions`]="{ item }">
               <v-icon  small @click="editRule(item)" class="mx-2">
                 mdi-pencil
               </v-icon>
@@ -157,7 +157,7 @@
                 </v-btn>
               </v-toolbar>
             </template>
-            <template v-slot:item.actions="{ item }">
+            <template v-slot:[`item.actions`]="{ item }">
               <v-icon  small @click="deleteProfile(item)" class="mx-2">
                 mdi-delete
               </v-icon>
@@ -191,7 +191,7 @@
                 @update:options="updateOptions"
                 @click:row="rowClick"
               >
-                <template v-slot:header.data-table-select> &nbsp; </template>
+                <template v-slot:[`header.data-table-select`]> &nbsp; </template>
                 <template v-slot:top>
                   <v-toolbar flat color="bg">
                     <v-btn
@@ -227,12 +227,12 @@
                 </v-btn>
               </v-toolbar>
             </template>
-            <template v-slot:item.addomain="{ item }">
+            <template v-slot:[`item.addomain`]="{ item }">
               <div v-if="item.groupname == 'All'">{{$t("Automatic")}}</div>
               <div v-else-if="item.addomain == ''">{{$t("Manual")}}</div>
               <div v-else>{{$t("Active Directory")}}</div>
             </template>
-            <template v-slot:item.actions="{ item }">
+            <template v-slot:[`item.actions`]="{ item }">
               <v-icon  small @click="deleteGroup(item)" class="mx-2">
                 mdi-delete
               </v-icon>
@@ -259,7 +259,7 @@
                 :search="groupSearch"
                 @click:row="groupClick"
               >
-              <template v-slot:item.adDomain="{ item }">
+              <template v-slot:[`item.adDomain`]="{ item }">
               <div v-if="item.groupName == 'All'">{{$t("Automatic")}}</div>
               <div v-else-if="item.adDomain == ''">{{$t("Manual")}}</div>
               <div v-else>{{$t("Active Directory")}}</div>

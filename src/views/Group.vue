@@ -76,8 +76,8 @@
           item-key="email"
           @update:options="updateOptions"
         >
-          <template v-slot:header.data-table-select> &nbsp; </template>
-          <template v-slot:item.data-table-select="{ isSelected, select, item }">
+          <template v-slot:[`header.data-table-select`]> &nbsp; </template>
+          <template v-slot:[`item.data-table-select`]="{ isSelected, select, item }">
             <v-simple-checkbox :disabled="!isItemExists(item)" :value="isSelected" @input="select($event)"></v-simple-checkbox>
           </template>
           <template v-slot:top>

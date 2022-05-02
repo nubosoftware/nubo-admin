@@ -14,7 +14,7 @@
 import appData from '../modules/appData';
 
 export default {
-  name: 'Home',
+  name: 'AboutPage',
   data: () => ({ 
     langs: ['iw', 'en'],
     appData

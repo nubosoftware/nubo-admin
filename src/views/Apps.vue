@@ -42,10 +42,10 @@
       ></v-text-field> 
         </v-toolbar>
       </template>
-      <template v-slot:item.imageUrl="{ item }">
+      <template v-slot:[`item.imageUrl`]="{ item }">
         <v-img max-height="40" max-width="40" :src="item.imageUrl"></v-img>
       </template>
-      <template v-slot:item.actions="{ item }">
+      <template v-slot:[`item.actions`]="{ item }">
         <v-icon
           v-if="appData.checkPermission('/apps', 'w')"
           small

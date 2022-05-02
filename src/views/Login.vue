@@ -111,7 +111,7 @@ import appData from "../modules/appData";
 import appUtils from "../modules/appUtils";
 
 export default {
-  name: "Login",
+  name: "LoginPage",
   data: () => ({
     validationWait: false,
     resetPassword: false,

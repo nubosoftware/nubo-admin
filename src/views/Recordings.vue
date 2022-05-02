@@ -60,7 +60,7 @@
                 </v-btn>
               </v-toolbar>
             </template>
-            <template v-slot:item.actions="{ item }">
+            <template v-slot:[`item.actions`]="{ item }">
               <v-icon small @click="deleteProfile(item)" class="mx-2">
                 mdi-delete
               </v-icon>
@@ -98,7 +98,7 @@
                 @update:options="updateProfileOptions"
                 @click:row="profileRowClick"
               >
-                <template v-slot:header.data-table-select> &nbsp; </template>
+                <template v-slot:[`header.data-table-select`]> &nbsp; </template>
                 <template v-slot:top>
                   <v-toolbar flat color="bg">
                     <v-btn
@@ -203,14 +203,14 @@
             multi-sort
             class="ma-4 bg"
           >
-            <template v-slot:item.start_time="{ item }">
+            <template v-slot:[`item.start_time`]="{ item }">
               {{ moment(item.start_time).format("LLL") }}
             </template>
 
-            <template v-slot:item.end_time="{ item }">
+            <template v-slot:[`item.end_time`]="{ item }">
               {{ moment(item.end_time).format("LLL") }}
             </template>
-            <template v-slot:item.actions="{ item }">
+            <template v-slot:[`item.actions`]="{ item }">
               <v-icon small @click="prepare(item, $event)" class="mx-2">
                 mdi-play
               </v-icon>

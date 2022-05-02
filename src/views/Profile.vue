@@ -188,7 +188,7 @@
                     :sort-desc.sync="logsSortDesc"
                     class="elevation-1 ma-4 bg"
                   >
-                    <template v-slot:item.Time="{ item }">
+                    <template v-slot:[`item.Time`]="{ item }">
                       {{ moment(item.Time).format("LLL") }}
                     </template>
                   </v-data-table>
@@ -221,14 +221,14 @@
             :sort-desc.sync="appsSortDesc"
             class="elevation-1 ma-4 bg"
           >
-            <template v-slot:item.imageUrl="{ item }">
+            <template v-slot:[`item.imageUrl`]="{ item }">
               <v-img
                 max-height="40"
                 max-width="40"
                 :src="item.imageUrl"
               ></v-img>
             </template>
-            <template v-slot:item.actions="{ item }">
+            <template v-slot:[`item.actions`]="{ item }">
               <v-icon v-if="appData.checkPermission('/apps','i')" small class="mr-2" @click="reinstallItem(item)">
                 mdi-refresh
               </v-icon>
@@ -246,7 +246,7 @@
             :items-per-page="10"
             class="elevation-1 ma-4 bg"
           >
-            <template v-slot:item.isOnline="{ item }">
+            <template v-slot:[`item.isOnline`]="{ item }">
               <v-chip
                 v-if="item.isOnline"
                 class="ma-2"
@@ -271,7 +271,7 @@
                 {{$t("Disabled")}}
               </v-chip>
             </template>
-            <template v-slot:item.actions="{ item }">
+            <template v-slot:[`item.actions`]="{ item }">
               <v-btn
               v-if="item.isOnline && appData.checkPermission('/profiles','w')"
               small
@@ -315,7 +315,7 @@
             class="elevation-1 ma-4 bg"
           >
             
-            <template v-slot:item.adDomain="{ item }">
+            <template v-slot:[`item.adDomain`]="{ item }">
               <div v-if="item.groupName == 'All'">{{$t("Automatic")}}</div>
               <div v-else-if="item.adDomain == ''">{{$t("Manual")}}</div>
               <div v-else>{{$t("Active Directory")}}</div>
@@ -348,7 +348,7 @@ import appUtils from "../modules/appUtils";
 const moment = require("moment");
 
 export default {
-  name: "Profile",
+  name: "ProfilePage",
   components: {
     //HelloWorld
   },

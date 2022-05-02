@@ -119,7 +119,7 @@
                 </v-btn>
               </v-toolbar>
             </template>
-            <template v-slot:item.actions="{ item }">
+            <template v-slot:[`item.actions`]="{ item }">
               <v-icon v-if="appData.checkPermission('/apps','i')" small @click="deleteProfile(item)" class="mx-2">
                 mdi-delete
               </v-icon>
@@ -153,7 +153,7 @@
                 @update:options="updateOptions"
                 @click:row="rowClick"
               >
-                <template v-slot:header.data-table-select> &nbsp; </template>
+                <template v-slot:[`header.data-table-select`]> &nbsp; </template>
                 <template v-slot:top>
                   <v-toolbar flat color="bg">
                     <v-btn
@@ -189,12 +189,12 @@
                 </v-btn>
               </v-toolbar>
             </template>
-            <template v-slot:item.adDomain="{ item }">
+            <template v-slot:[`item.adDomain`]="{ item }">
               <div v-if="item.groupName == 'All'">{{$t("Automatic")}}</div>
               <div v-else-if="item.adDomain == ''">{{$t("Manual")}}</div>
               <div v-else>{{$t("Active Directory")}}</div>
             </template>
-            <template v-slot:item.actions="{ item }">
+            <template v-slot:[`item.actions`]="{ item }">
               <v-icon v-if="appData.checkPermission('/apps','i')" small @click="deleteGroup(item)" class="mx-2">
                 mdi-delete
               </v-icon>
@@ -221,7 +221,7 @@
                 :search="groupSearch"
                 @click:row="groupClick"
               >
-              <template v-slot:item.adDomain="{ item }">
+              <template v-slot:[`item.adDomain`]="{ item }">
               <div v-if="item.groupName == 'All'">{{$t("Automatic")}}</div>
               <div v-else-if="item.adDomain == ''">{{$t("Manual")}}</div>
               <div v-else>{{$t("Active Directory")}}</div>

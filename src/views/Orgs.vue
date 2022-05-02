@@ -27,7 +27,7 @@
             </v-btn>
       </v-toolbar>
     </template>
-    <template v-slot:item.actions="{ item }">
+    <template v-slot:[`item.actions`]="{ item }">
       <v-icon small @click="$router.push('/Org/' + item.maindomain)" class="mx-2"> mdi-pencil </v-icon>
       <v-icon v-if="item.maindomain != appData.mainDomain" small @click="deleteOrgDialog(item)" class="mx-2"> mdi-delete </v-icon>
     </template>

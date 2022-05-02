@@ -73,7 +73,7 @@
               ></v-text-field>
             </v-toolbar>
           </template>
-          <template v-slot:item.last_login="{ item }">
+          <template v-slot:[`item.last_login`]="{ item }">
              {{ (  item.last_login ?  moment(item.last_login).format("LLL") : "") }}
           </template>
         </v-data-table>

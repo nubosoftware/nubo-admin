@@ -30,12 +30,12 @@
       ></v-text-field>
         </v-toolbar>
       </template>
-    <template v-slot:item.adDomain="{ item }">
+    <template v-slot:[`item.adDomain`]="{ item }">
       <div v-if="item.groupName == 'All'">{{$t("Automatic")}}</div>
       <div v-else-if="item.adDomain == ''">{{$t("Manual")}}</div>
       <div v-else>{{$t("Active Directory")}}</div>
     </template>
-    <template v-slot:item.actions="{ item }">
+    <template v-slot:[`item.actions`]="{ item }">
       <v-icon v-if="item.groupName != 'All' && appData.checkPermission('/groups','w')" small @click="deleteGroup(item,$event)" class="mx-2"> mdi-delete </v-icon>
     </template>
     </v-data-table>

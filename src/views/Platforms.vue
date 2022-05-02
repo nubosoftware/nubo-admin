@@ -24,7 +24,7 @@
               </v-btn>
         </v-toolbar>
       </template>
-      <template v-slot:item.status="{ item }">
+      <template v-slot:[`item.status`]="{ item }">
         <v-chip
           v-if="item.status == 'running'"
           class="ma-2"
@@ -82,7 +82,7 @@
         </v-chip>
         
       </template>
-      <template v-slot:item.actions="{ item }">
+      <template v-slot:[`item.actions`]="{ item }">
              <v-icon v-if="item.status == 'running' || item.status == 'error' || item.status == 'revive'" small @click="stopCheck(item,$event)" class="mx-2"> mdi-stop </v-icon>
              <v-icon v-if="item.status == 'available'" small @click="start(item,$event)" class="mx-2"> mdi-play </v-icon>
             </template>

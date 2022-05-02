@@ -73,7 +73,7 @@ import PieChart from './charts/pieChart';
 const moment = require("moment");
 
 export default {
-  name: 'Home',
+  name: 'HomePage',
   components: {
       LineChart,
       PieChart,

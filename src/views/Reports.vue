@@ -34,11 +34,11 @@
         @click:row="openReport"
         class="ma-4 bg"
       >
-      <template v-slot:item.text="{ item }">
+      <template v-slot:[`item.text`]="{ item }">
         <v-icon v-text="item.icon"></v-icon> 
         &nbsp;&nbsp;{{ item.text}}                  
       </template>
-      <template v-slot:item.icon="{ item }">
+      <template v-slot:[`item.icon`]="{ item }">
         <v-icon v-text="item.icon"></v-icon>                     
       </template>
     </v-data-table>
@@ -160,21 +160,21 @@
         @current-items="getFiltered"
         class="ma-4 bg"
       >
-      <template v-slot:item.Insert_Time="{ item }">
+      <template v-slot:[`item.Insert_Time`]="{ item }">
                       {{ moment(item.Insert_Time).format("LLL") }}
                     </template>
-      <template v-slot:item.Start_Time="{ item }">
+      <template v-slot:[`item.Start_Time`]="{ item }">
                       {{ moment(item.Start_Time).format("LLL") }}
                     </template>
       
-     <template v-slot:item.End_Time="{ item }">
+     <template v-slot:[`item.End_Time`]="{ item }">
                       {{ moment(item.End_Time).format("LLL") }}
                     </template>
 
-       <template v-slot:item.Session_Duration="{ item }">                    
+       <template v-slot:[`item.Session_Duration`]="{ item }">                    
                       {{ getHHMM(item.Session_Duration) }}
                     </template>
-      <template v-slot:item.Event_Time="{ item }">
+      <template v-slot:[`item.Event_Time`]="{ item }">
                       {{ moment(item.Event_Time).format("LLL") }}
                     </template>           
       </v-data-table>
@@ -206,7 +206,7 @@ import BarChart from './charts/barChart';
 const moment = require("moment");
 
 export default {
-  name: "Home",
+  name: "ReportsPage",
   components: {
       BarChart,    
     },

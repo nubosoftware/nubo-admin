@@ -30,7 +30,7 @@
         </v-toolbar>
       </template>
     
-    <template v-slot:item.actions="{ item }">
+    <template v-slot:[`item.actions`]="{ item }">
       <v-icon small @click="deleteFirewall(item,$event)" class="mx-2"> mdi-delete </v-icon>
     </template>
     </v-data-table>
