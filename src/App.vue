@@ -221,8 +221,9 @@ export default {
       } 
       if (appData.checkPermission("/","rw")) {
         items.push({ title: this.$t("Logs"), icon: "mdi-list-status", link: "/Logs" });
+        items.push({ title: this.$t("Recordings"), icon: "mdi-record-rec", link: "/Recordings"});
         if (appData.isDesktop()) {
-          items.push({ title: this.$t("Recordings"), icon: "mdi-record-rec", link: "/Recordings"});
+          
           if (appData.isEnterpriseEdition()) { 
             items.push({ title: this.$t("Firewalls"), icon: "mdi-fire", link: "/Firewalls"});
           }
