@@ -85,6 +85,17 @@
                   />
                 </v-col>
               </v-row>
+              <v-row>
+                <v-col cols="12" sm="6" md="3">
+                  <v-select
+                        :items="renderingItems"
+                        :label="$t('Rendering Mode')"
+                         :rules="requiredRules"
+                        v-model="details.displayprotocol"
+                      ></v-select>                  
+                </v-col>
+               
+              </v-row>
 
               <v-row>
                 <v-col cols="12" sm="6" md="3">
@@ -419,6 +430,11 @@ let page = {
             this.details = response.data.appDetails;
             this.totalNumOfUsers = response.data.totalNumOfUsers;
             this.rows = response.data.emails;
+            this.renderingItems = [
+              { text: this.$t("Auto-detect"), value: 0 },
+              { text: this.$t("Server Rendering"), value: 1 },
+              { text: this.$t("Client Rendering"), value: 2 },
+            ];
             this.headers = [
               {
                 text: this.$t("Last Name"),
@@ -478,6 +494,7 @@ let page = {
             appDescription: this.details.description,
             appSummary: this.details.summary,
             appCategories: this.details.categories,
+            displayprotocol: ""+this.details.displayprotocol,
           },
         })
         .then((response) => {

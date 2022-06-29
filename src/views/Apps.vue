@@ -416,6 +416,7 @@ let page = {
           headers: {
             "Content-Type": "multipart/form-data",
           },
+          timeout: 240000,
           onUploadProgress: function (progressEvent) {
             var percentCompleted = Math.round(
               (progressEvent.loaded * 100) / progressEvent.total
