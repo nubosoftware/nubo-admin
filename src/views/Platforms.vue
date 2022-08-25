@@ -78,13 +78,15 @@
           class="ma-2"
           text-color="white"
         >
-          {{$t("Not Available")}}
+          {{$t("Disabled")}}
         </v-chip>
         
       </template>
       <template v-slot:[`item.actions`]="{ item }">
              <v-icon v-if="item.status == 'running' || item.status == 'error' || item.status == 'revive'" small @click="stopCheck(item,$event)" class="mx-2"> mdi-stop </v-icon>
-             <v-icon v-if="item.status == 'available'" small @click="start(item,$event)" class="mx-2"> mdi-play </v-icon>
+             <v-icon v-if="item.status == 'available' || item.status == 'not_available'" small @click="start(item,$event)" class="mx-2"> mdi-play </v-icon>
+             <v-icon v-if="item.status !== 'not_available'" small @click="disableCheck(item,$event)" class="mx-2"> mdi-cancel </v-icon>
+             <v-icon v-if="item.status == 'not_available'" small @click="enableClick(item,$event)" class="mx-2"> mdi-check </v-icon>
             </template>
     </v-data-table>
     <v-dialog
@@ -94,8 +96,11 @@
     >
       
       <v-card>
-        <v-card-title >
+        <v-card-title v-if="!isDisableCmd" >
           {{$t("Stop platform",{stopPlatID: stopPlatID})}}
+        </v-card-title>
+        <v-card-title v-if="isDisableCmd" >
+          {{$t("Disable platform",{stopPlatID: stopPlatID})}}
         </v-card-title>
 
         <v-card-actions>
@@ -108,7 +113,7 @@
             {{$t('Cancel')}}
           </v-btn>
           <v-btn
-            v-if="stopStatus == 'running' "
+            v-if="stopStatus == 'running' && !isDisableCmd"
             color="green darken-1"
             text
             @click="stopGracefully"
@@ -116,11 +121,28 @@
             {{$t('Stop Gracefully')}}
           </v-btn>
           <v-btn
+            v-if="!isDisableCmd"
             color="orange darken-1"
             text
             @click="stopNow"
           >
             {{$t('Stop Now')}}
+          </v-btn>
+          <v-btn
+            v-if="isDisableCmd && (stopStatus == 'running' || stopStatus == 'error' || stopStatus == 'revive' )"
+            color="orange darken-1"
+            text
+            @click="disableAndStopNow"
+          >
+            {{$t('Stop and Disable')}}
+          </v-btn>
+          <v-btn
+            v-if="isDisableCmd && (stopStatus != 'running' && stopStatus != 'error' && stopStatus != 'revive' )"
+            color="orange darken-1"
+            text
+            @click="disableNow"
+          >
+            {{$t('Disable')}}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -154,6 +176,7 @@ let page = {
     dialog: false,
     stopPlatID: 0,
     stopStatus: "",
+    isDisableCmd: false,
     snackbarSave: false,
     snackbarText: "",
     appData,
@@ -167,6 +190,14 @@ let page = {
       event.stopPropagation();
       this.stopStatus = val.status;
       this.stopPlatID = val.platID;
+      this.isDisableCmd = false;
+      this.dialog = true;
+    },
+    disableCheck: function (val,event) {
+      event.stopPropagation();
+      this.stopStatus = val.status;
+      this.stopPlatID = val.platID;
+      this.isDisableCmd = true;
       this.dialog = true;
     },
     scheduleLongOperCheck: function(notifToken,title) {
@@ -186,6 +217,49 @@ let page = {
           }
       }).catch((error) => console.log(error));
     },
+    disableAndStopNow: function() {
+      this.stop(false);
+      this.disable();
+    },
+    disableNow: function() {     
+      this.disable();
+    },
+    disable: function () {
+      this.dialog = false;
+      appUtils.get({
+        url: `api/platforms/${this.stopPlatID}/disable`,
+      }).then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            this.snackbarText = this.$t("Disabled platform")+" "+this.stopPlatID;
+            this.snackbarSave = true;            
+          } else {
+            console.log(`status: ${response.data.status}`);
+            this.snackbarText = this.$t("Error");
+            this.snackbarSave = true;
+          }
+        })
+        .catch((error) => console.log(error))
+        .finally(() => (this.loading = false));
+    },
+    enableClick: async function(item,event) {
+      event.stopPropagation();
+      try {
+        await this.enable(item.platID);
+        this.snackbarText = this.$t("Enabled platform")+" "+item.platID;
+        this.snackbarSave = true;
+      } catch (err) {
+        console.log(`Error: ${err}`);
+        this.snackbarText = this.$t("Error");
+        this.snackbarSave = true;
+      }
+    },
+    enable: async function (platID) {
+      this.dialog = false;
+      await appUtils.get({
+        url: `api/platforms/${platID}/enable`,
+      });
+    },
     stopGracefully: function() {
       //console.log(`stopGracefully`);
       this.stop(true);
@@ -193,7 +267,7 @@ let page = {
     stopNow: function() {
       //console.log(`stopNow`);
       this.stop(false);
-    }, 
+    },     
     stop: function(gracefully) {
       
       this.dialog = false;
@@ -231,28 +305,52 @@ let page = {
         this.snackbarSave = true;
       }
     },
-    start: function(item,event) {
+    start: async function(item,event) {
       event.stopPropagation();
-      appUtils
-        .put({
+      try {        
+        if (item.status == 'not_available') {
+          await this.enable(item.platID);
+        }
+        let response = await appUtils.put({
           url: "api/platforms/"+item.platID,
-        })
-        .then((response) => {
-          console.log(response.data);
-          if (response.data.status == 1) {
-            this.snackbarText = this.$t("Starting platform")+" "+item.platID;
-            this.snackbarSave = true;
-            if (response.data.notifToken) {
-              this.scheduleLongOperCheck(response.data.notifToken,this.$t("Starting platform")+" "+item.platID)
-            }
-          } else {
-            console.log(`status: ${response.data.status}`);
-            this.snackbarText = this.$t("Error");
-            this.snackbarSave = true;
+        });
+        console.log(response.data);
+        if (response.data.status == 1) {
+          this.snackbarText = this.$t("Starting platform")+" "+item.platID;
+          this.snackbarSave = true;
+          if (response.data.notifToken) {
+            this.scheduleLongOperCheck(response.data.notifToken,this.$t("Starting platform")+" "+item.platID)
           }
-        })
-        .catch((error) => console.log(error))
-        .finally(() => (this.loading = false));
+        } else {
+          console.log(`status: ${response.data.status}`);
+          this.snackbarText = this.$t("Error");
+          this.snackbarSave = true;
+        }
+      } catch (err) {
+        console.log(`Error: ${err}`);
+        this.snackbarText = this.$t("Error");
+        this.snackbarSave = true;
+      }
+      // appUtils
+      //   .put({
+      //     url: "api/platforms/"+item.platID,
+      //   })
+      //   .then((response) => {
+      //     console.log(response.data);
+      //     if (response.data.status == 1) {
+      //       this.snackbarText = this.$t("Starting platform")+" "+item.platID;
+      //       this.snackbarSave = true;
+      //       if (response.data.notifToken) {
+      //         this.scheduleLongOperCheck(response.data.notifToken,this.$t("Starting platform")+" "+item.platID)
+      //       }
+      //     } else {
+      //       console.log(`status: ${response.data.status}`);
+      //       this.snackbarText = this.$t("Error");
+      //       this.snackbarSave = true;
+      //     }
+      //   })
+      //   .catch((error) => console.log(error))
+      //   .finally(() => (this.loading = false));
     },
     printMem: function(bytes) {
       if (isNaN(bytes)) {

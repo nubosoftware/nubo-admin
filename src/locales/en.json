@@ -16,6 +16,7 @@
     "Are you sure you want to delete profile": "Are you sure you want to delete profile {profileName}?",
     "Are you sure you want to delete organization": "Are you sure you want to delete the entire organization {domain}?",
     "Stop platform": "Stop platform {stopPlatID}?",
+    "Disable platform": "Disable platform {stopPlatID}?",
     "Uploading file..": "Uploading file...",
     "Error uploading apk": "Error uploading APK",
     "Installing apk..": "Installing APK...",
