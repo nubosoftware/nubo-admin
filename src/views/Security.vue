@@ -75,6 +75,12 @@
               >
               </v-text-field>
             </v-sheet>
+            <v-checkbox                    
+                    v-model="allowdevicereg"
+                    column
+                    class="mx-4 my-0"
+                    :label="$t('Allow self device registration')"
+                  ></v-checkbox>
 
             <v-btn
               color="primary"
@@ -374,6 +380,7 @@ let page = {
     addRuleFilter: "",
     addRuleLoading: false,
     reqRules: [],
+    allowdevicereg: false,
     appData,
   }),
   methods: {
@@ -404,6 +411,7 @@ let page = {
             } else {
               this.notifType = "emailnotif";
             }
+            this.allowdevicereg = (this.deviceApproval.allowdevicereg == 1);
             
           } else {
             console.log(`status: ${response.data.status}`);
@@ -460,6 +468,7 @@ let page = {
         return;
       }
       this.updateDeviceApprovalLoading = true;
+      this.deviceApproval.allowdevicereg = (this.allowdevicereg ? 1 : 0);
       appUtils
         .post({
           url: "api/security/deviceApproval",

@@ -240,12 +240,31 @@
       <v-tab-item key="devices">
         <v-card flat color="bg">
           <v-card-title>{{$t("Devices")}}</v-card-title>
+          <v-dialog v-model="dialogDeleteDevice" max-width="500px" color="bg">
+          <v-card color="bg">
+            <v-card-title class="headline">{{$t('Are you sure you want to delete device?')}}</v-card-title>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="warning"  @click="dialogDeleteDevice = false;">{{$t('Cancel')}}</v-btn>
+              <v-btn color="primary"  @click="deleteDeviceConfirm">{{$t('OK')}}</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
           <v-data-table
             :headers="devicesHead"
             :items="devices"
             :items-per-page="10"
             class="elevation-1 ma-4 bg"
           >
+            <template v-slot:top>
+              <v-toolbar flat color="bg">
+                <v-btn  v-if="appData.checkPermission('/profiles','w')" color="primary" dark class="mb-2" @click="addDeviceDialog = true">
+                  {{ $t("Add Device") }}
+                </v-btn>
+              </v-toolbar>
+            </template>
+
             <template v-slot:[`item.isOnline`]="{ item }">
               <v-chip
                 v-if="item.isOnline"
@@ -302,8 +321,56 @@
             >
               {{$t("Enable")}}
             </v-btn>
+            <v-btn
+              v-if="!item.isOnline && appData.checkPermission('/profiles','w')"
+              small
+              color="primary"
+              dark
+              class="ma-1"
+              @click="deleteDevice(item)"
+            >
+              {{$t("Delete")}}
+            </v-btn>
             </template>
           </v-data-table>
+          <v-dialog v-model="addDeviceDialog" max-width="800px" overlay-color="bg">
+            <v-card color="bg">
+              <v-card-title>
+                {{ $t("Add Device") }}
+              </v-card-title>
+              <v-form ref="addDeviceForm" v-model="addDeviceForm">
+                <v-container>
+                  <v-row>
+                    <v-col cols="24" sm="12" md="6">
+                      <v-text-field
+                        :label="$t('Name')"
+                         :rules="requiredRules" 
+                        v-model="addDeviceName"
+                      />
+                    </v-col>
+                    <v-col cols="24" sm="12" md="6">
+                      <v-text-field
+                        :label="$t('Unique ID')"
+                         :rules="uidRules" 
+                        v-model="addDeviceUID"
+                      />
+                    </v-col>
+                  </v-row>      
+                  <v-row>          
+                    <v-col cols="12" sm="6" md="3">
+                      <v-btn                        
+                        color="primary"
+                        class="mr-4"
+                        @click="addDevice"                       
+                      >
+                        Save
+                      </v-btn>
+                    </v-col>
+                  </v-row>            
+            </v-container></v-form
+          >
+            </v-card>
+          </v-dialog>
         </v-card>
       </v-tab-item>
       <v-tab-item key="groups">
@@ -382,8 +449,15 @@ export default {
     requiredRules: [],
     dialogDeleteProfile: false,
     valid: true,
+    addDeviceDialog: false,
+    addDeviceForm: true,
+    addDeviceName: "",
+    addDeviceUID: "",
+    dialogDeleteDevice: false,
+    deleteDeviceItem: {},
   }),
   methods: {
+
     deleteApp: function(app) {
       
       this.deleteAppItem = app;
@@ -480,6 +554,62 @@ export default {
         .finally(() => {
 
         });
+    },
+    deleteDevice: function(item) {
+      this.dialogDeleteDevice  = true;
+      this.deleteDeviceItem = item
+    },
+    deleteDeviceConfirm: async function() {    
+      try {        
+        
+        await appUtils.delete({
+          url:
+            `api/devices/${encodeURIComponent(this.details.email)}/${encodeURIComponent(this.deleteDeviceItem.IMEI)}`
+        });        
+                
+        this.dialogDeleteDevice = false;       
+        this.snackbarText = "Deleted";
+        this.snackbarSave = true;
+        this.loadDetails();
+      } catch (err) {
+        console.error(`Error: ${err}`,err);
+        this.dialogDeleteDevice = false;
+        this.snackbarText = "Error";
+        this.snackbarSave = true;
+      }      
+
+    },
+    addDevice: async function() {
+      let v = this.$refs.addDeviceForm.validate();
+      if (!this.addDeviceForm) {
+        console.log(`addDeviceForm: ${this.addDeviceForm}, v: ${v}`);
+        return;
+      }
+      try {
+        let imei = this.addDeviceUID;
+        let devicename = this.addDeviceName;
+        
+        let data = {
+            devicename,            
+        };
+        
+        await appUtils.put({
+          url:
+            `api/devices/${encodeURIComponent(this.details.email)}/${encodeURIComponent(imei)}`,
+          data
+        });        
+                
+        this.addDeviceDialog = false;       
+        this.snackbarText = "Added";
+        this.snackbarSave = true;
+        this.loadDetails();
+      } catch (err) {
+        console.error(`Error: ${err}`,err);
+        this.addDeviceDialog = false;
+        this.snackbarText = "Error";
+        this.snackbarSave = true;
+      }      
+
     },
     disableDevice: function(item) {
       appUtils
@@ -793,6 +923,12 @@ export default {
     ];
     this.requiredRules = [
       (v) => !!v || this.$t("Field is required"),
+    ];
+    this.uidRules = [
+      (v) => !!v || this.$t("Field is required"),
+      (v) =>
+      /^[0-9a-zA-Z\-:]+$/.test(v) ||
+        this.$t("Invalid ID"),
     ];
     this.loadDetails();
   },
