@@ -451,6 +451,16 @@ baseUri: https://api.nubosoftware.com/api/
                     required: false
                     type: string
                     example: "212-456-9876"
+                orguser:
+                    description: "Organization user"
+                    required: false
+                    type: string
+                    example: "user543"
+                orgemail:
+                    description: "Organization email"
+                    required: false
+                    type: string
+                    example: "user543@domain.com"
             responses:
               200:
                   body:
@@ -588,6 +598,42 @@ baseUri: https://api.nubosoftware.com/api/
               required: true
               type: string
               example: "endSession"
+      responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": 1,
+                    "message": "Request was fulfilled"
+                  }
+    put:
+      description: Add a new device.
+      queryParameters:
+                devicename:
+                    description: "Device name"
+                    required: true
+                    type: string
+                    example: "John Smith Phone"
+      responses:
+          200:
+            body:
+              application/json:
+                example: |
+                    {
+                      "status": 1,
+                      "message": "Request was fulfilled",
+                      "device": {
+                        "imei": "RR-TT-MM-00",
+                        "email": "a0@nubo0.com",
+                        "devicename": "Test Device 22",
+                        "active": 1,
+                        "maindomain": "nubo0.com",
+                        "inserttime": "2022-10-20T11:25:48.857Z"
+                      }
+                    }
+    delete:
+      description: Delete a device.
       responses:
           200:
             body:

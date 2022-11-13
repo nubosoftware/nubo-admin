@@ -727,6 +727,7 @@ export default {
             { text: this.$t("Online"), value: "isOnline" },
             { text: this.$t("Platform"), value: "platform" },
             { text: this.$t("Gateway"), value: "gateway" },
+            { text: this.$t("Local ID"), value: "localid" },            
             { text: 'Actions', value: 'actions', sortable: false },
           ];
 

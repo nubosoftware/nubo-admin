@@ -360,6 +360,14 @@ let page = {
         text: this.$t("Device Name"),
         value: "devicename",
       },
+      {
+        text: this.$t("Local ID"),
+        value: "localid",
+      },
+      {
+        text: this.$t("Gateway"),
+        value: "gateway",
+      },
       { text: 'Actions', value: 'actions', sortable: false }
     ];
     

@@ -20,7 +20,7 @@
         <v-card flat class="ma-0" color="bg" tile>
           <v-card-title>{{ $t("Device approval options") }}</v-card-title>
           <v-form ref="formApproval" v-model="validFormApproval">
-            <v-radio-group
+            <v-radio-group              
               v-model="deviceApproval.deviceApprovalType"
               column
               class="mx-4 my-0"
@@ -33,19 +33,15 @@
               <v-radio
                 label="Manualy approve/reset devices"
                 class="mb-4"
-                value="1"
-                
-                v-on="on"
+                value="1"                            
               ></v-radio>
               <v-radio
                 label="Both"
-                value="2"
-                
-                v-on="on"
+                value="2"                
               ></v-radio>
             </v-radio-group>
 
-            <v-sheet color="bg" v-if="deviceApproval.deviceApprovalType != '0'">
+            <v-sheet color="bg" v-if="deviceApproval.deviceApprovalType != '0' && !sendSMS">
               <v-card-title>{{ $t("Notify admins by:") }}</v-card-title>
               <v-radio-group
                 v-model="notifType"
@@ -60,9 +56,7 @@
                 ></v-radio>
                 <v-radio
                   :label="$t('Email to a dedicated email address')"
-                  value="emailnotif"
-                  
-                  v-on="on"
+                  value="emailnotif"                 
                 ></v-radio>
               </v-radio-group>
               <v-text-field
@@ -75,6 +69,12 @@
               >
               </v-text-field>
             </v-sheet>
+            <v-checkbox                    
+                    v-model="sendSMS"
+                    column
+                    class="mx-4 my-0"
+                    :label="$t('Send SMS activation code to user\'s phone')"
+                  ></v-checkbox>
             <v-checkbox                    
                     v-model="allowdevicereg"
                     column
@@ -233,7 +233,7 @@
             :search="search"
             :loading="loading"
             class="ma-4 bg"
-            @click:row="rowClick"
+            
           >
             <template v-slot:top>
               <v-toolbar flat color="bg">
@@ -381,6 +381,7 @@ let page = {
     addRuleLoading: false,
     reqRules: [],
     allowdevicereg: false,
+    sendSMS: false,
     appData,
   }),
   methods: {
@@ -412,6 +413,7 @@ let page = {
               this.notifType = "emailnotif";
             }
             this.allowdevicereg = (this.deviceApproval.allowdevicereg == 1);
+            this.sendSMS = (this.deviceApproval.deviceApprovalType == 3);
             
           } else {
             console.log(`status: ${response.data.status}`);
@@ -633,6 +635,24 @@ let page = {
         .finally(() => (this.loading = false));
     },
   },
+  watch: {
+    "deviceApproval.deviceApprovalType": function (val) {
+      console.log("deviceApprovalType: " + val);
+      if (val != 3) {
+        this.sendSMS = false;       
+      } else {
+        this.sendSMS = true;
+      }
+    },
+    "sendSMS": function (val) {
+      console.log("sendSMS: " + val);
+      if (val) {
+        this.deviceApproval.deviceApprovalType = 3;
+      } else {
+        this.deviceApproval.deviceApprovalType = "0";
+      }
+    },
+  },
 
   created: function () {
     let bcItems = [
@@ -694,6 +714,7 @@ let page = {
 
     this.refresh();
   },
+  
 };
 
 export default page;

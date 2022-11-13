@@ -307,6 +307,8 @@ let page = {
               { text: this.$t("Device ID"), value: "imei" },
               { text: this.$t("Gateway"), value: "gateway" },
               { text: this.$t("Platform"), value: "platform" },
+              { text: this.$t("Local ID"), value: "localid" },
+              
             ];
             
           } else {
