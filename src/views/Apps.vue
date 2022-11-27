@@ -64,6 +64,14 @@
         <v-card-text>
           {{ $t("Are you sure you want to delete", { deleteAppName }) }}
         </v-card-text>
+        <v-card-text>
+          <v-checkbox                    
+                    v-model="rebuildImage"
+                    column
+                    class="mx-4 my-0"
+                    :label="$t('Rebuild platform image after delete')"
+                  ></v-checkbox>
+        </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="warning" @click="dialog = false"> Cancel </v-btn>
@@ -112,6 +120,16 @@
                 prepend-icon="mdi-database-search"
                 
               ></v-autocomplete>
+            </v-col>
+          </v-row>
+          <v-row  v-if="appType == 'apk'" class="mx-4">
+            <v-col>
+              <v-checkbox                    
+                    v-model="rebuildImage"
+                    column
+                    class="mx-4 my-0"
+                    :label="$t('Rebuild platform image after upload')"
+                  ></v-checkbox>
             </v-col>
           </v-row>
           <v-row class="mx-4">
@@ -349,6 +367,7 @@ let page = {
     aptPackages: [],
     fileRules: [],
     iconURL: "",
+    rebuildImage: true,
     httpRules: [
       (v) => !!v || "URL is required",
       (v) =>
@@ -360,7 +379,7 @@ let page = {
   }),
   methods: {
     savePage: function () {      
-      appUtils.savePageData(`${page.name}`,this,['options','searchApps']);
+      appUtils.savePageData(`${page.name}`,this,['options','searchApps','rebuildImage']);
     },
     updateOptions() {      
       this.savePage();
@@ -378,9 +397,13 @@ let page = {
     deleteOK: function () {
       console.log(`deleteApp: ${this.deleteAppName}`);
       this.dialog = false;
+      this.savePage();
       appUtils
         .delete({
           url: "api/apps/" + encodeURIComponent(this.deleteObj.packageName),
+          data: {            
+            rebuildImage: this.rebuildImage
+          },
         })
         .then((response) => {
           console.log(response.data);
@@ -409,6 +432,7 @@ let page = {
       this.uploadAppDesc.uploadAlertType = "info";
       this.uploadAppDesc.uploadStatus = this.$t("Uploading file..");
       let thisPage = this;
+      this.savePage();
       appUtils
         .post({
           url: "api/upload",
@@ -457,7 +481,8 @@ let page = {
           data: {
             fileName: this.uploadFileName,
             packageName: this.aptPackage,
-            appType: this.appType
+            appType: this.appType,
+            rebuildImage: this.rebuildImage
           },
         })
         .then((response) => {
