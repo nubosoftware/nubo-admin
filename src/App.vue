@@ -196,46 +196,61 @@ export default {
     updatePermissions: function() {
       let items = [
       ];
+      let disalbeMenuItems = window.customDisabledMenuItems;
+      if (!disalbeMenuItems) {
+        disalbeMenuItems = [];
+      }
       if (appData.isAuthenticated) {
          items.push({ title: this.$t("Dashboard"), icon: "mdi-chart-bar" , link: "/" });
       }
-      if (appData.checkPermission("@/","rw")) {
+      if (appData.checkPermission("@/","rw") && !disalbeMenuItems.includes("Organizations")) {
         items.push({ title: this.$t("Organizations"), icon: "mdi-domain", link: "/Orgs" });
-      } else if (appData.checkPermission("/","rw")) {
+      } else if (appData.checkPermission("/","rw") && !disalbeMenuItems.includes("Organizations")) {
         items.push({ title: this.$t("Organization"), icon: "mdi-domain", link: "/Org/"+appData.mainDomain });
       }
-      if (appData.checkPermission("/profiles","r")) {
+      if (appData.checkPermission("/profiles","r") && !disalbeMenuItems.includes("Profiles")) {
         items.push({ title: this.$t("Profiles"), icon: "mdi-account-multiple-outline", link: "/Profiles" });
       }
-      if (appData.checkPermission("/groups","r")) {
+      if (appData.checkPermission("/groups","r") && !disalbeMenuItems.includes("Groups")) {
         items.push({ title: this.$t("Groups"), icon: "mdi-account-group", link: "/Groups" });
       }
-      if (appData.checkPermission("/apps","r")) {
+      if (appData.checkPermission("/apps","r") && !disalbeMenuItems.includes("Apps")) {
         items.push({ title: this.$t("Apps"), icon: "mdi-apps", link: "/Apps" });
       }
-      if (appData.isEnterpriseEdition() && appData.checkPermission("/profiles","r")) {
+      if (appData.isEnterpriseEdition() && appData.checkPermission("/profiles","r") && !disalbeMenuItems.includes("Telephony")) {
         items.push({ title: this.$t("Telephony"), icon: "mdi-phone-voip", link: "/Telephony" });
       }
-      if (appData.checkPermission("@/","rw")) {
+      if (appData.checkPermission("@/","rw") && !disalbeMenuItems.includes("Platforms")) {
         items.push({ title: this.$t("Platforms"), icon: "mdi-server", link: "/Platforms" });
       } 
       if (appData.checkPermission("/","rw")) {
-        items.push({ title: this.$t("Logs"), icon: "mdi-list-status", link: "/Logs" });
-        items.push({ title: this.$t("Recordings"), icon: "mdi-record-rec", link: "/Recordings"});
-        if (appData.isDesktop()) {
-          
-          if (appData.isEnterpriseEdition()) { 
+        if (!disalbeMenuItems.includes("Logs")) {
+          items.push({ title: this.$t("Logs"), icon: "mdi-list-status", link: "/Logs" });
+        }
+        if (!disalbeMenuItems.includes("Recordings")) {
+          items.push({ title: this.$t("Recordings"), icon: "mdi-record-rec", link: "/Recordings"});
+        }
+        if (appData.isDesktop()) { 
+          if (appData.isEnterpriseEdition() && !disalbeMenuItems.includes("Firewalls")) { 
             items.push({ title: this.$t("Firewalls"), icon: "mdi-fire", link: "/Firewalls"});
           }
         }
         if (appData.isEnterpriseEdition()) {
-          items.push({ title: this.$t("Exchange"), icon: "mdi-email", link: "/EmailSetup"});
-          items.push({ title: this.$t("Active Directory"), icon: "mdi-microsoft" , link: "/LDAP" });
+          if (!disalbeMenuItems.includes("EmailSetup")) {
+            items.push({ title: this.$t("Exchange"), icon: "mdi-email", link: "/EmailSetup"});
+          }
+          if (!disalbeMenuItems.includes("LDAP")) {
+            items.push({ title: this.$t("Active Directory"), icon: "mdi-microsoft" , link: "/LDAP" });
+          }
         }
-        items.push({ title: this.$t("Administrators"), icon: "mdi-account-tie" , link: "/Admins" });
-        items.push({ title: this.$t("Security"), icon: "mdi-shield-account", link: "/Security" });
+        if (!disalbeMenuItems.includes("Admins")) {
+          items.push({ title: this.$t("Administrators"), icon: "mdi-account-tie" , link: "/Admins" });
+        }
+        if (!disalbeMenuItems.includes("Security")) {
+          items.push({ title: this.$t("Security"), icon: "mdi-shield-account", link: "/Security" });
+        }
       }
-      if (appData.isEnterpriseEdition() && appData.checkPermission("/reports","r")) {
+      if (appData.isEnterpriseEdition() && appData.checkPermission("/reports","r") && !disalbeMenuItems.includes("Reports")) {
         items.push({ title: this.$t("Reports"), icon: "mdi-file-document-multiple-outline" , link: "/Reports"});
       }
       this.menuItems = items;
