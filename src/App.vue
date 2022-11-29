@@ -257,6 +257,21 @@ export default {
     },
   },
   created: function () {
+    // loading locale
+    const userLocale =
+    navigator.languages && navigator.languages.length
+      ? navigator.languages[0]
+      : navigator.language;
+
+    if (userLocale) {
+      console.log(`Detected locale:  ${userLocale}`); //
+      this.$i18n.locale = userLocale;
+    } else {
+      console.log(`User locale not detected`); //
+    }
+    
+
+
     console.log(`this.appData.isAuthenticated: ${this.appData.isAuthenticated}`);
     if (this.appData.isAuthenticated) {
       this.items = [{
