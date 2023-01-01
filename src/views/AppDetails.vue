@@ -69,6 +69,17 @@
                   />
                 </v-col>
               </v-row>
+              <v-row v-if="details.base_image_app == 1">
+                <v-col cols="12" sm="6" md="3">
+                  <v-checkbox                    
+                    v-model="details.base_image_app"
+                    readonly
+                    column
+                    class="mx-4 my-0"
+                    :label="$t('App included in base image')"
+                  ></v-checkbox>                
+                </v-col>
+              </v-row>
               <v-row>
                 <v-col cols="12" sm="6" md="3">
                   <v-text-field
@@ -94,7 +105,6 @@
                         v-model="details.displayprotocol"
                       ></v-select>                  
                 </v-col>
-               
               </v-row>
 
               <v-row>
@@ -457,7 +467,7 @@ let page = {
             ];
             let bcItems = [
               {
-                text: this.$t("control-panel"),
+                text: appData.productName,
                 to: "/",
                 disabled: false,
               },
@@ -667,7 +677,7 @@ let page = {
   created: function () {
     let bcItems = [
       {
-        text: this.$t("control-panel"),
+        text: appData.productName,
         to: "/",
         disabled: false,
       },

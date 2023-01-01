@@ -7,7 +7,7 @@ const appData = {
 
     // configuration
     //postURL: "/",
-    postURL: production ? "/" : "http://il2.nubosoftware.com:8080/", //"http://127.0.0.1:8080/", //"http://labil.nubosoftware.com:8080/",
+    postURL: production ? "/" : "http://labil.nubosoftware.com:8080/", //"http://127.0.0.1:8080/", //"http://labil.nubosoftware.com:8080/", "http://na01.nubosoftware.com:8080/",  //
     proxyURL: production ? null : "http://127.0.0.1:9080/", //"http://localhost:9080/",
 
     // loaded users params
@@ -29,6 +29,8 @@ const appData = {
     orgs: [],
     deviceTypes: [],
     edition: "",
+    pluginsEnabled: false,
+    productName: "",
 
     // additional data
     moduleName: "",
@@ -49,6 +51,8 @@ const appData = {
         localStorage.setItem("siteAdmin", appData.siteAdmin);
         localStorage.setItem("siteAdminDomain", appData.siteAdminDomain);
         localStorage.setItem("edition", appData.edition);
+        localStorage.setItem("pluginsEnabled", appData.pluginsEnabled);
+        localStorage.setItem("productName", appData.productName);
         localStorage.setItem("deviceTypes", JSON.stringify(appData.deviceTypes));
         localStorage.setItem("permissions", JSON.stringify(appData.permissions));
 
@@ -100,7 +104,14 @@ const appData = {
                 appData.deviceTypes = [];
             }
         }
-        console.log(`edition: ${appData.edition}, deviceTypes: ${appData.deviceTypes}`);
+        let pluginsEnabledStr = localStorage.getItem("pluginsEnabled");
+        if (pluginsEnabledStr && pluginsEnabledStr == "true") {
+            appData.pluginsEnabled = true;
+        } else {
+            appData.pluginsEnabled = false;
+        }
+        appData.productName = localStorage.getItem("productName");
+        console.log(`edition: ${appData.edition}, deviceTypes: ${appData.deviceTypes}, pluginsEnabled: ${appData.pluginsEnabled}`);
         let permStr = localStorage.getItem("permissions");
         if (permStr && permStr != "") {
             try {
@@ -166,7 +177,8 @@ const appData = {
     },
     isDesktop: () => {
         return (appData.deviceTypes.indexOf("desktop") >= 0);
-    }
+    },
+    
 };
 
 

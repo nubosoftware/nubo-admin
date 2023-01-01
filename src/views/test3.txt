@@ -1,0 +1,97 @@
+2022-06-29 11:16:06.277 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: setTopTask: topTask= 2135, processId: 46158
+2022-06-29 11:16:06.330 18004-18004/com.nubo.test7 E/nubo.WindowsStack: addWindowForActivityDialog. taskId: 2135, index: 0
+2022-06-29 11:16:06.331 18004-18004/com.nubo.test7 E/nubo.WindowsStack: addWindowForActivityDialog. newWinPackageName: android, nuboWndID: 184486661, index: 0, type: 1
+2022-06-29 11:16:06.331 18004-18004/com.nubo.test7 E/nubo.WindowsStack: addWindowForActivityDialog. put 'android' win on top of task! pos: 1
+2022-06-29 11:16:06.331 18004-18004/com.nubo.test7 E/nubo.WindowsStack: addWindowForActivityDialog. new win pos: 1, overallIndex: 5
+2022-06-29 11:16:06.331 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: ------------------------------------
+2022-06-29 11:16:06.331 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: mWindowsStackManager: 
+2022-06-29 11:16:06.331 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. process: 1591, packageName: com.android.launcher3
+2022-06-29 11:16:06.331 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. pos: 0, pid: 1591, NuboWndId: 154584029
+2022-06-29 11:16:06.331 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. process: 2171, packageName: com.nubo.launcher.nubo
+2022-06-29 11:16:06.332 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. pos: 0, pid: 2171, NuboWndId: 193827098
+2022-06-29 11:16:06.332 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. process: 664, packageName: android
+2022-06-29 11:16:06.332 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. pos: 0, pid: 664, NuboWndId: 34301855
+2022-06-29 11:16:06.332 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. pos: 1, pid: 664, NuboWndId: 184486661
+2022-06-29 11:16:06.332 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. process: 2495, packageName: com.nubo.blackscreenapp
+2022-06-29 11:16:06.332 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. pos: 0, pid: 2495, NuboWndId: 162190460
+2022-06-29 11:16:06.332 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. process: 46158, packageName: com.android.chrome
+2022-06-29 11:16:06.332 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. pos: 0, pid: 46158, NuboWndId: 40981515
+2022-06-29 11:16:06.332 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: ------------------------------------
+2022-06-29 11:16:06.332 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: mTaskWindows: 
+2022-06-29 11:16:06.332 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: mTaskWindows. taskId: 2083
+2022-06-29 11:16:06.332 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: TW. pos: 0, pid: 1591, NuboWndId: 154584029, packageName: com.android.launcher3
+2022-06-29 11:16:06.333 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: mTaskWindows. taskId: 2135
+2022-06-29 11:16:06.333 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: TW. pos: 0, pid: 46158, NuboWndId: 40981515, packageName: com.android.chrome
+2022-06-29 11:16:06.333 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: TW. pos: 1, pid: 664, NuboWndId: 184486661, packageName: android
+2022-06-29 11:16:06.333 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: mTaskWindows. taskId: 2072
+2022-06-29 11:16:06.333 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: TW. pos: 0, pid: 2171, NuboWndId: 193827098, packageName: com.nubo.launcher.nubo
+2022-06-29 11:16:06.333 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: mTaskWindows. taskId: 2136
+2022-06-29 11:16:06.333 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: TW. pos: 0, pid: 2495, NuboWndId: 162190460, packageName: com.nubo.blackscreenapp
+2022-06-29 11:16:06.333 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: mTaskWindows. taskId: 2073
+2022-06-29 11:16:06.333 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: TW. pos: 0, pid: 664, NuboWndId: 34301855, packageName: android
+2022-06-29 11:16:06.333 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: ------------------------------------
+2022-06-29 11:16:06.333 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: mOrderedPanelWindows: 
+2022-06-29 11:16:06.333 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: PW. pos: 0, pid: 664, NuboWndId: 34301855, packageName: android, type: 1
+2022-06-29 11:16:06.333 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: PW. pos: 1, pid: 1591, NuboWndId: 154584029, packageName: com.android.launcher3, type: 1
+2022-06-29 11:16:06.334 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: PW. pos: 2, pid: 2495, NuboWndId: 162190460, packageName: com.nubo.blackscreenapp, type: 1
+2022-06-29 11:16:06.334 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: PW. pos: 3, pid: 2171, NuboWndId: 193827098, packageName: com.nubo.launcher.nubo, type: 1
+2022-06-29 11:16:06.334 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: PW. pos: 4, pid: 46158, NuboWndId: 40981515, packageName: com.android.chrome, type: 1
+2022-06-29 11:16:06.334 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: PW. pos: 5, pid: 664, NuboWndId: 184486661, packageName: android, type: 1
+2022-06-29 11:16:06.334 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: ------------------------------------
+2022-06-29 11:16:06.334 18004-19684/com.nubo.test7 E/nubo.Debugger: PushWindow succeeded. processId=664, wndId=248616572, nuboWndId=184486661, containerType: 1
+2022-06-29 11:16:06.341 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: ------------------------------------
+2022-06-29 11:16:06.342 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: mWindowsStackManager: 
+2022-06-29 11:16:06.342 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. process: 1591, packageName: com.android.launcher3
+2022-06-29 11:16:06.342 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. pos: 0, pid: 1591, NuboWndId: 154584029
+2022-06-29 11:16:06.342 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. process: 2171, packageName: com.nubo.launcher.nubo
+2022-06-29 11:16:06.343 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. pos: 0, pid: 2171, NuboWndId: 193827098
+2022-06-29 11:16:06.343 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. process: 664, packageName: android
+2022-06-29 11:16:06.343 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. pos: 0, pid: 664, NuboWndId: 34301855
+2022-06-29 11:16:06.343 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. pos: 1, pid: 664, NuboWndId: 184486661
+2022-06-29 11:16:06.343 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. process: 2495, packageName: com.nubo.blackscreenapp
+2022-06-29 11:16:06.344 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. pos: 0, pid: 2495, NuboWndId: 162190460
+2022-06-29 11:16:06.344 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. process: 46158, packageName: com.android.chrome
+2022-06-29 11:16:06.344 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: WS. pos: 0, pid: 46158, NuboWndId: 40981515
+2022-06-29 11:16:06.344 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: ------------------------------------
+2022-06-29 11:16:06.344 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: mTaskWindows: 
+2022-06-29 11:16:06.344 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: mTaskWindows. taskId: 2083
+2022-06-29 11:16:06.344 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: TW. pos: 0, pid: 1591, NuboWndId: 154584029, packageName: com.android.launcher3
+2022-06-29 11:16:06.344 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: mTaskWindows. taskId: 2135
+2022-06-29 11:16:06.344 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: TW. pos: 0, pid: 46158, NuboWndId: 40981515, packageName: com.android.chrome
+2022-06-29 11:16:06.344 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: TW. pos: 1, pid: 664, NuboWndId: 184486661, packageName: android
+2022-06-29 11:16:06.344 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: mTaskWindows. taskId: 2072
+2022-06-29 11:16:06.345 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: TW. pos: 0, pid: 2171, NuboWndId: 193827098, packageName: com.nubo.launcher.nubo
+2022-06-29 11:16:06.345 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: mTaskWindows. taskId: 2136
+2022-06-29 11:16:06.345 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: TW. pos: 0, pid: 2495, NuboWndId: 162190460, packageName: com.nubo.blackscreenapp
+2022-06-29 11:16:06.345 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: mTaskWindows. taskId: 2073
+2022-06-29 11:16:06.345 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: TW. pos: 0, pid: 664, NuboWndId: 34301855, packageName: android
+2022-06-29 11:16:06.345 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: ------------------------------------
+2022-06-29 11:16:06.345 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: mOrderedPanelWindows: 
+2022-06-29 11:16:06.345 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: PW. pos: 0, pid: 664, NuboWndId: 34301855, packageName: android, type: 1
+2022-06-29 11:16:06.345 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: PW. pos: 1, pid: 1591, NuboWndId: 154584029, packageName: com.android.launcher3, type: 1
+2022-06-29 11:16:06.345 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: PW. pos: 2, pid: 2495, NuboWndId: 162190460, packageName: com.nubo.blackscreenapp, type: 1
+2022-06-29 11:16:06.346 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: PW. pos: 3, pid: 2171, NuboWndId: 193827098, packageName: com.nubo.launcher.nubo, type: 1
+2022-06-29 11:16:06.346 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: PW. pos: 4, pid: 46158, NuboWndId: 40981515, packageName: com.android.chrome, type: 1
+2022-06-29 11:16:06.346 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: PW. pos: 5, pid: 664, NuboWndId: 184486661, packageName: android, type: 1
+2022-06-29 11:16:06.346 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: ------------------------------------
+2022-06-29 11:16:06.372 18004-18004/com.nubo.test7 E/nubo.NuboClientActivity: mLayoutVisible PanelDialog: com.nubo.windows.PanelDialog@49c2302, mReqTop: true, NuboWndId: 184486661
+2022-06-29 11:16:06.379 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: createNewSurfaceView 7c2cb7ef6000 x=0 y=0 width=1080 height=2319 pid=664 wid=-1, parentWndId: 248616572, surfaceType: 2, visible: true
+2022-06-29 11:16:06.379 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: createNewSurfaceView. screenWidth: 1080, screenHeight: 2194
+2022-06-29 11:16:06.379 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: createNewSurfaceView. parent nuboWndID: 184486661, parentWndID: 248616572
+2022-06-29 11:16:06.405 18004-18004/com.nubo.test7 E/nubo.NuboClientActivity: moveMenuToNewParent..
+2022-06-29 11:16:06.419 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: MediaCodecCommand. CREATE, format: {max-bitrate=16000000, csd-1=java.nio.HeapByteBuffer[pos=0 lim=10 cap=10], color-transfer=3, mime=video/avc, width=720, bitrate=16000000, color-range=2, frame-rate=10, color-standard=1, height=1546, csd-0=java.nio.HeapByteBuffer[pos=0 lim=19 cap=19]}, srfcHash: 7c2cb7ef6000 pid=0 tid=-1
+2022-06-29 11:16:06.423 18004-19850/com.nubo.test7 E/nubo.NuboClientActivity: MediaCodecCommand. surface ready: 136531506323456, run init
+2022-06-29 11:16:06.432 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: setPackName:: processId = 664, packName = android
+2022-06-29 11:16:06.435 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: createNewSurfaceView 7c2cb7ef6000 x=0 y=0 width=1080 height=2319 pid=664 wid=-1, parentWndId: 248616572, surfaceType: 2, visible: true
+2022-06-29 11:16:06.435 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: createNewSurfaceView. screenWidth: 1080, screenHeight: 2194
+2022-06-29 11:16:06.436 18004-19684/com.nubo.test7 E/nubo.NuboClientActivity: createNewSurfaceView. parent nuboWndID: 184486661, parentWndID: 248616572
+2022-06-29 11:16:06.443 18004-18004/com.nubo.test7 E/nubo.NuboClientActivity: mLayoutVisible PanelDialog: com.nubo.windows.PanelDialog@49c2302, mReqTop: true, NuboWndId: 184486661
+2022-06-29 11:16:06.453 18004-18004/com.nubo.test7 E/nubo.NuboClientActivity: mLayoutVisible PanelDialog: com.nubo.windows.PanelDialog@961a71a, mReqTop: false, NuboWndId: 40981515
+2022-06-29 11:16:06.507 18004-18004/com.nubo.test7 E/nubo.NuboClientActivity: mLayoutVisible PanelDialog: com.nubo.windows.PanelDialog@49c2302, mReqTop: true, NuboWndId: 184486661
+2022-06-29 11:16:06.514 18004-18004/com.nubo.test7 E/nubo.NuboClientActivity: mLayoutVisible PanelDialog: com.nubo.windows.PanelDialog@961a71a, mReqTop: false, NuboWndId: 40981515
+2022-06-29 11:16:06.545 18004-19867/com.nubo.test7 E/nubo.NuboClientActivity: Adding channel: 667987, size: 1
+2022-06-29 11:16:06.580 18004-19867/com.nubo.test7 E/nubo.Debugger: SocketThread::run. Creaating streamMgr, channelIdx: 61
+2022-06-29 11:16:06.581 18004-19867/com.nubo.test7 E/nubo.Debugger: SocketThread::run. sendChannelLogin, channelIdx: 61
+2022-06-29 11:16:06.581 18004-19867/com.nubo.test7 E/nubo.Debugger: SocketThread::run. Waiting for drawPlayerLoginAck. channelIdx: 61
+2022-06-29 11:16:06.581 18004-19873/com.nubo.test7 E/nubo.NuboOutStreamMgr: Sending cmd: 5
+2022-06-29 11:16:06.592 18004-19867/com.nubo.test7 E/nubo.Debugger: SocketThread::run. loginMgmtErrorCode: 0, channelIdx: 61

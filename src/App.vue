@@ -1,12 +1,13 @@
 <template>
   <v-app id="inspire" color="bg" >
     <v-navigation-drawer v-model="drawer" app color="bg">
-      <v-list-item>
-        <v-list-item-content>
-          <v-img class="mx-6"
+      <v-list-item >
+        <v-list-item-content >
+          <v-img class="mx-6 justify-center"
           max-width="160"
           src="./assets/logo.png"
           ></v-img>
+          
           
           
           <!--<v-list-item-subtitle>{{ appData.orgname }}</v-list-item-subtitle>-->
@@ -111,6 +112,7 @@
 <script>
 import appData from "./modules/appData";
 import appUtils from "./modules/appUtils";
+import plugins from "./plugins";
 
 export default {
   data: () => ({
@@ -196,10 +198,10 @@ export default {
     updatePermissions: function() {
       let items = [
       ];
-      let disalbeMenuItems = window.customDisabledMenuItems;
-      if (!disalbeMenuItems) {
-        disalbeMenuItems = [];
-      }
+      let disalbeMenuItems = plugins.customDisabledMenuItems;
+      if (window.customDisabledMenuItems && Array.isArray(window.customDisabledMenuItems)) {
+        disalbeMenuItems = disalbeMenuItems.concat(window.customDisabledMenuItems);
+      }      
       if (appData.isAuthenticated) {
          items.push({ title: this.$t("Dashboard"), icon: "mdi-chart-bar" , link: "/" });
       }
@@ -222,6 +224,9 @@ export default {
       }
       if (appData.checkPermission("@/","rw") && !disalbeMenuItems.includes("Platforms")) {
         items.push({ title: this.$t("Platforms"), icon: "mdi-server", link: "/Platforms" });
+      } 
+      if (appData.pluginsEnabled && appData.checkPermission("@/","rw") && !disalbeMenuItems.includes("Plugins")) {
+        items.push({ title: this.$t("Plugins"), icon: "mdi-toy-brick", link: "/Plugins" });
       } 
       if (appData.checkPermission("/","rw")) {
         if (!disalbeMenuItems.includes("Logs")) {
@@ -253,6 +258,10 @@ export default {
       if (appData.isEnterpriseEdition() && appData.checkPermission("/reports","r") && !disalbeMenuItems.includes("Reports")) {
         items.push({ title: this.$t("Reports"), icon: "mdi-file-document-multiple-outline" , link: "/Reports"});
       }
+      let customMenuItems = plugins.getCustomMenuItems(appData);
+      for (let i=0;i<customMenuItems.length;i++) {
+        items.push(customMenuItems[i]);
+      }
       this.menuItems = items;
     },
   },
@@ -275,7 +284,7 @@ export default {
     console.log(`this.appData.isAuthenticated: ${this.appData.isAuthenticated}`);
     if (this.appData.isAuthenticated) {
       this.items = [{
-        text: this.$t("control-panel"),
+        text: appData.productName,
         to: "/",
         disabled: false,
       }];

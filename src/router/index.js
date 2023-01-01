@@ -115,7 +115,7 @@ const routes = [{
     },
     {
         path: '/Org/:domain',
-        name: 'Org',
+        name: 'OrgDomain',
         component: () =>
             import ( /* webpackChunkName: "about" */ '../views/Org.vue'),
     },
@@ -186,11 +186,21 @@ const routes = [{
         component: () =>
             import ( /* webpackChunkName: "about" */ '../views/Firewall.vue'),
     },
+    {
+        path: '/Plugins',
+        name: 'Plugins',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Plugins.vue'),
+    },
+    {
+        path: '/Plugin/:id',
+        name: 'Plugin',
+        component: () =>
+            import ( '../views/Plugin.vue'),
+    },
 ]
 
-const router = new VueRouter({
-    routes
-})
+
 
 
 const noLoginRoutes = {
@@ -198,11 +208,31 @@ const noLoginRoutes = {
     "Message": 1,
 };
 
-router.beforeEach((to, from, next) => {
-    if (to.name !== 'Login' && !appData.isAuthenticated && !(noLoginRoutes[to.name])) {
-        console.log("Detect no login in route: " + to.name);
-        //console.log(to);
-        next({ name: 'Login' })
-    } else next()
-})
-export default router
+
+const initRouter = (pluginsRoutes) => {
+    for (const pluginRoute of pluginsRoutes) {
+        let found = false;
+        for (let i=0; i<routes.length; i++) {
+            if (routes[i].name === pluginRoute.name) {
+                found = true;
+                routes[i] = pluginRoute;
+                break;
+            }
+        }
+        if (!found) {
+            routes.push(pluginRoute);
+        }
+    }
+    const router = new VueRouter({
+        routes
+    })
+    router.beforeEach((to, from, next) => {
+        if (to.name !== 'Login' && !appData.isAuthenticated && !(noLoginRoutes[to.name])) {
+            console.log("Detect no login in route: " + to.name);
+            //console.log(to);
+            next({ name: 'Login' })
+        } else next()
+    })
+    return router;
+}
+export default initRouter

@@ -1,11 +1,13 @@
 import Vue from 'vue'
 import App from './App.vue'
-import vuetify from './plugins/vuetify';
+import vuetify from './vuetify';
 //import Vuetify from 'vuetify/lib'
 
-import router from './router'
+import initRouter from './router'
+import plugins from './plugins'
 import i18n from './i18n'
 import VueNotification from "@kugatsu/vuenotification";
+
 
 Vue.config.productionTip = false
     //Vue.use(require("moment"));
@@ -24,6 +26,11 @@ Vue.use(VueNotification, {
         color: "white"
     }
 });
+
+// import plugin from './plugins/plugin_test/main.js'
+// plugin.initPlugin();
+// let pluginsRoutes = plugin.routes;
+let router = initRouter(plugins.pluginsRoutes);
 
 new Vue({
     vuetify,

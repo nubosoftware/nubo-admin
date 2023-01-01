@@ -248,7 +248,7 @@ export default {
   },
   created: function() {
     let bcItems = [{
-      text: this.$t("control-panel"),
+      text: appData.productName,
       to: "/",
       disabled: false,
     }];

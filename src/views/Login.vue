@@ -288,6 +288,18 @@ export default {
                 if (!appData.edition) {
                    appData.edition = "enterprise"; // default value for old systems
                 }
+                if (response.data.pluginsEnabled != undefined  && typeof response.data.pluginsEnabled == "boolean") {
+                  appData.pluginsEnabled = response.data.pluginsEnabled;
+                } else {
+                  appData.pluginsEnabled = false;
+                }
+                appData.productName = response.data.productName;
+                if (!appData.productName) {
+                  if (appData.pluginsEnabled)
+                    appData.productName = this.$t("workspace-hub");
+                  else
+                    appData.productName = this.$t("control-panel");
+                }
                 appData.deviceTypes = response.data.deviceTypes;
                 if (!appData.deviceTypes) {
                   appData.deviceTypes = ["mobile"]; // default value for old systems
