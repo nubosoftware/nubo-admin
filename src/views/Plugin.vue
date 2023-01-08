@@ -3,7 +3,7 @@
     <v-card-title>
       {{ $t("Plugin") }}
     </v-card-title>
-    <v-form>
+    <v-form ref="pluginForm" v-model="formValid">
       <v-container>
         <v-row >
           <v-col class="py-2">
@@ -57,6 +57,33 @@
             </v-btn>
           </v-col>
         </v-row>
+        <v-row v-for="{key, name, dataType} in details.confDescriptions" :key="key">
+          <v-col class="py-2">
+            <v-text-field v-if="dataType == 'string'"
+                    :label="name"
+                    v-model="details.configuration[key]"
+                  />
+            <v-text-field v-if="dataType == 'number'"
+                    :label="name"
+                    v-model="details.configuration[key]"
+                    :rules="[numeric]"
+                  />
+            <v-checkbox v-if="dataType == 'boolean'"
+              :label="name"
+              v-model="details.configuration[key]"
+            />
+            <v-textarea v-if="dataType == 'object'"
+              :label="name"
+              v-model="configurationJson[key]"
+              :rules="[json]"
+            />
+            <v-textarea v-if="dataType == 'array'"
+              :label="name"
+              v-model="configurationJson[key]"
+              :rules="[jsonArray]"
+            />
+          </v-col>
+        </v-row>
         <v-row >
           <v-col class="py-2">
             <v-chip color="green" v-if="details.status == 2">{{$t("Loaded")}}</v-chip>
@@ -64,6 +91,7 @@
             <v-chip v-else>{{$t("Not loaded")}}</v-chip>
           </v-col>
         </v-row>
+        
         <v-row v-if="details.status == 1">
           <v-col class="py-2">
             <v-text-field
@@ -73,6 +101,21 @@
           </v-col>
         </v-row>
         
+      </v-container>
+      <v-container>
+        <v-row>
+          <v-col cols="12" sm="6" md="3">
+            <v-btn
+              color="primary"
+              class="mr-4"
+              :disabled="!formValid"
+              @click="saveClick"
+              
+            >
+              {{$t('Save')}}
+            </v-btn>
+          </v-col>
+        </v-row>
       </v-container>
       <v-container>
         <v-row>
@@ -184,6 +227,7 @@ let page = {
   name: "Plugin",
   data: () => ({
     id: "",    
+    formValid: false,
     snackbarSave: false,
     snackbarText: "",
     details: {},
@@ -195,6 +239,35 @@ let page = {
     uploadFileName: "",
     uploadSelectedFile: null,
     uploadPluginDesc: {},
+    configurationJson: {},
+    numeric: value => {
+      if (value == null || value == "") {
+        return true;
+      }
+      return !isNaN(value);
+    },
+    json: value => {      
+      try {
+        let obj = JSON.parse(value);
+        if (obj && typeof obj === "object") {
+          return true;
+        }
+      } catch (e) {
+        return false;
+      }
+      return false;
+    },
+    jsonArray: value => {      
+      try {
+        let obj = JSON.parse(value);
+        if (obj && typeof obj === "object" && Array.isArray(obj)) {
+          return true;
+        }
+      } catch (e) {
+        return false;
+      }
+      return false;
+    }, 
     appData
   }),
   methods: {
@@ -288,6 +361,54 @@ let page = {
             this.snackbarSave = true;
           });
     },
+    saveClick: function() {
+      this.saveLoading = true;
+      this.$refs.pluginForm.validate();
+      if (!this.formValid) {
+        console.log("Form not valid");
+        this.saveLoading = false;
+        return;
+      }
+      if (this.details.confDescriptions) {
+        this.details.confDescriptions.forEach((element) => {
+          if ( (element.dataType == "object") || (element.dataType == "array") ) {
+            let json = this.configurationJson[element.key];
+            if (json) {
+              try {
+                this.details.configuration[element.key] = JSON.parse(json);
+              } catch (error) {
+                console.log(error);
+              }
+            }            
+          }
+        });
+      }
+      appUtils
+        .post({
+          url: "api/plugins/" + encodeURIComponent(this.id),
+          data: {
+            configuration: this.details.configuration,
+            active: this.details.active,
+          },
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            this.snackbarText = this.$t("Saved");
+            this.snackbarSave = true;
+            this.refresh();
+          } else {
+            this.snackbarText = this.$t("Error");
+            this.snackbarSave = true;
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          this.snackbarText = this.$t("Error");
+          this.snackbarSave = true;
+        })
+        .finally(() => (this.saveLoading = false));    
+    },
     refresh: function () {
       console.log(`plugin: ${this.id}`);
       appUtils
@@ -300,7 +421,21 @@ let page = {
             console.log(`status: ${response.data.status}`);
             this.details = response.data.plugin;     
             this.details.activeText = this.details.active  ? this.$t("Enabled") : this.$t("Disabled");       
-            
+            if (this.details.confDescriptions) {
+              this.details.confDescriptions.forEach((element) => {
+                if ( (element.dataType == "object") || (element.dataType == "array") ) {
+                  let obj = this.details.configuration[element.key];
+                  if (!obj) {
+                    if (element.dataType == "object") {
+                      obj = {};
+                    } else {
+                      obj = [];
+                    }
+                  }
+                  this.configurationJson[element.key] = JSON.stringify(obj, null, 2);
+                }
+              });
+            }
 
           } else {
             console.log(`status: ${response.data.status}`);
