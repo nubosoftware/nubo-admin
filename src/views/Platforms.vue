@@ -7,6 +7,9 @@
       :items-per-page="20"
       :loading="loading"
       @click:row="rowClick"
+      v-model="selectedPlatforms"
+      item-key="platID"
+      show-select
       class="elevation-1 ma-4 bg"
     >
       <template v-slot:top>
@@ -22,6 +25,35 @@
               >
                 {{$t("Start New Platform")}}
               </v-btn>
+              <v-btn
+                v-if="canSelectedAction('start')"
+                class="ma-4"
+                color="primary"
+                @click="selectedAction('start')"
+                >{{ $t("Start Selected") }}
+              </v-btn>
+              <v-btn
+                v-if="canSelectedAction('stop')"
+                class="ma-4"
+                color="primary"
+                @click="selectedAction('stop')"
+                >{{ $t("Stop Selected") }}
+              </v-btn>
+              <v-btn
+                v-if="canSelectedAction('enable')"
+                class="ma-4"
+                color="primary"
+                @click="selectedAction('enable')"
+                >{{ $t("Enable Selected") }}
+              </v-btn>
+              <v-btn
+                v-if="canSelectedAction('disable')"
+                class="ma-4"
+                color="primary"
+                @click="selectedAction('disable')"
+                >{{ $t("Disable Selected") }}
+              </v-btn>
+
         </v-toolbar>
       </template>
       <template v-slot:[`item.status`]="{ item }">
@@ -93,8 +125,7 @@
       v-model="dialog"
       persistent
       max-width="590"
-    >
-      
+    >      
       <v-card>
         <v-card-title v-if="!isDisableCmd" >
           {{$t("Stop platform",{stopPlatID: stopPlatID})}}
@@ -147,6 +178,35 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog
+      v-model="actionDialog"
+      persistent
+      max-width="590"
+    >      
+      <v-card>        
+        <v-card-title >
+          {{actionDialogTitle}}
+        </v-card-title>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="red darken-1"
+            text
+            @click="actionDialog = false"
+          >
+            {{$t('Cancel')}}
+          </v-btn>
+          <v-btn            
+            color="green darken-1"
+            text
+            @click="actionDialogClick"
+          >
+          {{actionDialogBtn}}
+          </v-btn>          
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-snackbar v-model="snackbarSave" :timeout="2000">
       {{ snackbarText }}
 
@@ -176,8 +236,13 @@ let page = {
     dialog: false,
     stopPlatID: 0,
     stopStatus: "",
+    selectedPlatforms: [],
+    actionDialog: false,
+    actionDialogTitle: "",
+    actionDialogBtn: "",
+    selectedActionType: "",
     isDisableCmd: false,
-    snackbarSave: false,
+    snackbarSave: false,    
     snackbarText: "",
     appData,
   }),
@@ -291,6 +356,71 @@ let page = {
         })
         .catch((error) => console.log(error))
         .finally(() => (this.loading = false));
+    },
+    canSelectedAction: function(action) {
+      if (this.selectedPlatforms.length == 0) {
+        return false;
+      }
+      let cnt = 0;
+      this.selectedPlatforms.forEach(item => {
+        if (action == "start") {
+          if (item.status == "available" || item.status == "not_available") {
+            cnt++;
+          }
+        } else if (action == "stop") {
+          if (item.status == "running" || item.status == "error") {
+            cnt++;
+          }
+        } else if (action == "enable") {
+          if (item.status == "not_available") {
+            cnt++;
+          }
+        } else if (action == "disable") {
+          if (item.status != 'not_available') {
+            cnt++;
+          }
+        } 
+      });
+      return cnt > 0;
+    },
+    selectedAction: function(action) {
+      this.selectedActionType = action;
+      if (action == "start") {
+        this.actionDialogTitle = this.$t("Start selected platforms?");
+        this.actionDialogBtn = this.$t("Start");
+      } else if (action == "stop") {
+        this.actionDialogTitle = this.$t("Stop selected platforms?");
+        this.actionDialogBtn = this.$t("Stop");
+      } else if (action == "enable") {
+        this.actionDialogTitle = this.$t("Enable selected platforms?");
+        this.actionDialogBtn = this.$t("Enable");
+      } else if (action == "disable") {
+        this.actionDialogTitle = this.$t("Disable selected platforms?");
+        this.actionDialogBtn = this.$t("Disable");
+      }
+      this.actionDialog = true;
+    },
+    actionDialogClick: function() {
+      this.actionDialog = false;
+      let action = this.selectedActionType;
+      this.selectedPlatforms.forEach(item => {
+        if (action == "start") {
+          if (item.status == "available" || item.status == "not_available") {
+            this.start(item);
+          }
+        } else if (action == "stop") {
+          if (item.status == "running" || item.status == "error") {
+            this.stopPlatID = item.platID;
+            this.stop(false);
+          }
+        } else if (action == "enable") {
+          this.enable(item.platID);
+        } else if (action == "disable") {
+          this.stopPlatID = item.platID;
+          this.stop(false);
+          this.disable();
+        } 
+      });
     },
     startNew: function() {
       let starting = false;
