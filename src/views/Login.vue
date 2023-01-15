@@ -295,10 +295,10 @@ export default {
                 }
                 appData.productName = response.data.productName;
                 if (!appData.productName) {
-                  if (appData.pluginsEnabled)
-                    appData.productName = this.$t("workspace-hub");
-                  else
-                    appData.productName = this.$t("control-panel");
+                  // if (appData.pluginsEnabled)
+                  //   appData.productName = this.$t("workspace-hub");
+                  // else
+                  appData.productName = this.$t("control-panel");
                 }
                 appData.deviceTypes = response.data.deviceTypes;
                 if (!appData.deviceTypes) {
