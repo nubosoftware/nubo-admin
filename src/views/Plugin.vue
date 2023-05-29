@@ -234,6 +234,7 @@ let page = {
     permissions: {},
     saveLoading: false,
     uploadDialog: false,
+    filename: null,
     uploading: false,
     uploadProgress: 0,
     uploadFileName: "",
@@ -277,7 +278,8 @@ let page = {
       this.uploadProgress = 0;
       this.uploadFileName = "";
       this.uploadSelectedFile = "";
-      this.uploadPluginDesc = {};    
+      this.uploadPluginDesc = {};
+      this.filename = null;
     },
     selectFile: function (file) {
       console.log("selectFile: " + file);

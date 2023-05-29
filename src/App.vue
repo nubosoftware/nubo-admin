@@ -235,11 +235,11 @@ export default {
         if (!disalbeMenuItems.includes("Recordings")) {
           items.push({ title: this.$t("Recordings"), icon: "mdi-record-rec", link: "/Recordings"});
         }
-        if (appData.isDesktop()) { 
-          if (appData.isEnterpriseEdition() && !disalbeMenuItems.includes("Firewalls")) { 
-            items.push({ title: this.$t("Firewalls"), icon: "mdi-fire", link: "/Firewalls"});
-          }
+        // if (appData.isDesktop()) { 
+        if (appData.isEnterpriseEdition() && !disalbeMenuItems.includes("Firewalls")) { 
+          items.push({ title: this.$t("Firewalls"), icon: "mdi-fire", link: "/Firewalls"});
         }
+        // }
         if (appData.isEnterpriseEdition()) {
           if (!disalbeMenuItems.includes("EmailSetup")) {
             items.push({ title: this.$t("Exchange"), icon: "mdi-email", link: "/EmailSetup"});

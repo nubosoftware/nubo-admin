@@ -181,6 +181,7 @@ let page = {
       this.addProfiles(this.profilesSelected);
     },
     refreshProfiles: function() {
+      console.log(`refreshProfiles. search: ${this.searchProfiles}`);
       this.profilesLoading = true;
       let limit =
         this.options.itemsPerPage > 0 ? this.options.itemsPerPage : 10000;
@@ -193,7 +194,7 @@ let page = {
             limit: limit,
             sortBy: this.options.sortBy,
             sortDesc: this.options.sortDesc,
-            search: this.search,
+            search: this.searchProfiles,
           },
         })
         .then((response) => {
