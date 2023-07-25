@@ -168,7 +168,7 @@ export default {
       };
       this.storage = {
         datasets: [{
-            data: [this.dashboard.totalUsedSpaceMB, this.dashboard.totalSpaceMB - this.dashboard.totalUsedSpaceMB ],
+            data: [this.dashboard.totalUsedSpaceMB, this.dashboard.totalSpaceMB > this.dashboard.totalUsedSpaceMB  ? this.dashboard.totalSpaceMB - this.dashboard.totalUsedSpaceMB : 0 ],
             backgroundColor: [
               colors.primary , colors.secondary
             ]
