@@ -32,7 +32,7 @@
                 <v-col cols="12" sm="7" md="4" v-if="appData.checkPermission('@/','r')" >
                   <v-card color="bg">
                     <v-card-title>{{$t("Storage")}}</v-card-title>
-                    <v-card-subtitle>{{$t("Using")}} {{dashboard.totalUsedSpaceMB / 1000}} GB out of {{dashboard.totalSpaceMB}} GB</v-card-subtitle>
+                    <v-card-subtitle>{{$t("Using")}} {{dashboard.totalUsedSpaceMB / 1000}} GB out of {{dashboard.totalSpaceMB / 1000}} GB</v-card-subtitle>
                     <pie-chart :chart-data="storage"></pie-chart>
                   </v-card>
                 </v-col>
