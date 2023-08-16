@@ -348,6 +348,7 @@ let page = {
             let ous = {};
             this.items = [];
             this.value = [];
+            // first add all the ous to the ous object
             for (let i = 0; i < this.ousList.length; i++) {
               let ou = this.ousList[i];
               let item = {
@@ -355,8 +356,19 @@ let page = {
                 name: ou.ouName,
                 children: [],
               };
-              //console.log("Item: " + JSON.stringify(item, null, 2));
               ous[ou.key] = item;
+            }
+            // now process items and add all the children
+            for (let i = 0; i < this.ousList.length; i++) {
+              let ou = this.ousList[i];
+              // let item = {
+              //   id: i,
+              //   name: ou.ouName,
+              //   children: [],
+              // };
+              // //console.log("Item: " + JSON.stringify(item, null, 2));
+              // ous[ou.key] = item;
+              let item = ous[ou.key];
               if (ou.checked) {
                 this.value.push(i);
               }
