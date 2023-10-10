@@ -12,7 +12,7 @@
     </v-card-title>
     <v-container>
     <v-row v-if="details.platform_type != ''"> 
-      <v-col cols="12" sm="6" md="3">
+       <v-col cols="12" sm="6" md="3">
             <v-text-field
                 v-model="staticIP"
                 :label="$t('Static IP')"
@@ -24,6 +24,17 @@
                 :label="$t('VM Name')"
             ></v-text-field>
         </v-col>
+     </v-row>  
+     <v-row v-if="details.platform_type != ''">
+      <v-col cols="12" sm="6" md="3">
+            <v-checkbox
+              class="py-0 my-0"
+              v-model="send_logs"
+              :label="$t('Send logs')"
+            ></v-checkbox>            
+        </v-col>    
+     </v-row>  
+     <v-row v-if="details.platform_type != ''"> 
          <v-col cols="12" sm="6" md="3" >
             <v-btn
               color="primary"
@@ -33,7 +44,7 @@
               {{$t('Save')}}
             </v-btn>
         </v-col>
-    </v-row>
+      </v-row>
     <v-row>
         <v-col cols="12" sm="6" md="3">
             <v-text-field
@@ -180,6 +191,7 @@ let page = {
     totalItems: 0,
     loading: true,
     staticIP: "",
+    send_logs: false,
     vmName: "",
     options: {},
     details: {},
@@ -209,11 +221,13 @@ let page = {
       return `${gb.toFixed(1)} gb`;
     },
     saveStaticParams: function() {
+      console.log(`saveStaticParams. platID: ${this.platID}, staticIP: ${this.staticIP}, vmName: ${this.vmName}, send_logs: ${this.send_logs}`);
       appUtils.post({
             url: "api/platforms/"+ encodeURIComponent(this.platID),
             data: {
                 ip: this.staticIP,
-                vmname: this.vmName
+                vmname: this.vmName,
+                send_logs: this.send_logs,
             }
         }).then((response) => {
             console.log(response.data);
@@ -298,6 +312,7 @@ let page = {
                 if (this.details.platform_type != '' && firstTime) {
                   this.staticIP = this.details.params.ip;
                   this.vmName = this.details.params.vmname;
+                  this.send_logs = this.details.params.send_logs;
 
                 }
             }

@@ -10,6 +10,7 @@
 
           <v-tab key="events"> {{ $t("Events") }} </v-tab>
           <v-tab key="list" v-if="appData.checkPermission('@/','r')"> {{ $t("Syslog") }} </v-tab>
+          <v-tab key="files" v-if="appData.checkPermission('@/','r')"> {{ $t("Files") }} </v-tab>
           
         </v-tabs>
       </template>
@@ -136,6 +137,34 @@
             </template>
         </v-data-table>
       </v-tab-item>
+      <v-tab-item key="file" class="bg">
+        <v-data-table
+          v-if="!filesError"
+          :headers="fileHeaders"
+          :items="files"
+          :items-per-page="20"
+          :loading="filesLoading"       
+          @click:row="downloadFile"  
+          :options.sync="fileOptions"
+          @update:options="updateFileOptions"
+          class="elevation-1 ma-4 bg"
+        >
+        <template v-slot:[`item.size`]="{ item }">
+          {{ item.sizeStr }}
+        </template>
+        <template v-slot:[`item.lastModified`]="{ item }">
+          {{ moment(item.lastModified).format("LLL") }}
+        </template>
+        </v-data-table>
+        <v-alert
+          v-else
+          :value="true"
+          :type=filesAlertType
+          class="ma-4"
+        >
+          {{ filesError }}
+        </v-alert>
+      </v-tab-item>
        
     </v-tabs-items>
   </v-card>
@@ -184,10 +213,18 @@ let page = {
     eventsRows: [],
     eventsSearch : "",
     eventsLoading: false,
+    files: [],
+    fileHeaders: [],    
+    fileOptions: {},
+    filesError: false,
+    filesAlertType: "error",
     moment,
     appData,
   }),
   methods: {
+    savePage: function () {      
+      appUtils.savePageData(`${page.name}`,this,['tab','options','fileOptions']);
+    },
     updateOptions(options) {
       console.log("update:options", options);
       this.refresh();
@@ -315,7 +352,64 @@ let page = {
           { text: this.$t("Information"), value: "extrainfo" },
         ];
     },
-  },
+    refreshFiles: async function () {
+       try {
+         const response = await appUtils.get({
+          url: "api/logs/files"
+         });
+         console.log(response.data);
+         if (response.data.status == 1) {
+           console.log(`status: ${response.data.status}`);
+           this.files = response.data.files;
+           this.fileHeaders = [
+             { text: this.$t("File"), value: "path" },
+             { text: this.$t("Size"), value: "size" },
+             { text: this.$t("Last Modified"), value: "lastModified" },
+           ]
+         } else {
+           console.log(`status: ${response.data.status}`);
+           if (response.data.status == 2)  {
+            this.filesError = "Logs download is disabled";
+            this.filesAlertType = "warning";
+           } else {
+            this.filesError = response.data.message || `Error: ${response.data.status}`;
+            this.filesAlertType = "error";
+           }
+         }
+       } catch (error) {
+         console.log(error);
+       }
+     },
+     updateFileOptions(options) {
+       console.log("updateFileOptions", options);
+       this.savePage(); 
+     },
+     downloadFile: async function (val) {
+       console.log(`downloadFile: ${val.path}`);
+       try {
+         const escapedPath = encodeURIComponent(val.path);
+         const response = await appUtils.get({
+           url: "api/logs/files/" + escapedPath,
+           responseType: 'blob'
+         });
+         console.log(response.data);
+         if (response.data instanceof Blob) {
+           console.log('Response is of type application/octet-stream');
+           const url = window.URL.createObjectURL(new Blob([response.data]));
+           const link = document.createElement('a');
+           link.href = url;
+           link.setAttribute('download', val.path);
+           document.body.appendChild(link);
+           link.click();
+         } else {
+           console.log('Response is of type JSON');
+           console.log(`status: ${response.data.status}`);
+         }
+       } catch (error) {
+         console.log(error);
+       }
+     }
+   },
   created: function () {
     let bcItems = [
       {
@@ -344,15 +438,19 @@ let page = {
       
       
     ];
+    appUtils.loadPageData(page.name,this);
     this.getFilters();
   },
   watch: {
     tab: function (newVal) {
-      //console.log(`tab: ${newVal}`);
+      console.log(`tab: ${newVal}`);
       if (newVal == 0) {
         this.refreshEvents();
       }
-      
+      if (newVal == 2) {
+        this.refreshFiles();
+      }
+      this.savePage();
     },
     
     search: function (newVal) {
