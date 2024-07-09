@@ -5,7 +5,7 @@
 
       <v-spacer></v-spacer>
 
-      
+
 
       <template v-slot:extension>
         <v-tabs v-model="tab" align-with-title>
@@ -71,13 +71,13 @@
               </v-row>
               <v-row v-if="details.base_image_app == 1">
                 <v-col cols="12" sm="6" md="3">
-                  <v-checkbox                    
+                  <v-checkbox
                     v-model="details.base_image_app"
                     readonly
                     column
                     class="mx-4 my-0"
                     :label="$t('App included in base image')"
-                  ></v-checkbox>                
+                  ></v-checkbox>
                 </v-col>
               </v-row>
               <v-row>
@@ -103,7 +103,7 @@
                         :label="$t('Rendering Mode')"
                          :rules="requiredRules"
                         v-model="details.displayprotocol"
-                      ></v-select>                  
+                      ></v-select>
                 </v-col>
               </v-row>
 
@@ -357,7 +357,7 @@ let page = {
     deleteItemName: "",
   }),
   methods: {
-    savePage: function () {      
+    savePage: function () {
       appUtils.savePageData(`${page.name}`,this,['options','search']);
     },
     updateOptions: function () {
@@ -444,6 +444,7 @@ let page = {
               { text: this.$t("Auto-detect"), value: 0 },
               { text: this.$t("Server Rendering"), value: 1 },
               { text: this.$t("Client Rendering"), value: 2 },
+              { text: this.$t("Server Rendering for iOS only"), value: 3 },
             ];
             this.headers = [
               {
@@ -533,7 +534,7 @@ let page = {
     loadAllGroups: function () {
       this.allGroupsLoading = true;
       this.allGroupsHeaders = [
-        
+
         {
           text: this.$t("Group Name"),
           value: "groupName",
@@ -701,11 +702,11 @@ let page = {
       },
       { text: this.$t("First Name"), value: "firstName" },
       { text: this.$t("Email"), value: "email" },
-    ];   
+    ];
     appUtils.loadPageData(page.name,this);
     this.loadDetails();
   },
-  
+
   beforeDestroy: function () {
     console.log('lifecycle: beforeDestroy');
     if (this.refreshTimeout) {
