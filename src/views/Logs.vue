@@ -11,13 +11,14 @@
           <v-tab key="events"> {{ $t("Events") }} </v-tab>
           <v-tab key="list" v-if="appData.checkPermission('@/','r')"> {{ $t("Syslog") }} </v-tab>
           <v-tab key="files" v-if="appData.checkPermission('@/','r')"> {{ $t("Files") }} </v-tab>
-          
+          <v-tab key="versions" v-if="appData.checkPermission('@/','r')"> {{ $t("Versions") }} </v-tab>
+
         </v-tabs>
       </template>
     </v-toolbar>
 
     <v-tabs-items v-model="tab">
-     
+
        <v-tab-item key="events" class="bg">
          <v-data-table
           :headers="eventsHeaders"
@@ -29,7 +30,7 @@
         >
         <template v-slot:top>
             <v-toolbar flat color="bg">
-              
+
               <v-spacer></v-spacer>
               <v-text-field
                 v-model="eventsSearch"
@@ -62,7 +63,7 @@
         >
           <template v-slot:top>
             <v-toolbar flat color="bg">
-              
+
               <v-spacer></v-spacer>
               <v-text-field
                 v-model="search"
@@ -126,11 +127,11 @@
               <v-chip
                 v-else
                 class="ma-2"
-                
+
               >
                 {{$t("Debug")}}
               </v-chip>
-             
+
             </template>
             <template v-slot:[`item.Time`]="{ item }">
               {{ moment(item.Time).format("LLL") }}
@@ -143,8 +144,8 @@
           :headers="fileHeaders"
           :items="files"
           :items-per-page="20"
-          :loading="filesLoading"       
-          @click:row="downloadFile"  
+          :loading="filesLoading"
+          @click:row="downloadFile"
           :options.sync="fileOptions"
           @update:options="updateFileOptions"
           class="elevation-1 ma-4 bg"
@@ -165,7 +166,24 @@
           {{ filesError }}
         </v-alert>
       </v-tab-item>
-       
+      <v-tab-item key="versions" class="bg">
+        <v-data-table
+          v-if="!filesError"
+          :headers="versionsHeaders"
+          :items="versions"
+          :items-per-page="20"
+          :loading="filesLoading"
+          class="elevation-1 ma-4 bg"
+        >
+          <template v-slot:[`item.buildTime`]="{ item }">
+            {{ item.buildTime ? moment(item.buildTime).format("LLL") : '' }}
+          </template>
+          <template v-slot:[`item.componentIndex`]="{ item }">
+            {{ ['android-nubo-platform', 'management'].includes(item.componentName) ? '' : item.componentIndex }}
+          </template>
+        </v-data-table>
+      </v-tab-item>
+
     </v-tabs-items>
   </v-card>
 
@@ -214,15 +232,18 @@ let page = {
     eventsSearch : "",
     eventsLoading: false,
     files: [],
-    fileHeaders: [],    
+    fileHeaders: [],
     fileOptions: {},
     filesError: false,
     filesAlertType: "error",
+    versions: [],
+    versionsHeaders: [],
+    versionsLoading: false,
     moment,
     appData,
   }),
   methods: {
-    savePage: function () {      
+    savePage: function () {
       appUtils.savePageData(`${page.name}`,this,['tab','options','fileOptions']);
     },
     updateOptions(options) {
@@ -235,7 +256,7 @@ let page = {
       //this.$router.push("/Profile/" + val.email);
     },
 
-    
+
     refresh: function () {
       /*if (!this.appData.isEnterpriseEdition()) {
         return;
@@ -382,7 +403,7 @@ let page = {
      },
      updateFileOptions(options) {
        console.log("updateFileOptions", options);
-       this.savePage(); 
+       this.savePage();
      },
      downloadFile: async function (val) {
        console.log(`downloadFile: ${val.path}`);
@@ -408,6 +429,29 @@ let page = {
        } catch (error) {
          console.log(error);
        }
+     },
+     refreshVersions: async function () {
+       console.log("refreshVersions");
+       this.versionsLoading = true;
+       try {
+         const response = await appUtils.get({
+          url: "api/system/versions"
+         });
+         console.log(response.data);
+         if (response.data.status == 1) {
+           this.versions = response.data.results;
+           this.versionsHeaders = [
+             { text: this.$t("Component Name"), value: "componentName" },
+             { text: this.$t("Component Index"), value: "componentIndex" },
+             { text: this.$t("Version"), value: "version" },
+             { text: this.$t("Build Time"), value: "buildTime" },
+           ]
+         }
+         this.versionsLoading = false;
+       } catch (error) {
+         console.log(error);
+         this.versionsLoading = false;
+       }
      }
    },
   created: function () {
@@ -429,14 +473,14 @@ let page = {
         text: this.$t("ID"),
         value: "ID",
       },*/
-      
+
       { text: this.$t("Time"), value: "Time" },
       { text: this.$t("Log Level"), value: "LogLevel" },
       { text: this.$t("Server Name"), value: "ServerName" },
       { text: this.$t("Component Type"), value: "ComponentType" },
       { text: this.$t("Message"), value: "Message" },
-      
-      
+
+
     ];
     appUtils.loadPageData(page.name,this);
     this.getFilters();
@@ -450,9 +494,12 @@ let page = {
       if (newVal == 2) {
         this.refreshFiles();
       }
+      if (newVal == 3) {
+        this.refreshVersions();
+      }
       this.savePage();
     },
-    
+
     search: function (newVal) {
       console.log(`search: ${newVal}`);
       if (newVal.length > 1 || newVal.length == 0) {
