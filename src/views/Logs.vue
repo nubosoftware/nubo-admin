@@ -175,11 +175,17 @@
           :loading="filesLoading"
           class="elevation-1 ma-4 bg"
         >
+          <template v-slot:[`item.componentName`]="{ item }">
+            <v-icon class="mr-2">
+              {{ getComponentIcon(item.componentName) }}
+            </v-icon>
+            {{ item.componentName }}
+          </template>
           <template v-slot:[`item.buildTime`]="{ item }">
             {{ item.buildTime ? moment(item.buildTime).format("LLL") : '' }}
           </template>
           <template v-slot:[`item.componentIndex`]="{ item }">
-            {{ ['android-nubo-platform', 'management'].includes(item.componentName) ? '' : item.componentIndex }}
+            {{ ['android-nubo-platform', 'management' ,'mysql'].includes(item.componentName) ? '' : item.componentIndex }}
           </template>
         </v-data-table>
       </v-tab-item>
@@ -452,7 +458,18 @@ let page = {
          console.log(error);
          this.versionsLoading = false;
        }
-     }
+     },
+     getComponentIcon(componentName) {
+       const iconMap = {
+         'android-nubo-platform': 'mdi-android',
+         'frontend': 'mdi-desktop-mac-dashboard',
+         'gateway': 'mdi-gate',
+         'management': 'mdi-account-cog',
+         'platform-server': 'mdi-server',
+         'mysql': 'mdi-database'
+       };
+       return iconMap[componentName] || 'mdi-help-circle';
+     },
    },
   created: function () {
     let bcItems = [
