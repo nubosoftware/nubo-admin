@@ -1,5 +1,5 @@
 <template>
-  <v-app id="inspire" color="bg" >
+  <v-app id="inspire" color="bg">
     <v-navigation-drawer v-model="drawer" app color="bg">
       <v-list-item >
         <v-list-item-content >
@@ -7,15 +7,15 @@
           max-width="160"
           src="./assets/logo.png"
           ></v-img>
-          
-          
-          
+
+
+
           <!--<v-list-item-subtitle>{{ appData.orgname }}</v-list-item-subtitle>-->
         </v-list-item-content>
       </v-list-item>
       <v-list-item>
         <v-list-item-content>
-          
+
         <v-select
           v-if="appData.isAuthenticated"
           :items="appData.orgs"
@@ -37,9 +37,9 @@
           link
           :to="item.link"
         >
-         
+
           <v-list-item-icon>
-           
+
             <v-icon >{{ item.icon }}</v-icon>
           </v-list-item-icon>
 
@@ -51,14 +51,14 @@
     </v-navigation-drawer>
 
     <v-app-bar app
-      
+
       color="bg"
       elevate-on-scroll
     >
       <v-app-bar-nav-icon v-if="!drawer" @click="drawer = true"> </v-app-bar-nav-icon>
       <v-breadcrumbs v-if="appData.isAuthenticated" :items="items" divider=">"></v-breadcrumbs>
       <v-spacer></v-spacer>
-      
+
       <v-menu
         v-if="appData.isAuthenticated"
         :close-on-content-click="true"
@@ -99,10 +99,26 @@
       </v-menu>
     </v-app-bar>
 
-    <v-main >
-      <!--  -->
+    <v-main>
       <router-view @updatePage="updatePage" @checkLoginLoop="checkLoginLoop" @updatePermissions="updatePermissions"></router-view>
     </v-main>
+
+    <v-dialog v-model="networkErrorDialog" persistent max-width="400">
+      <v-card>
+        <v-card-title class="text-h5">
+          {{ $t('Network Error') }}
+        </v-card-title>
+        <v-card-text>
+          {{ $t('The service is not available. Please check your network connection.') }}
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" @click="retryConnection">
+            {{ $t('Try Again') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 <style scoped>
@@ -122,6 +138,8 @@ export default {
     items: [
     ],
     appData,
+    networkErrorDialog: false,
+    currentLoginToken: '',
   }),
   methods: {
     updatePage: function (items) {
@@ -148,7 +166,7 @@ export default {
             //console.log("currentRoute: "+this.$router.currentRoute.path);
             if (this.$router.currentRoute.path != "/") {
               this.$router.push("/");
-            } else { 
+            } else {
               location.reload();
             }
 
@@ -160,23 +178,26 @@ export default {
         .catch((error) => console.log(error))
         .finally(() => (this.loading = false));
     },
-    logoutClick: function () {
+    logoutClick: async function () {
+      const response = await appUtils.get({
+        url: "api/logout",
+      });
+      console.log(`Logout: `,response.data);
       appData.logout();
       this.$router.push("/Login");
     },
-    checkLoginLoop: function(prevLoginToken){
-      //console.log("checkLoginLoop: "+prevLoginToken);
+    checkLoginLoop: function(prevLoginToken, immediate = false) {
+      this.currentLoginToken = prevLoginToken;
       let thisPage = this;
-      setTimeout(function(){
+
+      const checkLogin = () => {
         if (appData.adminLoginToken && appData.adminLoginToken != "" && appData.adminLoginToken == prevLoginToken) {
           appUtils
             .get({
               url: "api/validateLogin",
             })
             .then((response) => {
-              
               if (response.data.status == 1) {
-                //console.log("Login is valid...");
                 thisPage.checkLoginLoop(prevLoginToken);
               } else {
                 console.log("Login Error");
@@ -186,14 +207,18 @@ export default {
                 thisPage.$router.push("/Login");
               }
             }).catch((error) => {
-              console.log("Login Error");
+              console.log("Login HTTP Error");
               console.log(error);
-              appData.adminLoginToken = "";
-              appData.isAuthenticated = false;
-              thisPage.$router.push("/Login");
+              thisPage.networkErrorDialog = true;
             })
         }
-      },10000);
+      };
+
+      if (immediate) {
+        checkLogin();
+      } else {
+        setTimeout(checkLogin, 10000);
+      }
     },
     updatePermissions: function() {
       let items = [
@@ -201,7 +226,7 @@ export default {
       let disalbeMenuItems = plugins.customDisabledMenuItems;
       if (window.customDisabledMenuItems && Array.isArray(window.customDisabledMenuItems)) {
         disalbeMenuItems = disalbeMenuItems.concat(window.customDisabledMenuItems);
-      }      
+      }
       if (appData.isAuthenticated) {
          items.push({ title: this.$t("Dashboard"), icon: "mdi-chart-bar" , link: "/" });
       }
@@ -224,10 +249,10 @@ export default {
       }
       if (appData.checkPermission("@/","rw") && !disalbeMenuItems.includes("Platforms")) {
         items.push({ title: this.$t("Platforms"), icon: "mdi-server", link: "/Platforms" });
-      } 
+      }
       if (appData.pluginsEnabled && appData.checkPermission("@/","rw") && !disalbeMenuItems.includes("Plugins")) {
         items.push({ title: this.$t("Plugins"), icon: "mdi-toy-brick", link: "/Plugins" });
-      } 
+      }
       if (appData.checkPermission("/","rw")) {
         if (!disalbeMenuItems.includes("Logs")) {
           items.push({ title: this.$t("Logs"), icon: "mdi-list-status", link: "/Logs" });
@@ -235,8 +260,8 @@ export default {
         if (!disalbeMenuItems.includes("Recordings")) {
           items.push({ title: this.$t("Recordings"), icon: "mdi-record-rec", link: "/Recordings"});
         }
-        // if (appData.isDesktop()) { 
-        if (appData.isEnterpriseEdition() && !disalbeMenuItems.includes("Firewalls")) { 
+        // if (appData.isDesktop()) {
+        if (appData.isEnterpriseEdition() && !disalbeMenuItems.includes("Firewalls")) {
           items.push({ title: this.$t("Firewalls"), icon: "mdi-fire", link: "/Firewalls"});
         }
         // }
@@ -264,6 +289,10 @@ export default {
       }
       this.menuItems = items;
     },
+    retryConnection() {
+      this.networkErrorDialog = false;
+      this.checkLoginLoop(this.currentLoginToken, true);
+    },
   },
   created: function () {
     // loading locale
@@ -278,7 +307,7 @@ export default {
     } else {
       console.log(`User locale not detected`); //
     }
-    
+
 
 
     console.log(`this.appData.isAuthenticated: ${this.appData.isAuthenticated}`);

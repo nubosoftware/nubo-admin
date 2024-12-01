@@ -376,5 +376,22 @@
     "Number Removed": "Number Removed",
     "Connect Time": "Connect Time",
     "Extension": "Extension",
-    "External Number": "External Number"
+    "External Number": "External Number",
+    "Active Session Detected": "Active Session Detected",
+    "You are already logged in another session. Would you like to proceed and logout the other session?": "You are already logged in another session. Would you like to proceed and logout the other session?",
+    "Proceed": "Proceed",
+    "Passwords do not match": "Passwords do not match",
+    "Reset password error": "Reset password error",
+    "Files": "Files",
+    "File": "File",
+    "Size": "Size",
+    "Last Modified": "Last Modified",
+    "Versions": "Versions",
+    "Component Name": "Component Name",
+    "Component Index": "Component Index",
+    "Version": "Version",
+    "Build Time": "Build Time",
+    "Network Error": "Network Error",
+    "The service is not available. Please check your network connection.": "The service is not available. Please check your network connection.",
+    "Try Again": "Try Again"
 }

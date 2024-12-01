@@ -78,7 +78,7 @@
             </div>
           </v-card-text>
         </v-card>
-        
+
       </v-flex>
     </v-layout>
     <!--<v-banner v-else :sticky="sticky" coloe="bg">
@@ -89,6 +89,23 @@
             <v-btn text color="deep-purple accent-4"> Send email again </v-btn>
           </template>
         </v-banner>-->
+    <v-dialog v-model="showLogoutDialog" max-width="400">
+      <v-card>
+        <v-card-title>{{ $t("Active Session Detected") }}</v-card-title>
+        <v-card-text>
+          {{ $t("You are already logged in another session. Would you like to proceed and logout the other session?") }}
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="warning" text @click="showLogoutDialog = false">
+            {{ $t("Cancel") }}
+          </v-btn>
+          <v-btn color="primary" @click="submitWithLogout">
+            {{ $t("Proceed") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -133,6 +150,8 @@ export default {
         "Email must be valid",
     ],
     appData,
+    showLogoutDialog: false,
+    deleteCurrentLogin: false,
   }),
   methods: {
     checkValidationLoop: function(){
@@ -214,7 +233,7 @@ export default {
             );
             this.msgType = "error";
             console.log("Error");
-            
+
           }
         }).catch((error) => console.log(error));
     },
@@ -235,6 +254,9 @@ export default {
         if (this.setPassword) {
           data.setPassword = this.passwordCheck;
         }
+        if (this.deleteCurrentLogin) {
+          data.deleteCurrentLogin = true;
+        }
         setTimeout(() => {
           appUtils
             .post({
@@ -250,7 +272,9 @@ export default {
                 this.validationWait = true;
                 this.messageText = this.$t("A verification messaage has been sent to your email address. Please click the verification link in that email.");
                 this.checkValidationLoop();
-                
+
+              } else if (response.data.status == 203) {
+                this.showLogoutDialog = true;
               } else if (response.data.status != 1) {
                 this.messageText = this.$t(
                   "Incorrect email address or password"
@@ -268,7 +292,7 @@ export default {
                 appData.imageurl = response.data.imageurl;
                 appData.email = this.email;
                 appData.resetOrgs(response.data.orgs);
-                
+
                 appData.siteAdmin = response.data.siteAdmin;
                 appData.siteAdminDomain = response.data.siteAdminDomain;
                 try {
@@ -316,6 +340,11 @@ export default {
       /*} else {
         console.log("Submit. form is not valid..");
       }*/
+    },
+    submitWithLogout: function() {
+      this.showLogoutDialog = false;
+      this.deleteCurrentLogin = true;
+      this.submit();
     },
   },
   watch: {
