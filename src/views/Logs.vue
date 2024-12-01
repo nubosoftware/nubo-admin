@@ -173,6 +173,8 @@
           :items="versions"
           :items-per-page="20"
           :loading="filesLoading"
+          :options.sync="versionsOptions"
+          @update:options="updateVersionsOptions"
           class="elevation-1 ma-4 bg"
         >
           <template v-slot:[`item.componentName`]="{ item }">
@@ -247,10 +249,11 @@ let page = {
     versionsLoading: false,
     moment,
     appData,
+    versionsOptions: {},
   }),
   methods: {
     savePage: function () {
-      appUtils.savePageData(`${page.name}`,this,['tab','options','fileOptions']);
+      appUtils.savePageData(`${page.name}`,this,['tab','options','fileOptions','versionsOptions']);
     },
     updateOptions(options) {
       console.log("update:options", options);
@@ -469,6 +472,10 @@ let page = {
          'mysql': 'mdi-database'
        };
        return iconMap[componentName] || 'mdi-help-circle';
+     },
+     updateVersionsOptions(options) {
+       console.log("updateVersionsOptions", options);
+       this.savePage();
      },
    },
   created: function () {
