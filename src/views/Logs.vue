@@ -249,7 +249,10 @@ let page = {
     versionsLoading: false,
     moment,
     appData,
-    versionsOptions: {},
+    versionsOptions: {
+      sortBy: ['componentName'],
+      sortDesc: [false]
+    },
   }),
   methods: {
     savePage: function () {

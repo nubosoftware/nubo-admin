@@ -26,6 +26,9 @@
           :loading="loading"
           :options.sync="options"
           :search="search"
+          :footer-props="{
+            'items-per-page-options': [10, 25, 50, 100, 1000]
+          }"
           class="ma-4 bg"
           multi-sort
           @update:options="updateOptions"
@@ -50,6 +53,10 @@
               ></v-text-field>
             </v-toolbar>
           </template>
+
+          <template #[`item.isActive`]="{ item }">
+            {{ item.isActive === 1 ? $t('Yes') : $t('No') }}
+          </template>
         </v-data-table>
       </v-tab-item>
        <v-tab-item key="online" class="bg">
@@ -59,6 +66,9 @@
             :items-per-page="10"
             :loading="onlineLoad"
             :expanded.sync="onlineExpanded"
+            :footer-props="{
+              'items-per-page-options': [10, 25, 50, 100]
+            }"
             item-key="email"
             show-expand
             @click:row="rowClick"
@@ -73,14 +83,14 @@
                 :items="item.user_devices"
                 :items-per-page="10"
                 class="ma-4 bg"
-                
+
               >
               </v-data-table>
             </td>
           </template>
          </v-data-table>
        </v-tab-item>
-       
+
        <v-tab-item key="approvals" class="bg">
          <v-data-table
             :headers="approvalHeads"
@@ -99,7 +109,7 @@
           >
           <template v-slot:top>
             <v-toolbar  v-if="selectedApprovals.length > 0" flat color="bg">
-              <v-btn 
+              <v-btn
                 v-if="appData.checkPermission('/profiles','w')"
                 class="ma-4"
                 color="success"  @click="approveSelected(true)">{{
@@ -139,7 +149,7 @@
             <v-chip v-if="item.approvalType == 'admin reset'">{{$t('Reset Admin Password')}}</v-chip>
             <v-chip v-if="item.approvalType == 'reset otp'">{{$t('Reset OTP Code')}}</v-chip>
           </template>
-          
+
           <template v-slot:[`item.actions`]="{ item }">
             <v-icon  v-if="appData.checkPermission('/profiles','w')" @click="approveItem(item,true)" color="success" class="mx-2"> mdi-check-bold </v-icon>
             <v-icon  v-if="appData.checkPermission('/profiles','w')" @click="approveItem(item,false)" color="error" class="mx-2"> mdi-close-thick </v-icon>
@@ -180,7 +190,7 @@ let page = {
     onlineRows: [],
     onlineHeads: [],
     onlineExpanded: [],
-    onlineOptions: {},    
+    onlineOptions: {},
     devicesHeads: [],
     appData,
   }),
@@ -228,9 +238,9 @@ let page = {
           //console.log(response.data);
           if (response.data.status == 1) {
             console.log(`status: ${response.data.status}`);
-            for( var i = 0; i < this.approvalRows.length; i++){ 
-              if ( this.approvalRows[i].deviceid == item.deviceid && this.approvalRows[i].email == item.email) { 
-                this.approvalRows.splice(i, 1); 
+            for( var i = 0; i < this.approvalRows.length; i++){
+              if ( this.approvalRows[i].deviceid == item.deviceid && this.approvalRows[i].email == item.email) {
+                this.approvalRows.splice(i, 1);
               }
             }
           } else {
@@ -267,13 +277,13 @@ let page = {
             });
             this.approvalRows = rows;
             this.approvalHeads = [
-              
+
               { text: this.$t("Profile"), value: "Profile" },
               { text: this.$t("Device Type"), value: "devicetype" },
               { text: this.$t("Approval Type"), value: "approvalType" },
               { text: this.$t('Actions'), value: 'actions', sortable: false }
             ];
-            
+
           } else {
             console.log(`status: ${response.data.status}`);
           }
@@ -293,8 +303,8 @@ let page = {
           this.onlineLoad = false;
           if (response.data.status == 1) {
             //console.log(`status: ${response.data.status}`);
-            
-            
+
+
             this.onlineRows = response.data.profiles;
             this.onlineHeads = [
               { text: this.$t("Last Name"), value: "lastname",},
@@ -308,9 +318,9 @@ let page = {
               { text: this.$t("Gateway"), value: "gateway" },
               { text: this.$t("Platform"), value: "platform" },
               { text: this.$t("Local ID"), value: "localid" },
-              
+
             ];
-            
+
           } else {
             console.log(`status: ${response.data.status}`);
           }
@@ -368,6 +378,7 @@ let page = {
       },
       { text: this.$t("First Name"), value: "firstName" },
       { text: this.$t("Email"), value: "email" },
+      { text: this.$t("Enabled"), value: 'isActive', sortable: true },
     ];
     appUtils.loadPageData(`${page.name}`,this);
     //this.refresh();

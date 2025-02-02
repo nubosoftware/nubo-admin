@@ -14,7 +14,7 @@
         bottom
         left
         v-if="!newProfile && appData.checkPermission('/profiles','w')"
-       
+
       >
         <template v-slot:activator="{ on, attrs }">
           <v-btn
@@ -31,7 +31,7 @@
           <v-list-item @click="sendInvitation()"
           >
             <v-list-item-title>{{ $t('Send invitation') }}</v-list-item-title>
-            
+
           </v-list-item>
           <v-list-item @click="dialogDeleteProfile = true">
             <v-list-item-title>{{ $t('Delete profile') }}</v-list-item-title>
@@ -51,6 +51,31 @@
           </v-card>
         </v-dialog>
 
+      <!-- <v-dialog v-model="dialogMassAdd" max-width="500px" color="bg">
+        <v-card color="bg">
+          <v-card-title>{{$t('Mass Add Users')}}</v-card-title>
+          <v-card-text>
+            <v-text-field
+              v-model="massAddCount"
+              type="number"
+              :label="$t('Number of Users')"
+              :rules="[v => v > 0 || $t('Must be greater than 0')]"
+            ></v-text-field>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="warning" @click="dialogMassAdd = false">{{$t('Cancel')}}</v-btn>
+            <v-btn
+              color="primary"
+              @click="startMassAdd"
+              :loading="massAddLoading"
+              :disabled="massAddCount <= 0"
+            >{{$t('Start')}}</v-btn>
+            <v-spacer></v-spacer>
+          </v-card-actions>
+        </v-card>
+      </v-dialog> -->
+
       <template v-slot:extension>
         <v-tabs v-model="tab" align-with-title >
           <v-tabs-slider color="primary"></v-tabs-slider>
@@ -67,7 +92,7 @@
     <v-tabs-items v-model="tab" >
       <v-tab-item key="details" >
         <v-card flat class="ma-0" color="bg">
-          <v-form 
+          <v-form
             ref="form"
             v-model="valid" >
             <v-container>
@@ -122,6 +147,15 @@
               </v-row>
               <v-row>
                 <v-col cols="12" sm="6" md="3">
+                  <v-checkbox
+                    class="py-0 my-0"
+                    v-model="details.isActive"
+                    :label="$t('Enabled')"
+                  ></v-checkbox>
+              </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" sm="6" md="3">
                   <v-btn
                     color="primary"
                     class="mr-4"
@@ -133,7 +167,7 @@
                   </v-btn>
                 </v-col>
               </v-row>
-              
+
             </v-container></v-form
           >
         </v-card>
@@ -344,29 +378,29 @@
                     <v-col cols="24" sm="12" md="6">
                       <v-text-field
                         :label="$t('Name')"
-                         :rules="requiredRules" 
+                         :rules="requiredRules"
                         v-model="addDeviceName"
                       />
                     </v-col>
                     <v-col cols="24" sm="12" md="6">
                       <v-text-field
                         :label="$t('Unique ID')"
-                         :rules="uidRules" 
+                         :rules="uidRules"
                         v-model="addDeviceUID"
                       />
                     </v-col>
-                  </v-row>      
-                  <v-row>          
+                  </v-row>
+                  <v-row>
                     <v-col cols="12" sm="6" md="3">
-                      <v-btn                        
+                      <v-btn
                         color="primary"
                         class="mr-4"
-                        @click="addDevice"                       
+                        @click="addDevice"
                       >
                         Save
                       </v-btn>
                     </v-col>
-                  </v-row>            
+                  </v-row>
             </v-container></v-form
           >
             </v-card>
@@ -381,13 +415,13 @@
             :items="groupRows"
             class="elevation-1 ma-4 bg"
           >
-            
+
             <template v-slot:[`item.adDomain`]="{ item }">
               <div v-if="item.groupName == 'All'">{{$t("Automatic")}}</div>
               <div v-else-if="item.adDomain == ''">{{$t("Manual")}}</div>
               <div v-else>{{$t("Active Directory")}}</div>
             </template>
-            
+
           </v-data-table>
         </v-card>
       </v-tab-item>
@@ -455,11 +489,14 @@ export default {
     addDeviceUID: "",
     dialogDeleteDevice: false,
     deleteDeviceItem: {},
+    dialogMassAdd: false,
+    massAddCount: 1,
+    massAddLoading: false,
   }),
   methods: {
 
     deleteApp: function(app) {
-      
+
       this.deleteAppItem = app;
       this.dialogDelete = true;
     },
@@ -475,7 +512,7 @@ export default {
           console.log(response.data);
           if (response.data.status == 1) {
             console.log("Success");
-            
+
             this.snackbarText = "App deleted";
             this.snackbarSave = true;
             this.loadDetails();
@@ -508,7 +545,7 @@ export default {
           console.log(response.data);
           if (response.data.status == 1) {
             console.log("Success");
-            
+
             this.snackbarText = "App re-installed";
             this.snackbarSave = true;
           } else {
@@ -537,7 +574,7 @@ export default {
           console.log(response.data);
           if (response.data.status == 1) {
             console.log("Success");
-            
+
             this.snackbarText = this.$t("Session closed");
             this.snackbarSave = true;
             this.loadDetails();
@@ -559,15 +596,15 @@ export default {
       this.dialogDeleteDevice  = true;
       this.deleteDeviceItem = item
     },
-    deleteDeviceConfirm: async function() {    
-      try {        
-        
+    deleteDeviceConfirm: async function() {
+      try {
+
         await appUtils.delete({
           url:
             `api/devices/${encodeURIComponent(this.details.email)}/${encodeURIComponent(this.deleteDeviceItem.IMEI)}`
-        });        
-                
-        this.dialogDeleteDevice = false;       
+        });
+
+        this.dialogDeleteDevice = false;
         this.snackbarText = "Deleted";
         this.snackbarSave = true;
         this.loadDetails();
@@ -576,7 +613,7 @@ export default {
         this.dialogDeleteDevice = false;
         this.snackbarText = "Error";
         this.snackbarSave = true;
-      }      
+      }
 
     },
     addDevice: async function() {
@@ -588,18 +625,18 @@ export default {
       try {
         let imei = this.addDeviceUID;
         let devicename = this.addDeviceName;
-        
+
         let data = {
-            devicename,            
+            devicename,
         };
-        
+
         await appUtils.put({
           url:
             `api/devices/${encodeURIComponent(this.details.email)}/${encodeURIComponent(imei)}`,
           data
-        });        
-                
-        this.addDeviceDialog = false;       
+        });
+
+        this.addDeviceDialog = false;
         this.snackbarText = "Added";
         this.snackbarSave = true;
         this.loadDetails();
@@ -608,7 +645,7 @@ export default {
         this.addDeviceDialog = false;
         this.snackbarText = "Error";
         this.snackbarSave = true;
-      }      
+      }
 
     },
     disableDevice: function(item) {
@@ -624,7 +661,7 @@ export default {
           console.log(response.data);
           if (response.data.status == 1 || response.data.status == 0) {
             console.log("Success");
-            
+
             this.snackbarText = this.$t("Device disabled");
             this.snackbarSave = true;
             this.loadDetails();
@@ -655,7 +692,7 @@ export default {
           console.log(response.data);
           if (response.data.status == 1) {
             console.log("Success");
-            
+
             this.snackbarText = this.$t("Device enabled");
             this.snackbarSave = true;
             this.loadDetails();
@@ -727,7 +764,7 @@ export default {
             { text: this.$t("Online"), value: "isOnline" },
             { text: this.$t("Platform"), value: "platform" },
             { text: this.$t("Gateway"), value: "gateway" },
-            { text: this.$t("Local ID"), value: "localid" },            
+            { text: this.$t("Local ID"), value: "localid" },
             { text: 'Actions', value: 'actions', sortable: false },
           ];
 
@@ -738,7 +775,7 @@ export default {
               value: "groupName",
             },
             { text: this.$t("Group Type"), value: "adDomain" },
-           
+
           ];
         } else {
           console.log(`status: ${response.data.status}`);
@@ -824,6 +861,7 @@ export default {
             country: this.details.country,
             officePhone: this.details.officePhone,
             mobilePhone: this.details.mobilePhone,
+            isActive: this.details.isActive,
           },
         })
         .then((response) => {
@@ -911,6 +949,7 @@ export default {
     if (!this.profileID || this.profileID == "") {
       this.profileID = "";
       this.newProfile = true;
+      this.details.isActive = true; // default to enabled
     } else {
       this.newProfile = false;
     }
