@@ -10,12 +10,13 @@
               </v-alert>
             </div>
             <div >
-              <v-form v-model="valid" ref="form" v-if="!validationWait">
+              <v-form v-model="valid" ref="form" v-if="!validationWait" autocomplete="off">
                 <v-text-field
                  v-if="!setPassword"
                   :label="$t('Enter your email address')"
                   v-model="email"
                   :rules="emailRules"
+                  autocomplete="off"
                   required
                 ></v-text-field>
                 <v-text-field
@@ -23,30 +24,35 @@
                   :label="$t('Enter your password')"
                   v-model="password"
                   min="8"
-                  :append-icon="e1 ? 'mdi-eye ' : 'mdi-eye-off'"
+                  :append-icon="e1 ? 'mdi-eye' : 'mdi-eye-off'"
                   :append-icon-cb="() => (e1 = !e1)"
-                  @click:append="() => (e1 = !e1)"
-                  :type="e1 ? 'password' : 'text'"
+                  @click:append="() => (showPassword = !showPassword)"
+                  :type="showPassword ? 'text' : 'password'"
                   :rules="passwordRules"
                   counter
                   required
+                  autocomplete="new-password"
+                  :name="'pwd_' + Math.random().toString(36)"
                 ></v-text-field>
                 <v-text-field
                   v-if="!resetPassword && setPassword"
                   :label="$t('Re-enter your password')"
                   v-model="passwordCheck"
                   min="8"
-                  :append-icon="e2 ? 'eye' : 'mdi-eye-off'"
+                  :append-icon="e2 ? 'mdi-eye' : 'mdi-eye-off'"
                   :append-icon-cb="() => (e2 = !e2)"
-                  @click:append="() => (e2 = !e2)"
-                  :type="e2 ? 'password' : 'text'"
+                  @click:append="() => (showPasswordCheck = !showPasswordCheck)"
+                  :type="showPasswordCheck ? 'text' : 'password'"
                   :rules="checkPasswordRules"
                   counter
                   required
+                  autocomplete="new-password"
+                  :name="'pwd_' + Math.random().toString(36)"
                 ></v-text-field>
                 <v-layout justify-space-between  v-if="!resetPassword">
                   <v-btn
                     @click="submit"
+                    :disabled="!valid"
                     :class="{
                       'blue darken-4 white--text': valid,
                       disabled: !valid,
@@ -126,6 +132,7 @@
  <script>
 import appData from "../modules/appData";
 import appUtils from "../modules/appUtils";
+import CryptoJS from 'crypto-js';
 
 export default {
   name: "LoginPage",
@@ -138,10 +145,15 @@ export default {
     valid: false,
     e1: true,
     e2: true,
-    password: "",
-    passwordCheck: "",
+    showPassword: false,
+    showPasswordCheck: false,
+    passwordStore: new Uint8Array(0),
+    passwordCheckStore: new Uint8Array(0),
     passwordRules: [(v) => !!v || "Password is required"],
-    checkPasswordRules: [(v) => !!v || "Password is required"],
+    checkPasswordRules: [
+      (v) => !!v || "Password is required",
+      (v) => (!v || v === this.password) || "Passwords do not match"
+    ],
     email: "",
     emailRules: [
       (v) => !!v || "Email is required",
@@ -153,6 +165,24 @@ export default {
     showLogoutDialog: false,
     deleteCurrentLogin: false,
   }),
+  computed: {
+    password: {
+      get() {
+        return this.passwordStore?.length ? String.fromCharCode.apply(null, this.passwordStore) : '';
+      },
+      set(value) {
+        this.passwordStore = new Uint8Array(value.split('').map(char => char.charCodeAt(0)));
+      }
+    },
+    passwordCheck: {
+      get() {
+        return this.passwordCheckStore?.length ? String.fromCharCode.apply(null, this.passwordCheckStore) : '';
+      },
+      set(value) {
+        this.passwordCheckStore = new Uint8Array(value.split('').map(char => char.charCodeAt(0)));
+      }
+    }
+  },
   methods: {
     checkValidationLoop: function(){
       let thisPage = this;
@@ -176,6 +206,25 @@ export default {
                 }
               } else if (response.data.status == 201) {
                 console.log("Validatd!");
+
+    //             "adminSecurityConfig": {
+    //     "minLength": 9,
+    //     "requiredCharacterTypes": [
+    //         "uppercase",
+    //         "lowercase",
+    //         "number",
+    //         "special"
+    //     ],
+    //     "avoidUserId": true,
+    //     "noRepeatedChars": true,
+    //     "noSequentialChars": true,
+    //     "passwordHistoryMonths": 3
+    // }
+                if (response.data.adminSecurityConfig) {
+                  appData.adminSecurityConfig = response.data.adminSecurityConfig;
+                } else {
+                  appData.adminSecurityConfig = {};
+                }
                 if (response.data.resetpasscode != 1) {
                   thisPage.validationWait = false;
                   thisPage.messageText = thisPage.$t("Validated!");
@@ -187,6 +236,7 @@ export default {
                     thisPage.passwordCheck = "";
                     thisPage.validationWait = false;
                     thisPage.setPassword = true;
+                    thisPage.generatePasswordRules();
                 }
               } else {
                 console.log("Error");
@@ -237,26 +287,63 @@ export default {
           }
         }).catch((error) => console.log(error));
     },
-    submit: function () {
-      //if (this.$refs.form.validate()) {
-        console.log("submit");
-        this.messageText = this.$t("Checking login information");
-        this.msgType = "info";
+    getSalt: async function(userName) {
+      try {
+        const response = await appUtils.post({
+          url: "api/auth/salt",
+          data: {
+            userName,
+            activationkey: appData.activationkey,
+            deviceid: appData.deviceid,
+            selectedDomain: appData.mainDomain
+          }
+        });
+        return response.data.salt;
+      } catch (error) {
+        console.error('Error getting salt:', error);
+        throw error;
+      }
+    },
+    hashPassword: function(password, salt) {
+      if (salt && salt.length > 0) {
+        return CryptoJS.HmacSHA512(password, salt).toString();
+      }
+      return password;
+    },
+    submit: async function () {
+      console.log("submit");
+      this.messageText = this.$t("Checking login information");
+      this.msgType = "info";
+
+      try {
+        let salt = "";
+        if (!this.setPassword) {
+          salt = await this.getSalt(this.email);
+        } else {
+          salt = this.email;
+        }
+
+        const passwordHash = this.hashPassword(this.password, salt);
 
         let data = {
-                userName: this.email,
-                password: this.password,
-                deviceid: appData.deviceid,
-                deviceName: appData.deviceName,
-                activationkey: appData.activationkey,
-                selectedDomain: appData.mainDomain
+          userName: this.email,
+          passwordHash,
+          deviceid: appData.deviceid,
+          deviceName: appData.deviceName,
+          activationkey: appData.activationkey,
+          selectedDomain: appData.mainDomain
         };
+
         if (this.setPassword) {
-          data.setPassword = this.passwordCheck;
+          data.setPassword = this.hashPassword(this.passwordCheck, salt);
+          data.setSalt = salt;
+          data.historyHash = this.hashPassword(this.passwordCheck, this.email);
         }
+
         if (this.deleteCurrentLogin) {
           data.deleteCurrentLogin = true;
         }
+
         setTimeout(() => {
           appUtils
             .post({
@@ -266,6 +353,7 @@ export default {
             .then((response) => {
               console.log(response.data);
               this.setPassword = false;
+              this.clearSensitiveData();
               if (response.data.status == 200) {
                 appData.activationkey = response.data.activationkey;
                 appData.email = this.email;
@@ -334,17 +422,111 @@ export default {
                 this.$router.push("/");
               }
             })
-            .catch((error) => console.log(error))
+            .catch((error) => {
+              this.clearSensitiveData();
+              console.log(error);
+            })
             .finally(() => (this.loading = false));
         }, 100);
-      /*} else {
-        console.log("Submit. form is not valid..");
-      }*/
+      } catch (error) {
+        console.error('Authentication error:', error);
+        this.messageText = this.$t("Authentication error occurred");
+        this.msgType = "error";
+        this.clearSensitiveData();
+      }
     },
     submitWithLogout: function() {
       this.showLogoutDialog = false;
       this.deleteCurrentLogin = true;
       this.submit();
+    },
+    clearSensitiveData() {
+      if (this.passwordStore?.length) {
+        this.passwordStore.fill(0);
+        this.passwordStore = new Uint8Array(0);
+      }
+      if (this.passwordCheckStore?.length) {
+        this.passwordCheckStore.fill(0);
+        this.passwordCheckStore = new Uint8Array(0);
+      }
+    },
+    generateSalt: function(length) {
+      const randomWords = CryptoJS.lib.WordArray.random(length);
+      return randomWords.toString(CryptoJS.enc.Hex).slice(0, length);
+    },
+    generatePasswordRules() {
+      const rules = [(v) => !!v || this.$t("Password is required")];
+
+      if (appData.adminSecurityConfig) {
+        const config = appData.adminSecurityConfig;
+
+        // Check minimum length
+        if (config.minLength) {
+          rules.push((v) =>
+            !v || v.length >= config.minLength ||
+            this.$t("Password must be at least {0} characters long", [config.minLength])
+          );
+        }
+
+        // Check required character types
+        if (config.requiredCharacterTypes) {
+          if (config.requiredCharacterTypes.includes('uppercase')) {
+            rules.push((v) =>
+              !v || /[A-Z]/.test(v) ||
+              this.$t("Password must contain at least one uppercase letter")
+            );
+          }
+          if (config.requiredCharacterTypes.includes('lowercase')) {
+            rules.push((v) =>
+              !v || /[a-z]/.test(v) ||
+              this.$t("Password must contain at least one lowercase letter")
+            );
+          }
+          if (config.requiredCharacterTypes.includes('number')) {
+            rules.push((v) =>
+              !v || /\d/.test(v) ||
+              this.$t("Password must contain at least one number")
+            );
+          }
+          if (config.requiredCharacterTypes.includes('special')) {
+            rules.push((v) =>
+              !v || /[!@#$%^&*(),.?":{}|<>]/.test(v) ||
+              this.$t("Password must contain at least one special character")
+            );
+          }
+        }
+
+        // Check if password contains username
+        if (config.avoidUserId) {
+          rules.push((v) => {
+            const emailPrefix = this.email.split('@')[0].toLowerCase();
+            return !v || !v.toLowerCase().includes(emailPrefix) ||
+              this.$t("Password cannot contain your email username");
+          });
+        }
+
+        // Check for repeated characters
+        if (config.noRepeatedChars) {
+          rules.push((v) =>
+            !v || !/(.)\1{2,}/.test(v) ||
+            this.$t("Password cannot contain repeated characters")
+          );
+        }
+
+        // Check for sequential characters
+        if (config.noSequentialChars) {
+          rules.push((v) => {
+            const sequences = ['abcdefghijklmnopqrstuvwxyz', '0123456789'];
+            const reverseSequences = sequences.map(seq => seq.split('').reverse().join(''));
+            const allSequences = [...sequences, ...reverseSequences];
+
+            return !v || !allSequences.some(seq => v.toLowerCase().includes(seq.substring(0, 3))) ||
+              this.$t("Password cannot contain sequential characters");
+          });
+        }
+      }
+
+      this.passwordRules = rules;
     },
   },
   watch: {
@@ -366,7 +548,7 @@ export default {
     this.passwordRules = [(v) => !!v || this.$t("Password is required")];
     this.checkPasswordRules = [
       (v) => !!v || this.$t("Password is required"),
-      (v) => v === this.password || "Passwords do not match"
+      (v) => (!v || v === this.password) || this.$t("Passwords do not match")
     ];
     this.emailRules = [
       (v) => !!v || this.$t("Email is required"),
@@ -375,6 +557,9 @@ export default {
         this.$t("Email must be valid"),
     ];
     this.$emit("updatePage", "Login");
+  },
+  beforeDestroy() {
+    this.clearSensitiveData();
   },
 };
 </script>

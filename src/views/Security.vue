@@ -10,6 +10,7 @@
           <v-tabs-slider color="primary"></v-tabs-slider>
           <v-tab key="approval"> Device approval </v-tab>
           <v-tab key="auth"> Authentication </v-tab>
+          <v-tab key="adminauth"> Admin Authentication </v-tab>
           <v-tab key="rules" v-if="appData.isMobile()" > Device Rules </v-tab>
         </v-tabs>
       </template>
@@ -20,7 +21,7 @@
         <v-card flat class="ma-0" color="bg" tile>
           <v-card-title>{{ $t("Device approval options") }}</v-card-title>
           <v-form ref="formApproval" v-model="validFormApproval">
-            <v-radio-group              
+            <v-radio-group
               v-model="deviceApproval.deviceApprovalType"
               column
               class="mx-4 my-0"
@@ -33,11 +34,11 @@
               <v-radio
                 label="Manualy approve/reset devices"
                 class="mb-4"
-                value="1"                            
+                value="1"
               ></v-radio>
               <v-radio
                 label="Both"
-                value="2"                
+                value="2"
               ></v-radio>
             </v-radio-group>
 
@@ -56,7 +57,7 @@
                 ></v-radio>
                 <v-radio
                   :label="$t('Email to a dedicated email address')"
-                  value="emailnotif"                 
+                  value="emailnotif"
                 ></v-radio>
               </v-radio-group>
               <v-text-field
@@ -69,13 +70,13 @@
               >
               </v-text-field>
             </v-sheet>
-            <v-checkbox                    
+            <v-checkbox
                     v-model="sendSMS"
                     column
                     class="mx-4 my-0"
                     :label="$t('Send SMS activation code to user\'s phone')"
                   ></v-checkbox>
-            <v-checkbox                    
+            <v-checkbox
                     v-model="allowdevicereg"
                     column
                     class="mx-4 my-0"
@@ -177,7 +178,7 @@
                   </v-text-field>
                 </v-col>
               </v-row>
-              
+
             </v-sheet>
             </v-container>
             <v-container  v-if="authentication.clientauthtype == 2 || authentication.clientauthtype == 3 || authentication.clientauthtype == 4">
@@ -187,7 +188,7 @@
               :label="$t('Second factor authentication methods')"
               v-model="authentication.secondauthmethod"
             ></v-select>
-              
+
             </v-container>
 
             <v-container  v-if="(authentication.clientauthtype == 2 || authentication.clientauthtype == 3 || authentication.clientauthtype == 4) && (authentication.secondauthmethod > 1)">
@@ -197,7 +198,7 @@
               :label="$t('OTP methods')"
               v-model="authentication.otptype"
             ></v-select>
-              
+
             </v-container>
 
             <v-btn
@@ -210,9 +211,85 @@
           </v-form>
         </v-card>
       </v-tab-item>
-      <!--
-        
-        -->
+
+      <v-tab-item key="adminauth">
+        <v-card flat class="ma-0" color="bg">
+          <v-form ref="formAdminAuth" v-model="validFormAdminAuth">
+            <v-card-subtitle>{{ $t("Admin Password Requirements") }}</v-card-subtitle>
+
+            <v-text-field
+              v-model="authentication.adminSecurityConfig.minLength"
+              type="number"
+              :rules="[v => v >= 6 || 'Minimum length must be at least 6']"
+              label="Minimum password length"
+              class="mx-4"
+            ></v-text-field>
+
+            <v-card-subtitle>{{ $t("Required Character Types") }}</v-card-subtitle>
+            <v-checkbox
+              v-model="authentication.adminSecurityConfig.requiredCharacterTypes"
+              label="Uppercase letters"
+              value="uppercase"
+              class="mx-4"
+            ></v-checkbox>
+            <v-checkbox
+              v-model="authentication.adminSecurityConfig.requiredCharacterTypes"
+              label="Lowercase letters"
+              value="lowercase"
+              class="mx-4"
+            ></v-checkbox>
+            <v-checkbox
+              v-model="authentication.adminSecurityConfig.requiredCharacterTypes"
+              label="Numbers"
+              value="number"
+              class="mx-4"
+            ></v-checkbox>
+            <v-checkbox
+              v-model="authentication.adminSecurityConfig.requiredCharacterTypes"
+              label="Special characters"
+              value="special"
+              class="mx-4"
+            ></v-checkbox>
+
+            <v-divider class="my-4"></v-divider>
+
+            <v-checkbox
+              v-model="authentication.adminSecurityConfig.avoidUserId"
+              label="Prevent password from containing username"
+              class="mx-4"
+            ></v-checkbox>
+
+            <v-checkbox
+              v-model="authentication.adminSecurityConfig.noRepeatedChars"
+              label="Prevent repeated characters"
+              class="mx-4"
+            ></v-checkbox>
+
+            <v-checkbox
+              v-model="authentication.adminSecurityConfig.noSequentialChars"
+              label="Prevent sequential characters"
+              class="mx-4"
+            ></v-checkbox>
+
+            <v-text-field
+              v-model="authentication.adminSecurityConfig.passwordHistoryMonths"
+              type="number"
+              label="Password history (months)"
+              :rules="[v => v >= 0 || 'Must be 0 or greater']"
+              class="mx-4"
+            ></v-text-field>
+
+            <v-btn
+              color="primary"
+              class="ma-4"
+              @click="updateAdminAuthentication"
+              v-bind:loading="loadingUpdateAdminAuth"
+            >
+              Save
+            </v-btn>
+          </v-form>
+        </v-card>
+      </v-tab-item>
 
       <v-tab-item key="rules" class="bg">
         <v-card color="bg">
@@ -233,7 +310,7 @@
             :search="search"
             :loading="loading"
             class="ma-4 bg"
-            
+
           >
             <template v-slot:top>
               <v-toolbar flat color="bg">
@@ -247,7 +324,7 @@
             </template>
 
             <template v-slot:[`item.actions`]="{ item }">
-              
+
               <v-icon
                 small
                 @click="deleteDeviceRule(item, $event)"
@@ -255,7 +332,7 @@
               >
                 mdi-delete
               </v-icon>
-              
+
             </template>
           </v-data-table>
 
@@ -302,14 +379,14 @@
         </v-card>
       </v-tab-item>
 
-      
+
     </v-tabs-items>
     <v-dialog
       v-model="dialog"
       persistent
       max-width="690"
     >
-      
+
       <v-card>
         <v-card-title >
           {{$t('WarningPasswordOptionChange')}}
@@ -317,7 +394,7 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          
+
           <v-btn
             color="error darken-1"
             text
@@ -383,6 +460,8 @@ let page = {
     allowdevicereg: false,
     sendSMS: false,
     appData,
+    validFormAdminAuth: null,
+    loadingUpdateAdminAuth: false,
   }),
   methods: {
     notifTypeChange: function (newVal) {
@@ -414,7 +493,7 @@ let page = {
             }
             this.allowdevicereg = (this.deviceApproval.allowdevicereg == 1);
             this.sendSMS = (this.deviceApproval.deviceApprovalType == 3);
-            
+
           } else {
             console.log(`status: ${response.data.status}`);
           }
@@ -440,7 +519,23 @@ let page = {
             } else {
               this.authentication.passcodeType = "0";
             }
-            
+
+            // Initialize adminSecurityConfig if it doesn't exist
+            if (!this.authentication.adminSecurityConfig) {
+              this.authentication.adminSecurityConfig = {
+                minLength: 8,
+                requiredCharacterTypes: [],
+                avoidUserId: false,
+                noRepeatedChars: false,
+                noSequentialChars: false,
+                passwordHistoryMonths: 3
+              };
+            }
+
+            // Ensure requiredCharacterTypes is an array
+            if (!Array.isArray(this.authentication.adminSecurityConfig.requiredCharacterTypes)) {
+              this.authentication.adminSecurityConfig.requiredCharacterTypes = [];
+            }
           } else {
             console.log(`status: ${response.data.status}`);
           }
@@ -496,7 +591,7 @@ let page = {
         .catch((error) => console.log(error))
         .finally(() => (this.loading = false));
     },
-    
+
     updateAuthentication: function () {
       this.$refs.formAuth.validate();
       if (!this.validFormAuth) {
@@ -634,12 +729,44 @@ let page = {
         .catch((error) => console.log(error))
         .finally(() => (this.loading = false));
     },
+    updateAdminAuthentication: function() {
+      this.$refs.formAdminAuth.validate();
+      if (!this.validFormAdminAuth) {
+        return;
+      }
+
+      this.loadingUpdateAdminAuth = true;
+      let data = {
+        adminSecurityConfig: this.authentication.adminSecurityConfig
+      };
+
+      appUtils
+        .post({
+          url: "api/security/adminAuthentication",
+          data: data,
+        })
+        .then((response) => {
+          this.loadingUpdateAdminAuth = false;
+          if (response.data.status == 1) {
+            this.snackbarText = this.$t("Admin authentication settings updated");
+            this.snackbarSave = true;
+            this.refresh();
+          } else {
+            this.snackbarText = this.$t("Error") + " - " + response.data.message;
+            this.snackbarSave = true;
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          this.loadingUpdateAdminAuth = false;
+        });
+    },
   },
   watch: {
     "deviceApproval.deviceApprovalType": function (val) {
       console.log("deviceApprovalType: " + val);
       if (val != 3) {
-        this.sendSMS = false;       
+        this.sendSMS = false;
       } else {
         this.sendSMS = true;
       }
@@ -714,7 +841,7 @@ let page = {
 
     this.refresh();
   },
-  
+
 };
 
 export default page;

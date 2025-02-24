@@ -393,5 +393,13 @@
     "Build Time": "Build Time",
     "Network Error": "Network Error",
     "The service is not available. Please check your network connection.": "The service is not available. Please check your network connection.",
-    "Try Again": "Try Again"
+    "Try Again": "Try Again",
+    "Password must be at least {0} characters long": "Password must be at least {0} characters long",
+    "Password must contain at least one uppercase letter": "Password must contain at least one uppercase letter",
+    "Password must contain at least one lowercase letter": "Password must contain at least one lowercase letter",
+    "Password must contain at least one number": "Password must contain at least one number",
+    "Password must contain at least one special character": "Password must contain at least one special character",
+    "Password cannot contain your email username": "Password cannot contain your email username",
+    "Password cannot contain repeated characters": "Password cannot contain repeated characters",
+    "Password cannot contain sequential characters": "Password cannot contain sequential characters"
 }
