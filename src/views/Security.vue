@@ -279,6 +279,14 @@
               class="mx-4"
             ></v-text-field>
 
+            <v-text-field
+              v-model="authentication.adminSecurityConfig.maxLoginAttempts"
+              type="number"
+              label="Maximum login attempts before lockout"
+              :rules="[v => v >= 1 || 'Must be at least 1']"
+              class="mx-4"
+            ></v-text-field>
+
             <v-btn
               color="primary"
               class="ma-4"
@@ -528,7 +536,8 @@ let page = {
                 avoidUserId: false,
                 noRepeatedChars: false,
                 noSequentialChars: false,
-                passwordHistoryMonths: 3
+                passwordHistoryMonths: 3,
+                maxLoginAttempts: 3
               };
             }
 

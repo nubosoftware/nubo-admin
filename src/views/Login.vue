@@ -80,6 +80,12 @@
                     color="warning"
                     >{{ $t("Cancel") }}</v-btn
                   >
+                  <v-btn
+                    v-if="accountLocked"
+                    @click="resendUnlockEmail"
+                    color="primary"
+                    >{{ $t("Resend Unlock Email") }}</v-btn
+                  >
                 </v-layout>
             </div>
           </v-card-text>
@@ -164,6 +170,7 @@ export default {
     appData,
     showLogoutDialog: false,
     deleteCurrentLogin: false,
+    accountLocked: false,
   }),
   computed: {
     password: {
@@ -199,27 +206,14 @@ export default {
             })
             .then((response) => {
               console.log(response.data);
-              if (response.data.status == 200 || response.data.status == 202) {
+              if (response.data.status == 200 || response.data.status == 202 || response.data.status == 4) {
                 console.log("Pending...");
                 if (thisPage.validationWait) {
                   thisPage.checkValidationLoop();
                 }
               } else if (response.data.status == 201) {
                 console.log("Validatd!");
-
-    //             "adminSecurityConfig": {
-    //     "minLength": 9,
-    //     "requiredCharacterTypes": [
-    //         "uppercase",
-    //         "lowercase",
-    //         "number",
-    //         "special"
-    //     ],
-    //     "avoidUserId": true,
-    //     "noRepeatedChars": true,
-    //     "noSequentialChars": true,
-    //     "passwordHistoryMonths": 3
-    // }
+                thisPage.accountLocked = false;
                 if (response.data.adminSecurityConfig) {
                   appData.adminSecurityConfig = response.data.adminSecurityConfig;
                 } else {
@@ -227,7 +221,8 @@ export default {
                 }
                 if (response.data.resetpasscode != 1) {
                   thisPage.validationWait = false;
-                  thisPage.messageText = thisPage.$t("Validated!");
+                  thisPage.messageText = thisPage.$t("Log in to the Admin Control Panel");
+                  thisPage.msgType = "info";
                   thisPage.submit();
                 } else {
                     console.log("Reset passcode");
@@ -311,7 +306,10 @@ export default {
       return password;
     },
     submit: async function () {
-      console.log("submit");
+      console.log("submit. password length: " + this.password?.length);
+      if (!this.password) {
+        return;
+      }
       this.messageText = this.$t("Checking login information");
       this.msgType = "info";
 
@@ -337,7 +335,6 @@ export default {
         if (this.setPassword) {
           data.setPassword = this.hashPassword(this.passwordCheck, salt);
           data.setSalt = salt;
-          data.historyHash = this.hashPassword(this.passwordCheck, this.email);
         }
 
         if (this.deleteCurrentLogin) {
@@ -354,6 +351,7 @@ export default {
               console.log(response.data);
               this.setPassword = false;
               this.clearSensitiveData();
+
               if (response.data.status == 200) {
                 appData.activationkey = response.data.activationkey;
                 appData.email = this.email;
@@ -363,6 +361,18 @@ export default {
 
               } else if (response.data.status == 203) {
                 this.showLogoutDialog = true;
+              } else if (response.data.status == 4) {
+                this.messageText = this.$t("Account is locked");
+                this.password = "";
+                this.validationWait = true;
+                this.accountLocked = true;
+                this.messageText = this.$t("Account is locked. An unlock verification link has been sent to your email address. Please click the link in that email to unlock your account.");
+                this.msgType = "error";
+                this.checkValidationLoop();
+              } else if (response.data.status == 37) {
+                this.messageText = this.$t("Can't reuse the same password");
+                this.setPassword = true;
+                this.msgType = "error";
               } else if (response.data.status != 1) {
                 this.messageText = this.$t(
                   "Incorrect email address or password"
@@ -517,16 +527,45 @@ export default {
         if (config.noSequentialChars) {
           rules.push((v) => {
             const sequences = ['abcdefghijklmnopqrstuvwxyz', '0123456789'];
+            // Add common keyboard sequences
+            const keyboardSequences = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm', 'qwerty', 'asdfgh'];
             const reverseSequences = sequences.map(seq => seq.split('').reverse().join(''));
-            const allSequences = [...sequences, ...reverseSequences];
-
+            const reverseKeyboardSequences = keyboardSequences.map(seq => seq.split('').reverse().join(''));
+            const allSequences = [...sequences, ...reverseSequences, ...keyboardSequences, ...reverseKeyboardSequences];
             return !v || !allSequences.some(seq => v.toLowerCase().includes(seq.substring(0, 3))) ||
-              this.$t("Password cannot contain sequential characters");
+              this.$t("Password cannot contain sequential characters or keyboard patterns");
           });
         }
       }
 
       this.passwordRules = rules;
+    },
+    resendUnlockEmail: function() {
+      appUtils
+        .post({
+          url: "api/auth/validate",
+          data: {
+            email: this.email,
+            deviceid: appData.deviceid,
+            activationkey: appData.activationkey,
+            resendEmail: true
+          },
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 200 || response.data.status == 4) {
+            this.messageText = this.$t("Unlock email has been resent. Please check your inbox.");
+            // this.msgType = "info";
+          } else {
+            this.messageText = this.$t("Failed to resend unlock email. Please try again.");
+            this.msgType = "error";
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          this.messageText = this.$t("Error sending unlock email. Please try again.");
+          this.msgType = "error";
+        });
     },
   },
   watch: {
