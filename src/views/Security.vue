@@ -287,6 +287,20 @@
               class="mx-4"
             ></v-text-field>
 
+            <v-text-field
+              v-model="authentication.adminSecurityConfig.expireSeconds"
+              type="number"
+              label="Session timeout (seconds)"
+              :rules="[v => v >= 0 || 'Must be 0 or greater']"
+              class="mx-4"
+            ></v-text-field>
+
+            <v-checkbox
+              v-model="authentication.adminSecurityConfig.oneLoginPerUser"
+              label="Allow only one active session per user"
+              class="mx-4"
+            ></v-checkbox>
+
             <v-btn
               color="primary"
               class="ma-4"
@@ -537,13 +551,18 @@ let page = {
                 noRepeatedChars: false,
                 noSequentialChars: false,
                 passwordHistoryMonths: 3,
-                maxLoginAttempts: 3
+                maxLoginAttempts: 3,
+                expireSeconds: 600,
+                oneLoginPerUser: false
               };
             }
 
             // Ensure requiredCharacterTypes is an array
             if (!Array.isArray(this.authentication.adminSecurityConfig.requiredCharacterTypes)) {
               this.authentication.adminSecurityConfig.requiredCharacterTypes = [];
+            }
+            if (!this.authentication.adminSecurityConfig.expireSeconds ) {
+              this.authentication.adminSecurityConfig.expireSeconds = 600;
             }
           } else {
             console.log(`status: ${response.data.status}`);

@@ -293,10 +293,11 @@ export default {
             selectedDomain: appData.mainDomain
           }
         });
-        return response.data.salt;
+        const salt = response.data.salt || userName;
+        return salt;
       } catch (error) {
         console.error('Error getting salt:', error);
-        throw error;
+        return userName;
       }
     },
     hashPassword: function(password, salt) {
