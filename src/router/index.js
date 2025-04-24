@@ -198,6 +198,17 @@ const routes = [{
         component: () =>
             import ( '../views/Plugin.vue'),
     },
+    {
+        path: '/SessionMonitor',
+        name: 'SessionMonitor',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Memsy.vue'),
+    },
+    {
+        path: '/SessionView/:id',
+        name: 'SessionView',
+        component: () => import('../views/sessionView.vue'),
+    },
 ]
 
 
@@ -227,6 +238,14 @@ const initRouter = (pluginsRoutes) => {
         routes
     })
     router.beforeEach((to, from, next) => {
+        // Clear the global app state on every navigation
+        if (window.$nuboAppState) {
+            // Reset to an empty object to clear all previous page states
+            window.$nuboAppState = {
+                lastUpdated: new Date().toISOString()
+            };
+        }
+
         if (to.name !== 'Login' && !appData.isAuthenticated && !(noLoginRoutes[to.name])) {
             console.log("Detect no login in route: " + to.name);
             //console.log(to);

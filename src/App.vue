@@ -8,8 +8,6 @@
           src="./assets/logo.png"
           ></v-img>
 
-
-
           <!--<v-list-item-subtitle>{{ appData.orgname }}</v-list-item-subtitle>-->
         </v-list-item-content>
       </v-list-item>
@@ -51,13 +49,22 @@
     </v-navigation-drawer>
 
     <v-app-bar app
-
       color="bg"
       elevate-on-scroll
     >
       <v-app-bar-nav-icon v-if="!drawer" @click="drawer = true"> </v-app-bar-nav-icon>
       <v-breadcrumbs v-if="appData.isAuthenticated" :items="items" divider=">"></v-breadcrumbs>
       <v-spacer></v-spacer>
+
+      <!-- Chatbot toggle button -->
+      <v-btn
+        v-if="appData.isAuthenticated"
+        icon
+        @click="toggleChatbot"
+        class="mr-2"
+      >
+        <v-icon color="primary">{{ chatbotDrawer ? 'mdi-chat' : 'mdi-chat-outline' }}</v-icon>
+      </v-btn>
 
       <v-menu
         v-if="appData.isAuthenticated"
@@ -99,9 +106,17 @@
       </v-menu>
     </v-app-bar>
 
-    <v-main>
-      <router-view @updatePage="updatePage" @checkLoginLoop="checkLoginLoop" @updatePermissions="updatePermissions"></router-view>
+    <v-main :class="{'content-with-chatbot': chatbotDrawer}">
+      <router-view
+        @updatePage="updatePage"
+        @checkLoginLoop="checkLoginLoop"
+        @updatePermissions="updatePermissions"
+        @updateAppState="updateAppState"
+      ></router-view>
     </v-main>
+
+    <!-- Chatbot Sidebar Component -->
+    <chatbot-sidebar v-model="chatbotDrawer" />
 
     <v-dialog v-model="networkErrorDialog" persistent max-width="400">
       <v-card>
@@ -122,15 +137,21 @@
   </v-app>
 </template>
 <style scoped>
-
+.content-with-chatbot {
+  transition: all 0.3s ease;
+}
 </style>
 
 <script>
 import appData from "./modules/appData";
 import appUtils from "./modules/appUtils";
 import plugins from "./plugins";
+import ChatbotSidebar from "./components/ChatbotSidebar.vue";
 
 export default {
+  components: {
+    ChatbotSidebar
+  },
   data: () => ({
     drawer: true,
     moduleName: "Control Panel",
@@ -140,6 +161,8 @@ export default {
     appData,
     networkErrorDialog: false,
     currentLoginToken: '',
+    // Chatbot related data
+    chatbotDrawer: false
   }),
   methods: {
     updatePage: function (items) {
@@ -151,6 +174,35 @@ export default {
         this.items = this.defItems;
       }
     },
+
+    // Method to update global app state for chatbot context
+    updateAppState: function (pageData) {
+      if (!window.$nuboAppState) {
+        window.$nuboAppState = {};
+      }
+
+      // Reset the state to include only the current page data instead of accumulating state
+      window.$nuboAppState = {
+        lastUpdated: new Date().toISOString(),
+        ...pageData
+      };
+
+      /*
+      * Example usage in a component:
+      *
+      * this.$emit('updateAppState', {
+      *   componentName: 'ProfileDetails',
+      *   currentProfile: this.profile,
+      *   selectedItems: this.selectedItems,
+      *   formData: this.formData,
+      *   // Any other relevant state information
+      * });
+      *
+      * This information will be available to the chatbot when users ask questions
+      * related to the current state of the application.
+      */
+    },
+
     orgChanged: function (val) {
       console.log("orgChanged: "+val);
       appUtils
@@ -279,10 +331,14 @@ export default {
         if (!disalbeMenuItems.includes("Security")) {
           items.push({ title: this.$t("Security"), icon: "mdi-shield-account", link: "/Security" });
         }
+        if (!disalbeMenuItems.includes("SessionMonitor")) {
+          items.push({ title: this.$t("Session Monitor"), icon: "mdi-memory", link: "/SessionMonitor" });
+        }
       }
       if (appData.isEnterpriseEdition() && appData.checkPermission("/reports","r") && !disalbeMenuItems.includes("Reports")) {
         items.push({ title: this.$t("Reports"), icon: "mdi-file-document-multiple-outline" , link: "/Reports"});
       }
+
       let customMenuItems = plugins.getCustomMenuItems(appData);
       for (let i=0;i<customMenuItems.length;i++) {
         items.push(customMenuItems[i]);
@@ -293,8 +349,18 @@ export default {
       this.networkErrorDialog = false;
       this.checkLoginLoop(this.currentLoginToken, true);
     },
+
+    // Chatbot toggle method
+    toggleChatbot() {
+      this.chatbotDrawer = !this.chatbotDrawer;
+    }
   },
   created: function () {
+    // Initialize global app state for chatbot context with minimal information
+    window.$nuboAppState = {
+      timestamp: new Date().toISOString()
+    };
+
     // loading locale
     const userLocale =
     navigator.languages && navigator.languages.length
@@ -307,8 +373,6 @@ export default {
     } else {
       console.log(`User locale not detected`); //
     }
-
-
 
     console.log(`this.appData.isAuthenticated: ${this.appData.isAuthenticated}`);
     if (this.appData.isAuthenticated) {

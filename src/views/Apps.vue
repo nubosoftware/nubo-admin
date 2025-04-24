@@ -1,7 +1,7 @@
 <template>
   <v-card color="bg">
     <v-card-title>{{ $t("Apps") }}
-      
+
     </v-card-title>
     <v-data-table
       :headers="headers"
@@ -39,7 +39,7 @@
         v-model="searchApps"
         append-icon="mdi-magnify"
         label="Search"
-      ></v-text-field> 
+      ></v-text-field>
         </v-toolbar>
       </template>
       <template v-slot:[`item.imageUrl`]="{ item }">
@@ -65,7 +65,7 @@
           {{ $t("Are you sure you want to delete", { deleteAppName }) }}
         </v-card-text>
         <v-card-text>
-          <v-checkbox                    
+          <v-checkbox
                     v-model="rebuildImage"
                     column
                     class="mx-4 my-0"
@@ -103,7 +103,7 @@
           </v-row>
           <v-row v-if="appType == 'deb'" class="mx-4">
             <v-col>
-              
+
               <v-autocomplete
                 clearable
                 v-model="aptPackage"
@@ -118,13 +118,13 @@
                 :label="$t('APT Package Name')"
                 :placeholder="$t('Start typing to Search')"
                 prepend-icon="mdi-database-search"
-                
+
               ></v-autocomplete>
             </v-col>
           </v-row>
           <v-row  v-if="appType == 'apk'" class="mx-4">
             <v-col>
-              <v-checkbox                    
+              <v-checkbox
                     v-model="rebuildImage"
                     column
                     class="mx-4 my-0"
@@ -335,9 +335,11 @@
 <script>
 import appData from "../modules/appData";
 import appUtils from "../modules/appUtils";
+import contextUpdater from "../mixins/contextUpdater";
 
 let page = {
   name: "Apps",
+  mixins: [contextUpdater],
   data: () => ({
     headers: [],
     rows: [],
@@ -378,14 +380,27 @@ let page = {
     appData,
   }),
   methods: {
-    savePage: function () {      
+    savePage: function () {
       appUtils.savePageData(`${page.name}`,this,['options','searchApps','rebuildImage']);
+
+      // Update context with current page state
+      this.updateContext({
+        view: 'list',
+        searchFilter: this.searchApps,
+        sortOptions: this.options,
+        totalApps: this.rows.length
+      });
     },
-    updateOptions() {      
+    updateOptions() {
       this.savePage();
     },
     rowClick: function (val) {
       console.log(`rowClick: ${val.packageName}`);
+      // Update context before navigation
+      this.updateContext({
+        view: 'selectingApp',
+        selectedApp: val
+      });
       this.$router.push("/App/" + val.packageName);
     },
     deleteApp: function (val, event) {
@@ -393,6 +408,12 @@ let page = {
       this.deleteObj = val;
       this.deleteAppName = val.appName;
       this.dialog = true;
+
+      // Update context when deletion dialog is opened
+      this.updateContext({
+        view: 'deletingApp',
+        appToDelete: val
+      });
     },
     deleteOK: function () {
       console.log(`deleteApp: ${this.deleteAppName}`);
@@ -401,7 +422,7 @@ let page = {
       appUtils
         .delete({
           url: "api/apps/" + encodeURIComponent(this.deleteObj.packageName),
-          data: {            
+          data: {
             rebuildImage: this.rebuildImage
           },
         })
@@ -424,6 +445,17 @@ let page = {
     selectFile: function (file) {
       console.log("selectFile: " + file);
       this.uploadSelectedFile = file;
+
+      // Update context with file selection
+      if (file) {
+        this.updateContext({
+          view: 'uploadingApp',
+          uploadStage: 'fileSelected',
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type
+        });
+      }
     },
     startUpload: function () {
       this.uploading = true;
@@ -433,6 +465,18 @@ let page = {
       this.uploadAppDesc.uploadStatus = this.$t("Uploading file..");
       let thisPage = this;
       this.savePage();
+
+      // Update context with upload start
+      this.updateContext({
+        view: 'uploadingApp',
+        uploadStage: 'uploadStarted',
+        appType: this.appType,
+        aptPackage: this.aptPackage || null,
+        fileName: this.uploadSelectedFile ? this.uploadSelectedFile.name : null,
+        status: this.uploadAppDesc.uploadStatus,
+        rebuildImage: this.rebuildImage
+      });
+
       appUtils
         .post({
           url: "api/upload",
@@ -447,6 +491,16 @@ let page = {
             );
             console.log(percentCompleted);
             thisPage.uploadProgress = Math.round(percentCompleted / 2);
+
+            // Update context with upload progress
+            if (percentCompleted % 20 === 0) { // Update only on significant changes (every 20%)
+              thisPage.updateContext({
+                view: 'uploadingApp',
+                uploadStage: 'uploading',
+                progress: percentCompleted,
+                status: thisPage.uploadAppDesc.uploadStatus
+              });
+            }
           },
         })
         .then((response) => {
@@ -475,6 +529,17 @@ let page = {
     },
     uploadAPK: function () {
       console.log("uploadAPK: " + this.uploadFileName);
+
+      // Update context with APK upload initiation
+      this.updateContext({
+        view: 'uploadingApp',
+        uploadStage: 'startingInstallation',
+        fileName: this.uploadFileName,
+        packageName: this.aptPackage,
+        appType: this.appType,
+        rebuildImage: this.rebuildImage
+      });
+
       appUtils
         .put({
           url: "api/apps",
@@ -494,6 +559,16 @@ let page = {
             this.uploadAppDesc.uploadAlertType = "info";
             this.uploadAppDesc.uploadStatus = this.$t("Installing apk..");
             this.uploadProgress = 60;
+
+            // Update context with installation progress
+            this.updateContext({
+              view: 'uploadingApp',
+              uploadStage: 'installing',
+              progress: 60,
+              appDetails: this.uploadAppDesc,
+              status: this.uploadAppDesc.uploadStatus
+            });
+
             this.checkUploadStatus();
           } else {
             console.log(`status: ${response.data.status}`);
@@ -501,6 +576,14 @@ let page = {
               this.$t("Error installing apk") + " - " + response.data.message;
             this.uploadAppDesc.uploadAlertType = "error";
             this.uploading = false;
+
+            // Update context with error
+            this.updateContext({
+              view: 'uploadingApp',
+              uploadStage: 'error',
+              error: response.data.message,
+              status: this.uploadAppDesc.uploadStatus
+            });
           }
         })
         .catch((error) => {
@@ -508,10 +591,25 @@ let page = {
             this.$t("Error installing apk") + " - " + error;
           this.uploadAppDesc.uploadAlertType = "error";
           this.uploading = false;
+
+          // Update context with error
+          this.updateContext({
+            view: 'uploadingApp',
+            uploadStage: 'error',
+            error: error.toString(),
+            status: this.uploadAppDesc.uploadStatus
+          });
         })
         .finally(() => (this.loading = false));
     },
     goToUploadedApp: function () {
+      // Update context before navigation
+      this.updateContext({
+        view: 'uploadingApp',
+        uploadStage: 'complete',
+        navigatingTo: this.uploadAppDesc.packageName
+      });
+
       this.$router.push("/App/" + this.uploadAppDesc.packageName);
     },
     checkUploadStatus: function () {
@@ -534,15 +632,29 @@ let page = {
             status: "1"
             */
             let apkStatus = response.data.apkStatus;
+            let statusText = '';
+
             if (apkStatus > 0) {
               if (apkStatus == 1) {
                 this.uploadAppDesc.uploadStatus = this.$t("Processing apk..");
                 this.uploadProgress = 70;
+                statusText = 'processing';
               } else {
                 this.uploadAppDesc.uploadStatus = this.$t("Installing app..");
                 this.uploadProgress = 90;
+                statusText = 'installing';
               }
               this.uploadAppDesc.uploadAlertType = "info";
+
+              // Update context with current status
+              this.updateContext({
+                view: 'uploadingApp',
+                uploadStage: statusText,
+                progress: this.uploadProgress,
+                apkStatus: apkStatus,
+                status: this.uploadAppDesc.uploadStatus
+              });
+
               setTimeout(function () {
                 thisPage.checkUploadStatus();
               }, 1000);
@@ -552,20 +664,31 @@ let page = {
                   "The apk was installed successfully"
                 );
                 this.uploadAppDesc.uploadAlertType = "success";
+                statusText = 'success';
                 this.refresh();
               } else {
                 this.uploadAppDesc.uploadStatus = this.$t(
                   "Error installing apk"
                 );
                 this.uploadAppDesc.uploadAlertType = "error";
+                statusText = 'error';
               }
               this.uploadProgress = 0;
               this.uploading = false;
+
+              // Update context with final status
+              this.updateContext({
+                view: 'uploadingApp',
+                uploadStage: statusText,
+                appDetails: this.uploadAppDesc,
+                apkStatus: apkStatus,
+                status: this.uploadAppDesc.uploadStatus
+              });
             }
           } else {
             console.log(`status: ${response.data.status}`);
             this.uploadAppDesc.uploadStatus =
-              this.$t("Error installing apk") + " - " + response.data.status;
+              this.$t("Error installing apk") + " - " + response.data.message;
             this.uploadAppDesc.uploadAlertType = "error";
             this.uploading = false;
           }
@@ -587,12 +710,41 @@ let page = {
           console.log(response.data);
           if (response.data.status == 1) {
             this.rows = response.data.apps;
+
+            // Update context with fetched apps data
+            this.updateContext({
+              view: 'list',
+              searchFilter: this.searchApps,
+              sortOptions: this.options,
+              apps: this.rows,
+              totalApps: this.rows.length,
+              lastFetched: new Date().toISOString()
+            });
           } else {
             console.log(`status: ${response.data.status}`);
             this.rows = [];
+
+            // Update context with empty apps list and error
+            this.updateContext({
+              view: 'list',
+              searchFilter: this.searchApps,
+              error: `Error fetching apps (status: ${response.data.status})`,
+              apps: [],
+              totalApps: 0,
+              lastFetched: new Date().toISOString()
+            });
           }
         })
-        .catch((error) => console.log(error))
+        .catch((error) => {
+          console.log(error);
+
+          // Update context with error information
+          this.updateContext({
+            view: 'list',
+            error: `Error fetching apps: ${error}`,
+            lastFetched: new Date().toISOString()
+          });
+        })
         .finally(() => (this.loading = false));
     },
     selectIcon: function (file) {
@@ -750,6 +902,19 @@ let page = {
       },
       searchApps() {
         this.savePage();
+
+        // Update context when search filter changes
+        this.updateContext({
+          view: 'list',
+          searchFilter: this.searchApps,
+          filteredApps: this.rows.filter(app => {
+            if (!this.searchApps) return true;
+            const searchTerm = this.searchApps.toLowerCase();
+            return app.appName.toLowerCase().includes(searchTerm) ||
+                   app.packageName.toLowerCase().includes(searchTerm);
+          }).length,
+          totalApps: this.rows.length
+        });
       },
       appType() {
         this.aptPackage = "";
@@ -839,12 +1004,12 @@ let page = {
       this.appTypes.push({ text: this.$t("Android (APK)"), value: "apk" });
     }
     if (appData.isDesktop()) {
-      this.appTypes.push({ text: this.$t("Linux (DEB)"), value: "deb" });      
-    }     
+      this.appTypes.push({ text: this.$t("Linux (DEB)"), value: "deb" });
+    }
     if (this.appTypes.length > 0) {
       this.appType = this.appTypes[0].value;
-    }    
-    
+    }
+
     this.fileRules = [
       () => {
         if (this.uploadSelectedFile && this.aptPackage ) {
@@ -853,9 +1018,25 @@ let page = {
           return true;
         }
       }
-      
+
     ];
     appUtils.loadPageData(page.name,this);
+
+    // Initialize the context for this page
+    this.updateContext({
+      view: 'init',
+      pageType: 'AppsList',
+      canUpload: appData.checkPermission('/apps', 'w'),
+      canDelete: appData.checkPermission('/apps', 'w'),
+      platform: {
+        isMobile: appData.isMobile(),
+        isDesktop: appData.isDesktop()
+      },
+      availableAppTypes: this.appTypes,
+      currentAppType: this.appType,
+      headers: this.headers.map(h => h.text)
+    });
+
     this.refresh();
   },
 };
