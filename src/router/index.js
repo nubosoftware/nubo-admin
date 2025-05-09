@@ -202,7 +202,7 @@ const routes = [{
         path: '/SessionMonitor',
         name: 'SessionMonitor',
         component: () =>
-            import ( /* webpackChunkName: "about" */ '../views/Memsy.vue'),
+            import ( /* webpackChunkName: "about" */ '../views/SessionMonitor.vue'),
     },
     {
         path: '/SessionView/:id',
