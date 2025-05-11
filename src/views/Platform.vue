@@ -1,17 +1,17 @@
 <template>
   <v-card color="bg">
     <v-card-title>
-        
+
       <v-text-field
         v-model="platID"
         :label="$t('Platform ID')"
         :readonly=true
       ></v-text-field>
-      
-     
+
+
     </v-card-title>
     <v-container>
-    <v-row v-if="details.platform_type != ''"> 
+    <v-row v-if="details.platform_type != ''">
        <v-col cols="12" sm="6" md="3">
             <v-text-field
                 v-model="staticIP"
@@ -24,17 +24,17 @@
                 :label="$t('VM Name')"
             ></v-text-field>
         </v-col>
-     </v-row>  
+     </v-row>
      <v-row v-if="details.platform_type != ''">
       <v-col cols="12" sm="6" md="3">
             <v-checkbox
               class="py-0 my-0"
               v-model="send_logs"
               :label="$t('Send logs')"
-            ></v-checkbox>            
-        </v-col>    
-     </v-row>  
-     <v-row v-if="details.platform_type != ''"> 
+            ></v-checkbox>
+        </v-col>
+     </v-row>
+     <v-row v-if="details.platform_type != ''">
          <v-col cols="12" sm="6" md="3" >
             <v-btn
               color="primary"
@@ -90,7 +90,7 @@
                 :readonly=true
             ></v-text-field>
         </v-col>
-      
+
     </v-row>
     <v-row v-if="details.startTime">
          <v-col cols="12" sm="6" md="3">
@@ -137,7 +137,7 @@
                 :readonly=true
             ></v-text-field>
         </v-col>
-       
+
     </v-row>
     </v-container>
     <v-data-table v-if="rows.length > 0"
@@ -151,9 +151,9 @@
     <template v-slot:[`item.actions`]="{ item }">
              <v-icon  small @click="killSession(item,$event)" class="mx-2"> mdi-stop </v-icon>
     </template>
-      
+
     </v-data-table>
-    
+
     <v-snackbar v-model="snackbarSave" :timeout="2000">
       {{ snackbarText }}
 
@@ -199,9 +199,21 @@ let page = {
     refreshTimeout: null,
     snackbarSave: false,
     snackbarText: "",
-
+    pageContext: {},
   }),
   methods: {
+    updateContext: function(contextData) {
+      this.pageContext = {
+        ...this.pageContext,
+        ...contextData
+      };
+
+      this.$emit('updateAppState', {
+        componentName: this.$options.name || 'Platform',
+        timestamp: new Date().toISOString(),
+        ...this.pageContext
+      });
+    },
     printMem: function(bytes) {
       if (isNaN(bytes)) {
         return "";
@@ -222,6 +234,18 @@ let page = {
     },
     saveStaticParams: function() {
       console.log(`saveStaticParams. platID: ${this.platID}, staticIP: ${this.staticIP}, vmName: ${this.vmName}, send_logs: ${this.send_logs}`);
+
+      this.updateContext({
+        view: 'platform_details',
+        action: 'save_static_params',
+        platform: {
+          platID: this.platID,
+          staticIP: this.staticIP,
+          vmName: this.vmName,
+          send_logs: this.send_logs
+        }
+      });
+
       appUtils.post({
             url: "api/platforms/"+ encodeURIComponent(this.platID),
             data: {
@@ -233,24 +257,69 @@ let page = {
             console.log(response.data);
             if (response.data.status == 1) {
                 console.log("Success");
-                
+
                 this.snackbarText = this.$t("Static Parameters Saved");
                 this.snackbarSave = true;
-                this.loadDetails();
 
+                this.updateContext({
+                  view: 'platform_details',
+                  action: 'save_static_params_success',
+                  platform: {
+                    platID: this.platID,
+                    staticIP: this.staticIP,
+                    vmName: this.vmName,
+                    send_logs: this.send_logs
+                  }
+                });
+
+                this.loadDetails();
             } else {
                 console.log(`status: ${response.data.status}`);
 
                 this.snackbarText = this.$t("Error");
                 this.snackbarSave = true;
+
+                this.updateContext({
+                  view: 'platform_details',
+                  action: 'save_static_params_error',
+                  platform: {
+                    platID: this.platID
+                  },
+                  error: `Failed with status ${response.data.status}`
+                });
             }
             this.refresh();
         })
-        .catch((error) => console.log(error))
+        .catch((error) => {
+          console.log(error);
+
+          this.updateContext({
+            view: 'platform_details',
+            action: 'save_static_params_error',
+            platform: {
+              platID: this.platID
+            },
+            error: `Error: ${error}`
+          });
+        })
         .finally(() => (this.loading = false));
     },
     killSession: function(item,event) {
         event.stopPropagation();
+
+        this.updateContext({
+          view: 'platform_details',
+          action: 'kill_session',
+          platform: {
+            platID: this.platID
+          },
+          session: {
+            email: item.email,
+            imei: item.imei,
+            deviceName: item.devicename
+          }
+        });
+
         appUtils.post({
             url:
                 `api/devices/${encodeURIComponent(item.email)}/${encodeURIComponent(item.imei)}`,
@@ -261,21 +330,61 @@ let page = {
             console.log(response.data);
             if (response.data.status == 1) {
                 console.log("Success");
-                
+
                 this.snackbarText = this.$t("Session closed");
                 this.snackbarSave = true;
-                this.loadDetails();
 
+                this.updateContext({
+                  view: 'platform_details',
+                  action: 'kill_session_success',
+                  platform: {
+                    platID: this.platID
+                  },
+                  session: {
+                    email: item.email,
+                    imei: item.imei
+                  }
+                });
+
+                this.loadDetails();
             } else {
                 console.log(`status: ${response.data.status}`);
                 //this.$router.push("/Login");
 
                 this.snackbarText = this.$t("Error");
                 this.snackbarSave = true;
+
+                this.updateContext({
+                  view: 'platform_details',
+                  action: 'kill_session_error',
+                  platform: {
+                    platID: this.platID
+                  },
+                  session: {
+                    email: item.email,
+                    imei: item.imei
+                  },
+                  error: `Failed with status ${response.data.status}`
+                });
             }
             this.refresh();
         })
-        .catch((error) => console.log(error))
+        .catch((error) => {
+          console.log(error);
+
+          this.updateContext({
+            view: 'platform_details',
+            action: 'kill_session_error',
+            platform: {
+              platID: this.platID
+            },
+            session: {
+              email: item.email,
+              imei: item.imei
+            },
+            error: `Error: ${error}`
+          });
+        })
         .finally(() => (this.loading = false));
     },
     refresh: function() {
@@ -284,6 +393,16 @@ let page = {
           clearTimeout(this.refreshTimeout);
           this.refreshTimeout = null;
       }
+
+      this.updateContext({
+        view: 'platform_details',
+        action: 'refresh_platform',
+        platform: {
+          platID: this.platID
+        },
+        loading: true
+      });
+
       const firstTime = (!this.details.platform_type);
       appUtils
         .get({
@@ -313,21 +432,75 @@ let page = {
                   this.staticIP = this.details.params.ip;
                   this.vmName = this.details.params.vmname;
                   this.send_logs = this.details.params.send_logs;
-
                 }
             }
             this.details.platform_status = capitalize(this.details.platform_status);
+
+            this.updateContext({
+              view: 'platform_details',
+              action: 'platform_loaded',
+              loading: false,
+              platformData: {
+                platID: this.platID,
+                status: this.details.platform_status,
+                type: this.details.platform_type,
+                ip: this.details.platform_ip,
+                staticIP: this.staticIP,
+                vmName: this.vmName,
+                send_logs: this.send_logs,
+                uptime: this.details.uptime,
+                startTime: this.details.startTime,
+                cpuLoad: this.details.currentLoad,
+                memTotal: this.details.memTotal,
+                memAvailable: this.details.memAvailable,
+                memActive: this.details.memActive,
+                sessionCount: this.rows.length,
+                sessions: this.rows.map(session => ({
+                  email: session.email,
+                  imei: session.imei,
+                  deviceName: session.devicename,
+                  gateway: session.gateway,
+                  localID: session.localid,
+                  firstName: session.user ? session.user.firstname : '',
+                  lastName: session.user ? session.user.lastname : ''
+                }))
+              },
+              lastUpdated: new Date().toISOString()
+            });
+
             this.refreshTimeout = setTimeout(this.refresh,10000);
           } else {
             console.log(`status: ${response.data.status}`);
+
+            this.updateContext({
+              view: 'platform_details',
+              action: 'platform_error',
+              loading: false,
+              platform: {
+                platID: this.platID
+              },
+              error: `Failed to load platform (status: ${response.data.status})`
+            });
+
             this.$router.push("/Login");
           }
         })
-        .catch((error) => console.log(error))
+        .catch((error) => {
+          console.log(error);
+
+          this.updateContext({
+            view: 'platform_details',
+            action: 'platform_error',
+            loading: false,
+            platform: {
+              platID: this.platID
+            },
+            error: `Error loading platform: ${error}`
+          });
+        })
         .finally(() => (this.loading = false));
     },
-    
-    
+
     updatePageHead: function() {
       let bcItems = [
         {
@@ -348,11 +521,21 @@ let page = {
       ];
       this.$emit("updatePage", bcItems);
     },
-    
+
   },
   created: function() {
     this.platID = this.$route.params.platID;
-    
+
+    this.updateContext({
+      view: 'init',
+      pageType: 'Platform',
+      platID: this.platID,
+      permissions: {
+        canManage: appData.checkPermission('@/','rw')
+      },
+      lastInitialized: new Date().toISOString()
+    });
+
     this.updatePageHead();
     this.headers = [
       {
@@ -385,7 +568,7 @@ let page = {
       },
       { text: 'Actions', value: 'actions', sortable: false }
     ];
-    
+
     this.refresh();
   },
   beforeDestroy: function() {
@@ -393,6 +576,46 @@ let page = {
     if (this.refreshTimeout) {
           clearTimeout(this.refreshTimeout);
           this.refreshTimeout = null;
+    }
+
+    this.updateContext({
+      view: 'platform_details',
+      action: 'page_closed',
+      platform: {
+        platID: this.platID
+      }
+    });
+  },
+  watch: {
+    staticIP: function(newVal) {
+      this.updateContext({
+        view: 'platform_details',
+        action: 'static_ip_changed',
+        platform: {
+          platID: this.platID,
+          staticIP: newVal
+        }
+      });
+    },
+    vmName: function(newVal) {
+      this.updateContext({
+        view: 'platform_details',
+        action: 'vm_name_changed',
+        platform: {
+          platID: this.platID,
+          vmName: newVal
+        }
+      });
+    },
+    send_logs: function(newVal) {
+      this.updateContext({
+        view: 'platform_details',
+        action: 'send_logs_changed',
+        platform: {
+          platID: this.platID,
+          send_logs: newVal
+        }
+      });
     }
   }
 };

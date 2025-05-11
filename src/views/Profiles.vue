@@ -173,6 +173,7 @@ import appUtils from "../modules/appUtils";
 
 let page = {
   name: "ProfilesPage",
+  mixins: [],
   data: () => ({
     tab: {},
     headers: [],
@@ -194,6 +195,7 @@ let page = {
     onlineOptions: {},
     devicesHeads: [],
     appData,
+    pageContext: {},
   }),
   methods: {
     savePage: function () {
@@ -213,17 +215,55 @@ let page = {
     },
     rowClick: function (val) {
       console.log(`rowClick: ${val.email}`);
+
+      // Update context before navigating
+      this.updateContext({
+        view: 'profiles',
+        action: 'select_profile',
+        selectedProfile: {
+          email: val.email,
+          firstName: val.firstName,
+          lastName: val.lastName
+        }
+      });
+
       this.$router.push("/Profile/" + val.email);
     },
 
     approveSelected: function(approve) {
       console.log("approveSelected");
+
+      // Update context for bulk approval action
+      this.updateContext({
+        view: 'profiles',
+        tab: 'approvals',
+        action: approve ? 'bulk_approve' : 'bulk_disapprove',
+        count: this.selectedApprovals.length,
+        itemsToApprove: this.selectedApprovals.map(item => ({
+          email: item.email,
+          deviceId: item.deviceid,
+          approvalType: item.approvalType
+        }))
+      });
+
       this.selectedApprovals.forEach(item => {
-        this.approveItem(item,approve);
+        this.approveItem(item, approve);
       });
       this.selectedApprovals = [];
     },
-    approveItem: function(item,approve) {
+
+    approveItem: function(item, approve) {
+      // Update context for approval action
+      this.updateContext({
+        view: 'profiles',
+        tab: 'approvals',
+        action: approve ? 'approve' : 'disapprove',
+        profile: item.Profile,
+        email: item.email,
+        deviceId: item.deviceid,
+        approvalType: item.approvalType
+      });
+
       let method;
       if (approve) {
         method = "put";
@@ -244,15 +284,60 @@ let page = {
                 this.approvalRows.splice(i, 1);
               }
             }
+
+            // Update context with success
+            this.updateContext({
+              view: 'profiles',
+              tab: 'approvals',
+              action: approve ? 'approve_success' : 'disapprove_success',
+              profile: item.Profile,
+              email: item.email,
+              deviceId: item.deviceid,
+              approvalType: item.approvalType,
+              remaining: this.approvalRows.length
+            });
           } else {
             console.log(`status: ${response.data.status}`);
+
+            // Update context with error
+            this.updateContext({
+              view: 'profiles',
+              tab: 'approvals',
+              action: approve ? 'approve_error' : 'disapprove_error',
+              profile: item.Profile,
+              email: item.email,
+              deviceId: item.deviceid,
+              approvalType: item.approvalType,
+              error: `Failed with status ${response.data.status}`
+            });
           }
         }).catch((err) => {
           console.log(err);
+
+          // Update context with error
+          this.updateContext({
+            view: 'profiles',
+            tab: 'approvals',
+            action: approve ? 'approve_error' : 'disapprove_error',
+            profile: item.Profile,
+            email: item.email,
+            deviceId: item.deviceid,
+            approvalType: item.approvalType,
+            error: `Error: ${err}`
+          });
         });
     },
+
     loadApprovals: function () {
       console.log("loadApprovals");
+
+      // Update context with loading state
+      this.updateContext({
+        view: 'profiles',
+        tab: 'approvals',
+        loading: true
+      });
+
       this.approvalLoad = true;
       appUtils
         .get({
@@ -285,15 +370,58 @@ let page = {
               { text: this.$t('Actions'), value: 'actions', sortable: false }
             ];
 
+            // Update context with approval data
+            this.updateContext({
+              view: 'profiles',
+              tab: 'approvals',
+              loading: false,
+              approvalData: {
+                count: rows.length,
+                profiles: response.data.profiles.map(profile => ({
+                  name: `${profile.firstName} ${profile.lastName}`,
+                  email: profile.email,
+                  deviceCount: profile.devices.length
+                })),
+                approvalTypes: [...new Set(rows.map(row => row.approvalType))]
+              },
+              lastUpdated: new Date().toISOString()
+            });
           } else {
             console.log(`status: ${response.data.status}`);
+
+            // Update context with error
+            this.updateContext({
+              view: 'profiles',
+              tab: 'approvals',
+              loading: false,
+              error: `Failed to load approvals (status: ${response.data.status})`
+            });
           }
         })
-        .catch((error) => console.log(error))
+        .catch((error) => {
+          console.log(error);
+
+          // Update context with error
+          this.updateContext({
+            view: 'profiles',
+            tab: 'approvals',
+            loading: false,
+            error: `Error loading approvals: ${error}`
+          });
+        })
         .finally(() => (this.loading = false));
     },
+
     loadOnline: function () {
       //console.log("loadOnline");
+
+      // Update context with loading state
+      this.updateContext({
+        view: 'profiles',
+        tab: 'online',
+        loading: true
+      });
+
       this.onlineLoad = true;
       appUtils
         .get({
@@ -322,14 +450,57 @@ let page = {
 
             ];
 
+            // Update context with online profiles data
+            this.updateContext({
+              view: 'profiles',
+              tab: 'online',
+              loading: false,
+              onlineData: {
+                count: this.onlineRows.length,
+                profiles: this.onlineRows.map(profile => ({
+                  name: `${profile.firstname} ${profile.lastname}`,
+                  email: profile.email,
+                  deviceCount: profile.user_devices ? profile.user_devices.length : 0
+                }))
+              },
+              lastUpdated: new Date().toISOString()
+            });
           } else {
             console.log(`status: ${response.data.status}`);
+
+            // Update context with error
+            this.updateContext({
+              view: 'profiles',
+              tab: 'online',
+              loading: false,
+              error: `Failed to load online profiles (status: ${response.data.status})`
+            });
           }
         })
-        .catch((error) => console.log(error))
+        .catch((error) => {
+          console.log(error);
+
+          // Update context with error
+          this.updateContext({
+            view: 'profiles',
+            tab: 'online',
+            loading: false,
+            error: `Error loading online profiles: ${error}`
+          });
+        })
         .finally(() => (this.loading = false));
     },
+
     refresh: function () {
+      // Update context with loading state
+      this.updateContext({
+        view: 'profiles',
+        tab: 'list',
+        loading: true,
+        searchTerm: this.search,
+        options: this.options
+      });
+
       let limit =
         this.options.itemsPerPage > 0 ? this.options.itemsPerPage : 10000;
       let offset = (this.options.page - 1) * limit;
@@ -349,13 +520,64 @@ let page = {
           if (response.data.status == 1) {
             this.rows = response.data.profiles;
             this.totalItems = response.data.totalItems;
+
+            // Update context with profiles data
+            this.updateContext({
+              view: 'profiles',
+              tab: 'list',
+              loading: false,
+              profilesData: {
+                count: this.totalItems,
+                displayed: this.rows.length,
+                search: this.search,
+                page: this.options.page,
+                itemsPerPage: this.options.itemsPerPage,
+                activeProfiles: this.rows.filter(profile => profile.isActive === 1).length,
+                inactiveProfiles: this.rows.filter(profile => profile.isActive !== 1).length,
+                profiles: this.rows
+              },
+              lastUpdated: new Date().toISOString()
+            });
           } else {
             console.log(`status: ${response.data.status}`);
             this.$router.push("/Login");
+
+            // Update context with error
+            this.updateContext({
+              view: 'profiles',
+              tab: 'list',
+              loading: false,
+              error: `Failed to load profiles (status: ${response.data.status})`
+            });
           }
         })
-        .catch((error) => console.log(error))
+        .catch((error) => {
+          console.log(error);
+
+          // Update context with error
+          this.updateContext({
+            view: 'profiles',
+            tab: 'list',
+            loading: false,
+            error: `Error loading profiles: ${error}`
+          });
+        })
         .finally(() => (this.loading = false));
+    },
+
+    updateContext: function(contextData) {
+      // Preserve existing page context while adding new data
+      this.pageContext = {
+        ...this.pageContext,
+        ...contextData
+      };
+
+      // Always include the full pageContext when updating app state
+      this.$emit('updateAppState', {
+        componentName: this.$options.name || 'ProfilesPage',
+        timestamp: new Date().toISOString(),
+        ...this.pageContext
+      });
     },
   },
   created: function () {
@@ -372,6 +594,18 @@ let page = {
       },
     ];
     this.$emit("updatePage", bcItems);
+
+    // Initialize context when component is created
+    this.updateContext({
+      view: 'init',
+      pageType: 'Profiles',
+      permissions: {
+        canCreate: appData.checkPermission('/profiles','w'),
+        canApprove: appData.checkPermission('/profiles','w')
+      },
+      lastInitialized: new Date().toISOString()
+    });
+
     this.headers = [
       {
         text: this.$t("Last Name"),
@@ -388,18 +622,49 @@ let page = {
     tab: function (newVal) {
       //console.log(`tab: ${newVal}`);
       this.savePage();
-      if (newVal == 1) {
+
+      // Update context when tab changes
+      this.updateContext({
+        view: 'profiles',
+        tab: newVal === 0 ? 'list' : newVal === 1 ? 'online' : 'approvals',
+        lastTabChange: new Date().toISOString()
+      });
+
+      if (newVal == 0) {
+        this.refresh();
+      } else if (newVal == 1) {
         this.loadOnline();
       } else if (newVal == 2) {
         this.loadApprovals();
       }
     },
+
     selectedApprovals: function (newVal) {
       console.log(`selectedApprovals: ${JSON.stringify(newVal)}`);
+
+      // Update context when approvals selection changes
+      this.updateContext({
+        view: 'profiles',
+        tab: 'approvals',
+        selection: {
+          count: newVal.length,
+          approvalTypes: [...new Set(newVal.map(item => item.approvalType))]
+        }
+      });
     },
+
     search: function (newVal) {
       console.log(`search: ${newVal}`);
       this.savePage();
+
+      // Update context when search term changes
+      this.updateContext({
+        view: 'profiles',
+        tab: 'list',
+        searchTerm: newVal,
+        isSearching: newVal.length > 0
+      });
+
       if (newVal.length > 1 || newVal.length == 0) {
         this.refresh();
       }

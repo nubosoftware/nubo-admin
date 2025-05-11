@@ -50,7 +50,7 @@
                   </v-card>
                 </v-col>
               </v-row>
-              
+
             </v-container>
           </v-form>
         <v-snackbar v-model="snackbarSave" :timeout="2000">
@@ -70,6 +70,7 @@ import appData from "../modules/appData";
 import appUtils from "../modules/appUtils";
 import LineChart from './charts/lineChart';
 import PieChart from './charts/pieChart';
+import contextUpdater from "../mixins/contextUpdater";
 const moment = require("moment");
 
 export default {
@@ -78,6 +79,7 @@ export default {
       LineChart,
       PieChart,
     },
+  mixins: [contextUpdater],
   data: () => ({
     dashboard: {},
     datacollection: null,
@@ -131,7 +133,7 @@ export default {
         this.deviceTypes = {
           datasets: [{
               data: deviceTypesData,
-              backgroundColor: deviceTypesColors          
+              backgroundColor: deviceTypesColors
           }],
           labels: deviceTypesLabels
         };
@@ -150,7 +152,7 @@ export default {
           labels: [
               this.$t('Android'),
               this.$t('iOS'),
-              this.$t('Other') 
+              this.$t('Other')
           ]
         };
       }
@@ -179,7 +181,7 @@ export default {
         ]
       };
 
-      
+
 
       let data = [];
       let labels = [];
@@ -215,15 +217,21 @@ export default {
             fill: false,
         }],
         labels: labels,
-        
-        
+
+
       };
-      
+
     },
     getRandomInt () {
       return Math.floor(Math.random() * (50 - 5 + 1)) + 5
     },
     refresh: function() {
+      // Update context to show loading state
+      this.updateContext({
+        view: 'loading',
+        loading: true
+      });
+
       appUtils
         .get({
           url: "api/dashboard"
@@ -233,16 +241,57 @@ export default {
           if (response.data.status == 1) {
             console.log(`status: ${response.data.status}`);
             this.dashboard = response.data;
-            this.fillData ();
-            
+            this.fillData();
+
+            // Update context with dashboard data
+            this.updateContext({
+              view: 'dashboard',
+              loading: false,
+              dashboardData: {
+                users: {
+                  total: this.dashboard.totalUsers,
+                  online: this.dashboard.onlineUsers
+                },
+                devices: {
+                  total: this.dashboard.totalDevices,
+                  online: this.dashboard.onlineDevices,
+                  android: this.dashboard.androidDevices,
+                  iPhone: this.dashboard.iPhoneDevices
+                },
+                platforms: {
+                  total: this.dashboard.availablePlatforms,
+                  running: this.dashboard.runningPlatforms
+                },
+                storage: {
+                  totalGB: Math.round(this.dashboard.totalSpaceMB / 1000),
+                  usedGB: Math.round(this.dashboard.totalUsedSpaceMB / 1000)
+                },
+                sessions: this.dashboard.lastSessions ? this.dashboard.lastSessions.length : 0
+              },
+              lastUpdated: new Date().toISOString()
+            });
           } else {
             console.log(`status: ${response.data.status}`);
             this.$router.push("/Login");
+
+            // Update context with error
+            this.updateContext({
+              view: 'error',
+              loading: false,
+              error: `Failed to load dashboard (status: ${response.data.status})`
+            });
           }
         })
         .catch(error => {
           console.log(error);
           this.$router.push("/Login");
+
+          // Update context with error
+          this.updateContext({
+            view: 'error',
+            loading: false,
+            error: `Error loading dashboard: ${error}`
+          });
         });
     },
   },
@@ -253,6 +302,15 @@ export default {
       disabled: false,
     }];
     this.$emit("updatePage", bcItems);
+
+    // Initialize context when component is created
+    this.updateContext({
+      view: 'init',
+      pageType: 'Dashboard',
+      loading: true,
+      lastInitialized: new Date().toISOString()
+    });
+
     this.refresh();
   }
 }

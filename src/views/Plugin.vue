@@ -42,7 +42,7 @@
               color="primary"
               class="mr-4"
               @click="enableDisable"
-              
+
             >
               {{$t('Enable')}}
             </v-btn>
@@ -51,7 +51,7 @@
               color="primary"
               class="mr-4"
               @click="enableDisable"
-              
+
             >
               {{$t('Disable')}}
             </v-btn>
@@ -91,7 +91,7 @@
             <v-chip v-else>{{$t("Not loaded")}}</v-chip>
           </v-col>
         </v-row>
-        
+
         <v-row v-if="details.status == 1">
           <v-col class="py-2">
             <v-text-field
@@ -100,7 +100,7 @@
                     readonly />
           </v-col>
         </v-row>
-        
+
       </v-container>
       <v-container>
         <v-row>
@@ -110,7 +110,7 @@
               class="mr-4"
               :disabled="!formValid"
               @click="saveClick"
-              
+
             >
               {{$t('Save')}}
             </v-btn>
@@ -145,7 +145,7 @@
             {{ $t("Upload Plugin Update") }}
           </v-card-title>
           <v-container class="ma-4">
-            <v-form ref="uploadForm">                        
+            <v-form ref="uploadForm">
             <v-row class="mx-4">
               <v-col>
                 <v-file-input
@@ -153,10 +153,10 @@
                   show-size
                   :accept="'.tgz'"
                   :label="$t('Plugin Package')"
-                  @change="selectFile"                  
+                  @change="selectFile"
                 ></v-file-input>
               </v-col>
-            </v-row>            
+            </v-row>
             <v-row class="mx-4">
               <v-col>
                 <v-alert
@@ -171,7 +171,7 @@
                     v-if="uploadProgress > 0"
                     v-model="uploadProgress"
                   ></v-progress-linear>
-                  
+
                 </v-alert>
               </v-col>
             </v-row>
@@ -179,12 +179,12 @@
           </v-container>
           <v-card-actions class="mx-4">
             <v-spacer></v-spacer>
-            <v-btn 
+            <v-btn
               v-if="uploadProgress  < 100"
               color="warning" @click="closeUpload">
               {{ $t("Cancel") }}
             </v-btn>
-            <v-btn 
+            <v-btn
               v-if="uploadProgress  == 100"
               color="primary" @click="closeUpload">
               {{ $t("Close") }}
@@ -226,7 +226,7 @@ import appUtils from "../modules/appUtils";
 let page = {
   name: "Plugin",
   data: () => ({
-    id: "",    
+    id: "",
     formValid: false,
     snackbarSave: false,
     snackbarText: "",
@@ -247,7 +247,7 @@ let page = {
       }
       return !isNaN(value);
     },
-    json: value => {      
+    json: value => {
       try {
         let obj = JSON.parse(value);
         if (obj && typeof obj === "object") {
@@ -258,7 +258,7 @@ let page = {
       }
       return false;
     },
-    jsonArray: value => {      
+    jsonArray: value => {
       try {
         let obj = JSON.parse(value);
         if (obj && typeof obj === "object" && Array.isArray(obj)) {
@@ -268,10 +268,27 @@ let page = {
         return false;
       }
       return false;
-    }, 
-    appData
+    },
+    appData,
+    pageContext: {}, // Store context data for the Plugin page
   }),
   methods: {
+    // Add updateContext method to maintain context within the Plugin page
+    updateContext: function(contextData) {
+      // Preserve existing page context while adding new data
+      this.pageContext = {
+        ...this.pageContext,
+        ...contextData
+      };
+
+      // Always include the full pageContext when updating app state
+      this.$emit('updateAppState', {
+        componentName: this.$options.name || 'Plugin',
+        timestamp: new Date().toISOString(),
+        ...this.pageContext
+      });
+    },
+
     closeUpload: function(){
       this.uploadDialog = false;
       this.uploading = false;
@@ -280,18 +297,59 @@ let page = {
       this.uploadSelectedFile = "";
       this.uploadPluginDesc = {};
       this.filename = null;
+
+      // Update context when closing upload dialog
+      this.updateContext({
+        view: 'plugin_details',
+        action: 'close_upload_dialog',
+        plugin: {
+          id: this.id
+        }
+      });
     },
+
     selectFile: function (file) {
       console.log("selectFile: " + file);
       this.uploadSelectedFile = file;
+
+      // Update context when selecting a file for upload
+      this.updateContext({
+        view: 'plugin_details',
+        action: 'select_plugin_file',
+        plugin: {
+          id: this.id
+        },
+        fileDetails: file ? {
+          name: file.name,
+          size: file.size,
+          type: file.type
+        } : null
+      });
     },
+
     startUpload: function () {
         this.uploading = true;
         let formData = new FormData();
         formData.append("file", this.uploadSelectedFile);
         this.uploadPluginDesc.uploadAlertType = "info";
         this.uploadPluginDesc.uploadStatus = this.$t("Uploading file..");
-        let thisPage = this;       
+        let thisPage = this;
+
+        // Update context when starting upload
+        this.updateContext({
+          view: 'plugin_details',
+          action: 'start_plugin_update',
+          plugin: {
+            id: this.id,
+            name: this.details.name,
+            version: this.details.version
+          },
+          fileDetails: this.uploadSelectedFile ? {
+            name: this.uploadSelectedFile.name,
+            size: this.uploadSelectedFile.size
+          } : null
+        });
+
         appUtils
           .put({
             url: "api/plugins/"+encodeURIComponent(this.id),
@@ -306,6 +364,13 @@ let page = {
               );
               console.log(percentCompleted);
               thisPage.uploadProgress = Math.round(percentCompleted / 2);
+
+              // Update context with upload progress
+              thisPage.updateContext({
+                view: 'plugin_details',
+                action: 'plugin_update_progress',
+                progress: thisPage.uploadProgress
+              });
             },
           })
           .then((response) => {
@@ -313,20 +378,40 @@ let page = {
             this.uploadSelectedFile = null;
             if (response.data.status == 1) {
               console.log(`status: ${response.data.status}`);
-              //   this.uploadFileName = response.data.uploadFileName;
               this.uploadPluginDesc.uploadStatus = this.$t(
                   "The plugin was installed successfully"
                 );
                 this.uploadProgress = 100;
                 this.uploadPluginDesc.uploadAlertType = "success";
+
+                // Update context with successful update
+                this.updateContext({
+                  view: 'plugin_details',
+                  action: 'plugin_update_success',
+                  plugin: {
+                    id: this.id,
+                    name: this.details.name
+                  }
+                });
+
                 this.refresh();
-              //this.uploadAPK();
             } else {
               console.log(`status: ${response.data.status}`);
               this.uploading = false;
               this.uploadPluginDesc.uploadStatus =
                 this.$t("Error uploading plugin") + " - " + response.data.message;
               this.uploadPluginDesc.uploadAlertType = "error";
+
+              // Update context with error
+              this.updateContext({
+                view: 'plugin_details',
+                action: 'plugin_update_error',
+                plugin: {
+                  id: this.id,
+                  name: this.details.name
+                },
+                error: response.data.message
+              });
             }
           })
           .catch((error) => {
@@ -335,15 +420,38 @@ let page = {
             this.uploadPluginDesc.uploadStatus =
               this.$t("Error uploading plugin") + " - " + error;
             this.uploadPluginDesc.uploadAlertType = "error";
+
+            // Update context with error
+            this.updateContext({
+              view: 'plugin_details',
+              action: 'plugin_update_error',
+              plugin: {
+                id: this.id,
+                name: this.details.name
+              },
+              error: `Error: ${error}`
+            });
           })
           .finally(() => (this.loading = false));
       },
+
     enableDisable: function () {
+      // Update context when enabling/disabling plugin
+      this.updateContext({
+        view: 'plugin_details',
+        action: this.details.active ? 'disable_plugin' : 'enable_plugin',
+        plugin: {
+          id: this.id,
+          name: this.details.name,
+          currentState: this.details.active
+        }
+      });
+
       appUtils
           .post({
             url: "api/plugins/" + encodeURIComponent(this.id),
             data: {
-              active: !this.details.active,              
+              active: !this.details.active,
             },
           })
           .then((response) => {
@@ -351,26 +459,83 @@ let page = {
             if (response.data.status == 1) {
               this.snackbarText = this.$t("Saved");
               this.snackbarSave = true;
+
+              // Update context with success
+              this.updateContext({
+                view: 'plugin_details',
+                action: this.details.active ? 'disable_plugin_success' : 'enable_plugin_success',
+                plugin: {
+                  id: this.id,
+                  name: this.details.name,
+                  newState: !this.details.active
+                }
+              });
+
               this.refresh();
             } else {
               this.snackbarText = this.$t("Error");
               this.snackbarSave = true;
+
+              // Update context with error
+              this.updateContext({
+                view: 'plugin_details',
+                action: this.details.active ? 'disable_plugin_error' : 'enable_plugin_error',
+                plugin: {
+                  id: this.id,
+                  name: this.details.name
+                },
+                error: `Failed with status ${response.data.status}`
+              });
             }
           })
           .catch((error) => {
             console.log(error);
             this.snackbarText = this.$t("Error");
             this.snackbarSave = true;
+
+            // Update context with error
+            this.updateContext({
+              view: 'plugin_details',
+              action: this.details.active ? 'disable_plugin_error' : 'enable_plugin_error',
+              plugin: {
+                id: this.id,
+                name: this.details.name
+              },
+              error: `Error: ${error}`
+            });
           });
     },
+
     saveClick: function() {
       this.saveLoading = true;
       this.$refs.pluginForm.validate();
       if (!this.formValid) {
         console.log("Form not valid");
         this.saveLoading = false;
+
+        // Update context with validation error
+        this.updateContext({
+          view: 'plugin_details',
+          action: 'save_plugin_validation_error',
+          plugin: {
+            id: this.id,
+            name: this.details.name
+          }
+        });
+
         return;
       }
+
+      // Update context when saving plugin
+      this.updateContext({
+        view: 'plugin_details',
+        action: 'save_plugin',
+        plugin: {
+          id: this.id,
+          name: this.details.name
+        }
+      });
+
       if (this.details.confDescriptions) {
         this.details.confDescriptions.forEach((element) => {
           if ( (element.dataType == "object") || (element.dataType == "array") ) {
@@ -381,7 +546,7 @@ let page = {
               } catch (error) {
                 console.log(error);
               }
-            }            
+            }
           }
         });
       }
@@ -398,21 +563,66 @@ let page = {
           if (response.data.status == 1) {
             this.snackbarText = this.$t("Saved");
             this.snackbarSave = true;
+
+            // Update context with success
+            this.updateContext({
+              view: 'plugin_details',
+              action: 'save_plugin_success',
+              plugin: {
+                id: this.id,
+                name: this.details.name
+              }
+            });
+
             this.refresh();
           } else {
             this.snackbarText = this.$t("Error");
             this.snackbarSave = true;
+
+            // Update context with error
+            this.updateContext({
+              view: 'plugin_details',
+              action: 'save_plugin_error',
+              plugin: {
+                id: this.id,
+                name: this.details.name
+              },
+              error: `Failed with status ${response.data.status}`
+            });
           }
         })
         .catch((error) => {
           console.log(error);
           this.snackbarText = this.$t("Error");
           this.snackbarSave = true;
+
+          // Update context with error
+          this.updateContext({
+            view: 'plugin_details',
+            action: 'save_plugin_error',
+            plugin: {
+              id: this.id,
+              name: this.details.name
+            },
+            error: `Error: ${error}`
+          });
         })
-        .finally(() => (this.saveLoading = false));    
+        .finally(() => (this.saveLoading = false));
     },
+
     refresh: function () {
       console.log(`plugin: ${this.id}`);
+
+      // Update context when refreshing plugin details
+      this.updateContext({
+        view: 'plugin_details',
+        action: 'refresh_plugin',
+        plugin: {
+          id: this.id
+        },
+        loading: true
+      });
+
       appUtils
         .get({
           url: "api/plugins/" + encodeURIComponent(this.id),
@@ -421,8 +631,8 @@ let page = {
           console.log(response.data);
           if (response.data.status == 1) {
             console.log(`status: ${response.data.status}`);
-            this.details = response.data.plugin;     
-            this.details.activeText = this.details.active  ? this.$t("Enabled") : this.$t("Disabled");       
+            this.details = response.data.plugin;
+            this.details.activeText = this.details.active  ? this.$t("Enabled") : this.$t("Disabled");
             if (this.details.confDescriptions) {
               this.details.confDescriptions.forEach((element) => {
                 if ( (element.dataType == "object") || (element.dataType == "array") ) {
@@ -439,11 +649,53 @@ let page = {
               });
             }
 
+            // Update context with plugin details
+            this.updateContext({
+              view: 'plugin_details',
+              action: 'plugin_loaded',
+              loading: false,
+              pluginData: {
+                id: this.id,
+                name: this.details.name,
+                version: this.details.version,
+                description: this.details.description,
+                active: this.details.active,
+                status: this.details.status,
+                error: this.details.error,
+                configurationKeys: this.details.confDescriptions ?
+                  this.details.confDescriptions.map(conf => conf.key) : []
+              },
+              lastUpdated: new Date().toISOString()
+            });
           } else {
             console.log(`status: ${response.data.status}`);
+
+            // Update context with error
+            this.updateContext({
+              view: 'plugin_details',
+              action: 'plugin_error',
+              loading: false,
+              plugin: {
+                id: this.id
+              },
+              error: `Failed to load plugin (status: ${response.data.status})`
+            });
           }
         })
-        .catch((error) => console.log(error))
+        .catch((error) => {
+          console.log(error);
+
+          // Update context with error
+          this.updateContext({
+            view: 'plugin_details',
+            action: 'plugin_error',
+            loading: false,
+            plugin: {
+              id: this.id
+            },
+            error: `Error loading plugin: ${error}`
+          });
+        })
         .finally(() => (this.loading = false));
     },
 
@@ -470,10 +722,54 @@ let page = {
   },
   created: function () {
     this.id = this.$route.params.id;
-    this.updatePageHead();    
+
+    // Initialize context when component is created
+    this.updateContext({
+      view: 'init',
+      pageType: 'Plugin',
+      pluginId: this.id,
+      permissions: {
+        canManage: appData.checkPermission('@/','rw')
+      },
+      lastInitialized: new Date().toISOString()
+    });
+
+    this.updatePageHead();
     this.refresh();
   },
-  
+  watch: {
+    // Watch for changes to configuration
+    configurationJson: {
+      handler: function() {
+        // Update context when configuration changes
+        this.updateContext({
+          view: 'plugin_details',
+          action: 'configuration_changed',
+          plugin: {
+            id: this.id,
+            name: this.details.name
+          },
+          hasChanges: true
+        });
+      },
+      deep: true
+    },
+    'details.configuration': {
+      handler: function() {
+        // Update context when configuration changes
+        this.updateContext({
+          view: 'plugin_details',
+          action: 'configuration_changed',
+          plugin: {
+            id: this.id,
+            name: this.details.name
+          },
+          hasChanges: true
+        });
+      },
+      deep: true
+    }
+  }
 };
 
 export default page;

@@ -31,6 +31,7 @@ const appData = {
     edition: "",
     pluginsEnabled: false,
     productName: "",
+    breadcrumbs: [],
 
     // additional data
     moduleName: "",
@@ -178,7 +179,7 @@ const appData = {
     isDesktop: () => {
         return (appData.deviceTypes.indexOf("desktop") >= 0);
     },
-    
+
 };
 
 

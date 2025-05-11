@@ -446,6 +446,7 @@
 <script>
 import appData from "../modules/appData";
 import appUtils from "../modules/appUtils";
+import contextUpdater from "../mixins/contextUpdater";
 const moment = require("moment");
 
 export default {
@@ -453,6 +454,7 @@ export default {
   components: {
     //HelloWorld
   },
+  mixins: [contextUpdater],
   data: () => ({
     details: {},
     tab: {},
@@ -713,8 +715,27 @@ export default {
     loadDetails: function() {
       if (this.newProfile) {
         console.log("loadDetails new profile..");
+
+        // Update context for new profile
+        this.updateContext({
+          view: 'profile',
+          mode: 'new',
+          tab: this.tab,
+          lastUpdated: new Date().toISOString()
+        });
+
         return;
       }
+
+      // Update context with loading state
+      this.updateContext({
+        view: 'profile',
+        mode: 'view',
+        tab: this.tab,
+        loading: true,
+        profileId: this.profileID
+      });
+
       //console.log("Loading details...");
       appUtils
       .get({
@@ -775,70 +796,124 @@ export default {
               value: "groupName",
             },
             { text: this.$t("Group Type"), value: "adDomain" },
-
           ];
+
+          // Update context with profile data
+          this.updateContext({
+            view: 'profile',
+            mode: 'view',
+            tab: this.tab,
+            loading: false,
+            profileData: {
+              id: this.profileID,
+              name: `${this.details.firstname} ${this.details.lastname}`,
+              email: this.details.email,
+              isActive: this.details.isActive,
+              lastActivity: this.details.lastActivityTimeFormat,
+              appCount: this.apps.length,
+              deviceCount: this.devices.length,
+              groupCount: this.groupRows.length
+            },
+            tabData: this.getContextDataForCurrentTab(),
+            lastUpdated: new Date().toISOString()
+          });
         } else {
           console.log(`status: ${response.data.status}`);
+
+          // Update context with error
+          this.updateContext({
+            view: 'profile',
+            mode: 'view',
+            tab: this.tab,
+            loading: false,
+            error: `Failed to load profile (status: ${response.data.status})`,
+            profileId: this.profileID
+          });
         }
       })
-      .catch((error) => console.log(error))
+      .catch((error) => {
+        console.log(error);
+
+        // Update context with error
+        this.updateContext({
+          view: 'profile',
+          mode: 'view',
+          tab: this.tab,
+          loading: false,
+          error: `Error loading profile: ${error}`,
+          profileId: this.profileID
+        });
+      })
       .finally(() => (this.loading = false));
     },
-    sendInvitation : function () {
-      console.log("sendInvitation");
-      appUtils
-        .put({
-          url:
-          "api/profiles/" +
-          encodeURIComponent(this.profileID)+"/invite",
-        })
-        .then((response) => {
-          console.log(response.data);
-          if (response.data.status == 1) {
-            this.saveLoading = false;
-            this.snackbarText = this.$t("Invitation sent");
-            this.snackbarSave = true;
-          } else {
-            this.snackbarText = "Error";
-            this.snackbarSave = true;
-          }
-        }).catch((err) => {
-          this.snackbarText = "Error";
-          this.snackbarSave = true;
-          console.log(err);
-        });
-    },
-    deleteProfile: function () {
-      console.log("deleteProfile");
-      appUtils
-        .delete({
-          url:
-          "api/profiles/" +
-          encodeURIComponent(this.profileID),
-        })
-        .then((response) => {
-          console.log(response.data);
-          if (response.data.status == 1) {
-            this.saveLoading = false;
-            this.snackbarText = this.$t("Profile deleted");
-            this.snackbarSave = true;
-            this.$router.push("/Profiles");
-          } else {
-            this.snackbarText = "Error";
-            this.snackbarSave = true;
-          }
-        }).catch((err) => {
-          this.snackbarText = "Error";
-          this.snackbarSave = true;
-          console.log(err);
-        });
+    getContextDataForCurrentTab: function() {
+      let tabData = {};
+
+      if (this.tab === 0) { // Details tab
+        tabData = {
+          firstName: this.details.firstname,
+          lastName: this.details.lastname,
+          email: this.details.email,
+          isActive: this.details.isActive
+        };
+      } else if (this.tab === 1) { // Activity tab
+        tabData = {
+          lastActivity: this.details.lastActivityTimeFormat,
+          dataCenter: this.details.dataCenter,
+          storageUsage: this.details.storageUsage,
+          recentLogs: this.logsRows.slice(0, 3).map(log => ({
+            time: log.Time,
+            component: log.ComponentType,
+            message: log.Message
+          }))
+        };
+      } else if (this.tab === 2) { // Apps tab
+        tabData = {
+          appCount: this.apps.length,
+          recentApps: this.apps.slice(0, 3).map(app => ({
+            name: app.appName,
+            package: app.packageName
+          }))
+        };
+      } else if (this.tab === 3) { // Devices tab
+        tabData = {
+          deviceCount: this.devices.length,
+          onlineDevices: this.devices.filter(d => d.isOnline).length,
+          recentDevices: this.devices.slice(0, 3).map(device => ({
+            name: device.deviceName,
+            id: device.IMEI,
+            isOnline: device.isOnline,
+            platform: device.platform
+          }))
+        };
+      } else if (this.tab === 4) { // Groups tab
+        tabData = {
+          groupCount: this.groupRows.length,
+          groups: this.groupRows.map(group => ({
+            name: group.groupName,
+            type: group.adDomain ? 'Active Directory' : 'Manual'
+          }))
+        };
+      }
+
+      return tabData;
     },
     saveDetails: function () {
-
       this.$refs.form.validate();
       if (!this.valid) {
         return;
       }
+
+      // Update context with saving state
+      this.updateContext({
+        view: 'profile',
+        mode: this.newProfile ? 'new' : 'edit',
+        tab: this.tab,
+        loading: true,
+        saving: true,
+        profileId: this.profileID
+      });
+
       let method;
       if (this.newProfile) {
         this.profileID = this.details.email;
@@ -871,6 +946,25 @@ export default {
             this.saveLoading = false;
             this.snackbarText = this.$t("Profile saved");
             this.snackbarSave = true;
+
+            // Update context with success
+            this.updateContext({
+              view: 'profile',
+              mode: this.newProfile ? 'new' : 'edit',
+              tab: this.tab,
+              loading: false,
+              saving: false,
+              saveSuccess: true,
+              profileId: this.profileID,
+              profileData: {
+                id: this.profileID,
+                name: `${this.details.firstname} ${this.details.lastname}`,
+                email: this.details.email,
+                isActive: this.details.isActive
+              },
+              lastUpdated: new Date().toISOString()
+            });
+
             if (this.newProfile) {
               this.newProfile = false;
               this.snackbarText = this.$t("Profile added");
@@ -884,9 +978,35 @@ export default {
 
             this.snackbarText = "Error";
             this.snackbarSave = true;
+
+            // Update context with error
+            this.updateContext({
+              view: 'profile',
+              mode: this.newProfile ? 'new' : 'edit',
+              tab: this.tab,
+              loading: false,
+              saving: false,
+              saveSuccess: false,
+              error: `Failed to save profile (status: ${response.data.status})`,
+              profileId: this.profileID
+            });
           }
         })
-        .catch((error) => console.log(error))
+        .catch((error) => {
+          console.log(error);
+
+          // Update context with error
+          this.updateContext({
+            view: 'profile',
+            mode: this.newProfile ? 'new' : 'edit',
+            tab: this.tab,
+            loading: false,
+            saving: false,
+            saveSuccess: false,
+            error: `Error saving profile: ${error}`,
+            profileId: this.profileID
+          });
+        })
         .finally(() => (this.saveLoading = false));
     },
     notificationTest: function () {
@@ -943,6 +1063,147 @@ export default {
       ];
       this.$emit("updatePage", bcItems);
     },
+    sendInvitation : function () {
+      console.log("sendInvitation");
+
+      // Update context with sending invitation state
+      this.updateContext({
+        view: 'profile',
+        mode: 'view',
+        tab: this.tab,
+        action: 'sending_invitation',
+        profileId: this.profileID
+      });
+
+      appUtils
+        .put({
+          url:
+          "api/profiles/" +
+          encodeURIComponent(this.profileID)+"/invite",
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            this.saveLoading = false;
+            this.snackbarText = this.$t("Invitation sent");
+            this.snackbarSave = true;
+
+            // Update context with success
+            this.updateContext({
+              view: 'profile',
+              mode: 'view',
+              tab: this.tab,
+              action: 'invitation_sent',
+              success: true,
+              profileId: this.profileID,
+              lastUpdated: new Date().toISOString()
+            });
+          } else {
+            this.snackbarText = "Error";
+            this.snackbarSave = true;
+
+            // Update context with error
+            this.updateContext({
+              view: 'profile',
+              mode: 'view',
+              tab: this.tab,
+              action: 'invitation_error',
+              success: false,
+              error: `Failed to send invitation (status: ${response.data.status})`,
+              profileId: this.profileID,
+              lastUpdated: new Date().toISOString()
+            });
+          }
+        }).catch((err) => {
+          this.snackbarText = "Error";
+          this.snackbarSave = true;
+          console.log(err);
+
+          // Update context with error
+          this.updateContext({
+            view: 'profile',
+            mode: 'view',
+            tab: this.tab,
+            action: 'invitation_error',
+            success: false,
+            error: `Error sending invitation: ${err}`,
+            profileId: this.profileID,
+            lastUpdated: new Date().toISOString()
+          });
+        });
+    },
+
+    deleteProfile: function () {
+      console.log("deleteProfile");
+
+      // Update context with deleting profile state
+      this.updateContext({
+        view: 'profile',
+        mode: 'view',
+        tab: this.tab,
+        action: 'deleting_profile',
+        profileId: this.profileID
+      });
+
+      appUtils
+        .delete({
+          url:
+          "api/profiles/" +
+          encodeURIComponent(this.profileID),
+        })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.status == 1) {
+            this.saveLoading = false;
+            this.snackbarText = this.$t("Profile deleted");
+            this.snackbarSave = true;
+
+            // Update context with success
+            this.updateContext({
+              view: 'profile',
+              mode: 'view',
+              tab: this.tab,
+              action: 'profile_deleted',
+              success: true,
+              profileId: this.profileID,
+              lastUpdated: new Date().toISOString()
+            });
+
+            this.$router.push("/Profiles");
+          } else {
+            this.snackbarText = "Error";
+            this.snackbarSave = true;
+
+            // Update context with error
+            this.updateContext({
+              view: 'profile',
+              mode: 'view',
+              tab: this.tab,
+              action: 'delete_error',
+              success: false,
+              error: `Failed to delete profile (status: ${response.data.status})`,
+              profileId: this.profileID,
+              lastUpdated: new Date().toISOString()
+            });
+          }
+        }).catch((err) => {
+          this.snackbarText = "Error";
+          this.snackbarSave = true;
+          console.log(err);
+
+          // Update context with error
+          this.updateContext({
+            view: 'profile',
+            mode: 'view',
+            tab: this.tab,
+            action: 'delete_error',
+            success: false,
+            error: `Error deleting profile: ${err}`,
+            profileId: this.profileID,
+            lastUpdated: new Date().toISOString()
+          });
+        });
+    },
   },
   created: function () {
     this.profileID = this.$route.params.id;
@@ -954,6 +1215,20 @@ export default {
       this.newProfile = false;
     }
     this.updatePageHead();
+
+    // Initialize context when component is created
+    this.updateContext({
+      view: 'init',
+      pageType: 'Profile',
+      mode: this.newProfile ? 'new' : 'view',
+      tab: this.tab,
+      profileId: this.profileID,
+      permissions: {
+        canEdit: appData.checkPermission('/profiles','w')
+      },
+      lastInitialized: new Date().toISOString()
+    });
+
     //
     this.emailRules = [
       (v) => !!v || this.$t("Field is required"),
@@ -974,10 +1249,21 @@ export default {
   },
   watch: {
     tab: function (newVal) {
+      // Update context when tab changes
+      this.updateContext({
+        view: 'profile',
+        mode: this.newProfile ? 'new' : 'view',
+        tab: newVal,
+        tabLabel: ['details', 'activity', 'apps', 'devices', 'groups'][newVal],
+        profileId: this.profileID,
+        tabData: this.getContextDataForCurrentTab(),
+        lastTabChange: new Date().toISOString()
+      });
+
       //console.log(`tab: ${newVal}`);
 
       if (newVal == 1) {
-        // activities yab
+        // activities tab
         this.logsHead = [
           {
             text: this.$t("Time"),
@@ -1004,6 +1290,24 @@ export default {
               if (response.data.logs) {
                 this.logsRows = response.data.logs;
                 this.logsLoading = false;
+
+                // Update context with logs data
+                this.updateContext({
+                  view: 'profile',
+                  mode: 'view',
+                  tab: newVal,
+                  tabLabel: 'activity',
+                  profileId: this.profileID,
+                  tabData: {
+                    lastActivity: this.details.lastActivityTimeFormat,
+                    recentLogs: this.logsRows.slice(0, 5).map(log => ({
+                      time: log.Time,
+                      component: log.ComponentType,
+                      message: log.Message
+                    }))
+                  },
+                  lastUpdated: new Date().toISOString()
+                });
               }
             } else {
               console.log(`status: ${response.data.status}`);
@@ -1011,10 +1315,34 @@ export default {
 
               this.snackbarText = "Error";
               this.snackbarSave = true;
+
+              // Update context with error
+              this.updateContext({
+                view: 'profile',
+                mode: 'view',
+                tab: newVal,
+                tabLabel: 'activity',
+                profileId: this.profileID,
+                error: `Failed to load activity logs (status: ${response.data.status})`,
+                lastUpdated: new Date().toISOString()
+              });
             }
           })
-          .catch((error) => console.log(error))
-          .finally(() => (this.saveLoading = false));
+          .catch((error) => {
+            console.log(error);
+
+            // Update context with error
+            this.updateContext({
+              view: 'profile',
+              mode: 'view',
+              tab: newVal,
+              tabLabel: 'activity',
+              profileId: this.profileID,
+              error: `Error loading activity logs: ${error}`,
+              lastUpdated: new Date().toISOString()
+            });
+          })
+          .finally(() => (this.logsLoading = false));
       }
     },
   },

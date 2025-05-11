@@ -1,8 +1,8 @@
 <template>
-  <v-card color="bg"> 
+  <v-card color="bg">
     <v-card-title>
       {{ $t("Groups") }}
-      
+
     </v-card-title>
     <v-data-table
       :headers="headers"
@@ -14,7 +14,7 @@
     >
     <template v-slot:top>
         <v-toolbar flat color="bg">
-          <v-btn 
+          <v-btn
             v-if="appData.checkPermission('/groups','w')"
             class="ma-4"
             color="primary" @click="$router.push('/Group/')">{{
@@ -93,20 +93,64 @@ let page = {
     removeItem: null,
     snackbarSave: false,
     snackbarText: "",
-    appData
+    appData,
+    pageContext: {}, // Store context data for the Groups page
   }),
   methods: {
+    // Add updateContext method to maintain context within the Groups page
+    updateContext: function(contextData) {
+      // Preserve existing page context while adding new data
+      this.pageContext = {
+        ...this.pageContext,
+        ...contextData
+      };
+
+      // Always include the full pageContext when updating app state
+      this.$emit('updateAppState', {
+        componentName: this.$options.name || 'Groups',
+        timestamp: new Date().toISOString(),
+        ...this.pageContext
+      });
+    },
+
     rowClick: function(val) {
       console.log(`rowClick: ${val.groupName}`);
+
+      // Update context when a group is selected
+      this.updateContext({
+        view: 'groups',
+        action: 'select_group',
+        selectedGroup: {
+          name: val.groupName,
+          adDomain: val.adDomain,
+          type: val.adDomain === '' ? 'Manual' :
+                val.groupName === 'All' ? 'Automatic' : 'Active Directory'
+        }
+      });
+
       this.$router.push("/Group/" + val.groupName + "/" + val.adDomain);
     },
+
     deleteGroup: function(val,event) {
       console.log(`deleteGroup: ${val.groupName} ${val.adDomain}`);
       event.stopPropagation();
       this.dialogDelete = true;
       this.removeItem = val;
+
+      // Update context when preparing to delete a group
+      this.updateContext({
+        view: 'groups',
+        action: 'prepare_delete_group',
+        groupToDelete: {
+          name: val.groupName,
+          adDomain: val.adDomain,
+          type: val.adDomain === '' ? 'Manual' : 'Active Directory'
+        }
+      });
+
       return false;
     },
+
     removeGroup : function() {
       let groupParam;
       if (this.removeItem.adDomain && this.removeItem.adDomain != "") {
@@ -115,6 +159,19 @@ let page = {
         groupParam = this.removeItem.groupName;
       }
       console.log("groupParam: "+groupParam);
+
+      // Update context when attempting to delete a group
+      this.updateContext({
+        view: 'groups',
+        action: 'delete_group',
+        groupToDelete: {
+          name: this.removeItem.groupName,
+          adDomain: this.removeItem.adDomain,
+          type: this.removeItem.adDomain === '' ? 'Manual' : 'Active Directory'
+        },
+        groupParam: groupParam
+      });
+
       appUtils
         .delete({
           url: `api/groups/${encodeURIComponent(groupParam)}`
@@ -125,18 +182,61 @@ let page = {
             this.snackbarText = this.$t("Group removed");
             this.snackbarSave = true;
             this.dialogDelete = false;
+
+            // Update context with successful deletion
+            this.updateContext({
+              view: 'groups',
+              action: 'delete_group_success',
+              deletedGroup: {
+                name: this.removeItem.groupName,
+                adDomain: this.removeItem.adDomain
+              }
+            });
+
             this.refresh();
           } else {
             console.log(`status: ${response.data.status}`);
             this.snackbarText = this.$t("Error");
             this.snackbarSave = true;
+
+            // Update context with deletion error
+            this.updateContext({
+              view: 'groups',
+              action: 'delete_group_error',
+              error: `Failed with status ${response.data.status}`,
+              groupToDelete: {
+                name: this.removeItem.groupName,
+                adDomain: this.removeItem.adDomain
+              }
+            });
           }
         })
-        .catch(error => console.log(error))
+        .catch(error => {
+          console.log(error);
+
+          // Update context with deletion error
+          this.updateContext({
+            view: 'groups',
+            action: 'delete_group_error',
+            error: `Error: ${error}`,
+            groupToDelete: {
+              name: this.removeItem.groupName,
+              adDomain: this.removeItem.adDomain
+            }
+          });
+        })
         .finally(() => (this.loading = false));
     },
 
     refresh: function() {
+      // Update context with loading state
+      this.updateContext({
+        view: 'groups',
+        action: 'loading',
+        loading: true,
+        searchTerm: this.search
+      });
+
       appUtils
         .get({
           url: "api/groups"
@@ -145,12 +245,46 @@ let page = {
           console.log(response.data);
           if (response.data.status == 1) {
             this.rows = response.data.groups;
+
+            // Update context with groups data
+            this.updateContext({
+              view: 'groups',
+              action: 'loaded',
+              loading: false,
+              groupsData: {
+                count: this.rows.length,
+                search: this.search,
+                groups: this.rows,
+                adGroups: this.rows.filter(group => group.adDomain && group.adDomain !== '').length,
+                manualGroups: this.rows.filter(group => !group.adDomain || group.adDomain === '').length
+              },
+              lastUpdated: new Date().toISOString()
+            });
           } else {
             console.log(`status: ${response.data.status}`);
+
+            // Update context with error
+            this.updateContext({
+              view: 'groups',
+              action: 'error',
+              loading: false,
+              error: `Failed to load groups (status: ${response.data.status})`
+            });
+
             this.$router.push("/Login");
           }
         })
-        .catch(error => console.log(error))
+        .catch(error => {
+          console.log(error);
+
+          // Update context with error
+          this.updateContext({
+            view: 'groups',
+            action: 'error',
+            loading: false,
+            error: `Error loading groups: ${error}`
+          });
+        })
         .finally(() => (this.loading = false));
     }
   },
@@ -179,7 +313,32 @@ let page = {
       },
       { text: this.$t('Actions'), value: 'actions', sortable: false }
     ];
+
+    // Initialize context when component is created
+    this.updateContext({
+      view: 'init',
+      pageType: 'Groups',
+      permissions: {
+        canCreate: appData.checkPermission('/groups','w'),
+        canDelete: appData.checkPermission('/groups','w')
+      },
+      lastInitialized: new Date().toISOString()
+    });
+
     this.refresh();
+  },
+  watch: {
+    search: function(newVal) {
+      console.log(`search: ${newVal}`);
+
+      // Update context when search term changes
+      this.updateContext({
+        view: 'groups',
+        action: 'search',
+        searchTerm: newVal,
+        isSearching: newVal.length > 0
+      });
+    }
   }
 };
 

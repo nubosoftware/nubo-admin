@@ -173,6 +173,7 @@ export default {
       } else {
         this.items = this.defItems;
       }
+      appData.breadcrumbs = this.items;
     },
 
     // Method to update global app state for chatbot context
@@ -353,9 +354,17 @@ export default {
     // Chatbot toggle method
     toggleChatbot() {
       this.chatbotDrawer = !this.chatbotDrawer;
+      // Save state to localStorage
+      localStorage.setItem('chatbotOpen', this.chatbotDrawer ? 'true' : 'false');
     }
   },
   created: function () {
+    // Load chatbot open state from localStorage
+    const chatbotState = localStorage.getItem('chatbotOpen');
+    if (chatbotState !== null) {
+      this.chatbotDrawer = chatbotState === 'true';
+    }
+
     // Initialize global app state for chatbot context with minimal information
     window.$nuboAppState = {
       timestamp: new Date().toISOString()

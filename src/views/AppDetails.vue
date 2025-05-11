@@ -310,6 +310,7 @@
 <script>
 import appData from "../modules/appData";
 import appUtils from "../modules/appUtils";
+import contextUpdater from "../mixins/contextUpdater";
 const moment = require("moment");
 
 let page = {
@@ -317,6 +318,7 @@ let page = {
   components: {
     //HelloWorld
   },
+  mixins: [contextUpdater],
   data: () => ({
     details: {},
     totalNumOfUsers: 0,
@@ -384,6 +386,22 @@ let page = {
       console.log(this.deleteProfileItem);
       this.dialogDelete = false;
       let data;
+
+      // Update context before uninstalling
+      this.updateContext({
+        view: 'uninstalling_app',
+        action: 'uninstall',
+        appDetails: {
+          packageName: this.$route.params.packageName,
+          appName: this.details.appname
+        },
+        target: {
+          type: this.deleteItemType,
+          name: this.deleteItemName,
+          details: this.deleteProfileItem
+        }
+      });
+
       if (this.deleteItemType == "profile") {
         data = {
           email: this.deleteProfileItem.email,
@@ -407,6 +425,22 @@ let page = {
             console.log("Success");
             this.snackbarText = this.$t("App uninstaled");
             this.snackbarSave = true;
+
+            // Update context after successful uninstall
+            this.updateContext({
+              view: 'app_uninstalled',
+              action: 'uninstall_complete',
+              status: 'success',
+              appDetails: {
+                packageName: this.$route.params.packageName,
+                appName: this.details.appname
+              },
+              target: {
+                type: this.deleteItemType,
+                name: this.deleteItemName
+              }
+            });
+
             this.loadDetails();
           } else {
             console.log(`status: ${response.data.status}`);
@@ -414,6 +448,21 @@ let page = {
 
             this.snackbarText = "Error";
             this.snackbarSave = true;
+
+            // Update context after failed uninstall
+            this.updateContext({
+              view: 'uninstall_error',
+              action: 'uninstall_failed',
+              status: 'error',
+              appDetails: {
+                packageName: this.$route.params.packageName,
+                appName: this.details.appname
+              },
+              target: {
+                type: this.deleteItemType,
+                name: this.deleteItemName
+              }
+            });
           }
         })
         .catch((error) => console.log(error))
@@ -484,6 +533,34 @@ let page = {
               },
             ];
             this.$emit("updatePage", bcItems);
+
+            // Update context with app details
+            this.updateContext({
+              view: 'app_details',
+              tab: this.tab,
+              appDetails: {
+                packageName: this.details.packagename,
+                appName: this.details.appname,
+                summary: this.details.summary,
+                description: this.details.description,
+                categories: this.details.categories,
+                versionName: this.details.versionname,
+                versionCode: this.details.versioncode,
+                displayProtocol: this.details.displayprotocol,
+                baseImageApp: this.details.base_image_app === 1,
+                imageUrl: this.details.imageurl
+              },
+              profiles: {
+                count: this.totalNumOfUsers,
+                items: this.rows
+              },
+              groups: {
+                count: this.groupRows.length,
+                items: this.groupRows
+              },
+              lastUpdated: new Date().toISOString()
+            });
+
             this.refreshTimeout = setTimeout(this.loadDetails,5000);
           } else {
             console.log(`status: ${response.data.status}`);
@@ -495,6 +572,20 @@ let page = {
     },
     saveDetails: function () {
       this.saveLoading = true;
+
+      // Update context before saving
+      this.updateContext({
+        view: 'saving_app_details',
+        action: 'save',
+        appDetails: {
+          packageName: this.details.packagename,
+          appName: this.details.appname,
+          summary: this.details.summary,
+          description: this.details.description,
+          categories: this.details.categories,
+          displayProtocol: this.details.displayprotocol
+        }
+      });
 
       appUtils
         .post({
@@ -515,6 +606,18 @@ let page = {
             this.saveLoading = false;
             this.snackbarText = "Saved";
             this.snackbarSave = true;
+
+            // Update context after saving
+            this.updateContext({
+              view: 'app_details_saved',
+              action: 'save_completed',
+              status: 'success',
+              appDetails: {
+                packageName: this.details.packagename,
+                appName: this.details.appname
+              }
+            });
+
             this.loadDetails();
           } else {
             console.log(`status: ${response.data.status}`);
@@ -522,6 +625,16 @@ let page = {
 
             this.snackbarText = "Error";
             this.snackbarSave = true;
+
+            // Update context after save error
+            this.updateContext({
+              view: 'app_details_save_error',
+              action: 'save_failed',
+              status: 'error',
+              appDetails: {
+                packageName: this.details.packagename
+              }
+            });
           }
         })
         .catch((error) => console.log(error))
@@ -581,6 +694,20 @@ let page = {
     },
     installApp: function () {
       this.dialogInstall = false;
+
+      // Update context before installing app
+      this.updateContext({
+        view: 'installing_app',
+        action: 'install',
+        appDetails: {
+          packageName: this.$route.params.packageName,
+          appName: this.details.appname
+        },
+        targets: this.allGroupSelected.groupName ?
+          { groupName: this.allGroupSelected.groupName } :
+          { profileCount: Object.keys(this.allSelected).length }
+      });
+
       this.installImp(0);
     },
     addToAppstore: function () {
@@ -642,6 +769,18 @@ let page = {
       let limit =
         this.options.itemsPerPage > 0 ? this.options.itemsPerPage : 10000;
       let offset = (this.options.page - 1) * limit;
+
+      // Update context before refreshing profiles
+      this.updateContext({
+        view: 'loading_profiles',
+        search: this.search,
+        pagination: {
+          page: this.options.page,
+          limit: limit,
+          offset: offset
+        }
+      });
+
       appUtils
         .post({
           url: "api/profiles",
@@ -666,6 +805,17 @@ let page = {
               }
             });
             this.profilesSelected = newSelected;
+
+            // Update context after loading profiles
+            this.updateContext({
+              view: 'profiles_loaded',
+              search: this.search,
+              profiles: {
+                total: this.totalItems,
+                displayed: this.profilesRows.length,
+                selected: Object.keys(this.allSelected).length
+              }
+            });
           } else {
             console.log(`status: ${response.data.status}`);
             this.$router.push("/Login");
@@ -704,6 +854,15 @@ let page = {
       { text: this.$t("Email"), value: "email" },
     ];
     appUtils.loadPageData(page.name,this);
+
+    // Initialize context
+    this.updateContext({
+      view: 'initializing',
+      component: 'AppDetails',
+      packageName: this.$route.params.packageName,
+      loadingState: 'starting'
+    });
+
     this.loadDetails();
   },
 
@@ -717,6 +876,16 @@ let page = {
   watch: {
     tab: function (newVal) {
       console.log(`tab: ${newVal}`);
+
+      // Update context when tab changes
+      this.updateContext({
+        view: 'app_details',
+        tab: newVal,
+        appDetails: {
+          packageName: this.details.packagename,
+          appName: this.details.appname
+        }
+      });
     },
     search: function (newVal) {
       console.log(`search: ${newVal}`);

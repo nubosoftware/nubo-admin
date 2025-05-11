@@ -214,10 +214,12 @@
  <script>
 import appData from "../modules/appData";
 import appUtils from "../modules/appUtils";
+import contextUpdater from "../mixins/contextUpdater";
 const moment = require("moment");
 
 let page = {
   name: "Logs",
+  mixins: [contextUpdater],
   data: () => ({
     tab: {},
     headers: [],
@@ -299,12 +301,52 @@ let page = {
           if (response.data.status == 1) {
             this.rows = response.data.logs;
             this.totalItems = response.data.count;
+
+            // Update context with logs data
+            this.updateContext({
+              view: 'logs',
+              tab: 'syslog',
+              loading: false,
+              logsData: {
+                count: this.totalItems,
+                recentLogs: this.rows.slice(0, 5).map(log => ({
+                  time: log.Time,
+                  level: log.LogLevel,
+                  component: log.ComponentType,
+                  message: log.Message
+                }))
+              },
+              filters: {
+                search: this.search,
+                logLevel: this.logLevel,
+                component: this.comp,
+                serverName: this.serverName
+              },
+              lastUpdated: new Date().toISOString()
+            });
           } else {
             console.log(`status: ${response.data.status}`);
-            //this.$router.push("/Login");
+
+            // Update context with error
+            this.updateContext({
+              view: 'logs',
+              tab: 'syslog',
+              loading: false,
+              error: `Failed to load logs (status: ${response.data.status})`
+            });
           }
         })
-        .catch((error) => console.log(error))
+        .catch((error) => {
+          console.log(error);
+
+          // Update context with error
+          this.updateContext({
+            view: 'logs',
+            tab: 'syslog',
+            loading: false,
+            error: `Error loading logs: ${error}`
+          });
+        })
         .finally(() => (this.loading = false));
     },
 
@@ -361,6 +403,13 @@ let page = {
         .finally(() => (this.loading = false));
     },
     refreshEvents: function(){
+      // Update context with loading state
+      this.updateContext({
+        view: 'logs',
+        tab: 'events',
+        loading: true
+      });
+
       this.eventsLoading = true;
       appUtils
         .get({
@@ -372,12 +421,48 @@ let page = {
           if (response.data.status == 1) {
             console.log(`status: ${response.data.status}`);
             this.eventsRows = response.data.events;
+
+            // Update context with events data
+            this.updateContext({
+              view: 'logs',
+              tab: 'events',
+              loading: false,
+              eventsData: {
+                count: this.eventsRows.length,
+                recentEvents: this.eventsRows.slice(0, 5).map(event => ({
+                  time: event.time,
+                  type: event.eventTypeStr,
+                  user: event.email,
+                  info: event.extrainfo
+                }))
+              },
+              search: this.eventsSearch,
+              lastUpdated: new Date().toISOString()
+            });
           } else {
             console.log(`status: ${response.data.status}`);
+
+            // Update context with error
+            this.updateContext({
+              view: 'logs',
+              tab: 'events',
+              loading: false,
+              error: `Failed to load events (status: ${response.data.status})`
+            });
           }
         })
-        .catch((error) => console.log(error))
-        .finally(() => (this.loading = false));
+        .catch((error) => {
+          console.log(error);
+
+          // Update context with error
+          this.updateContext({
+            view: 'logs',
+            tab: 'events',
+            loading: false,
+            error: `Error loading events: ${error}`
+          });
+        })
+        .finally(() => (this.eventsLoading = false));
         this.eventsHeaders = [
           { text: this.$t("Time"), value: "time" },
           { text: this.$t("Event Type"), value: "eventTypeStr" },
@@ -386,7 +471,14 @@ let page = {
         ];
     },
     refreshFiles: async function () {
-       try {
+      // Update context with loading state
+      this.updateContext({
+        view: 'logs',
+        tab: 'files',
+        loading: true
+      });
+
+      try {
          const response = await appUtils.get({
           url: "api/logs/files"
          });
@@ -399,6 +491,22 @@ let page = {
              { text: this.$t("Size"), value: "size" },
              { text: this.$t("Last Modified"), value: "lastModified" },
            ]
+
+           // Update context with files data
+           this.updateContext({
+             view: 'logs',
+             tab: 'files',
+             loading: false,
+             filesData: {
+               count: this.files.length,
+               recentFiles: this.files.slice(0, 5).map(file => ({
+                 path: file.path,
+                 size: file.sizeStr,
+                 lastModified: file.lastModified
+               }))
+             },
+             lastUpdated: new Date().toISOString()
+           });
          } else {
            console.log(`status: ${response.data.status}`);
            if (response.data.status == 2)  {
@@ -408,9 +516,25 @@ let page = {
             this.filesError = response.data.message || `Error: ${response.data.status}`;
             this.filesAlertType = "error";
            }
+
+           // Update context with error
+           this.updateContext({
+             view: 'logs',
+             tab: 'files',
+             loading: false,
+             error: this.filesError
+           });
          }
        } catch (error) {
          console.log(error);
+
+         // Update context with error
+         this.updateContext({
+           view: 'logs',
+           tab: 'files',
+           loading: false,
+           error: `Error loading log files: ${error}`
+         });
        }
      },
      updateFileOptions(options) {
@@ -444,6 +568,14 @@ let page = {
      },
      refreshVersions: async function () {
        console.log("refreshVersions");
+
+       // Update context with loading state
+       this.updateContext({
+         view: 'logs',
+         tab: 'versions',
+         loading: true
+       });
+
        this.versionsLoading = true;
        try {
          const response = await appUtils.get({
@@ -458,11 +590,35 @@ let page = {
              { text: this.$t("Version"), value: "version" },
              { text: this.$t("Build Time"), value: "buildTime" },
            ]
+
+           // Update context with versions data
+           this.updateContext({
+             view: 'logs',
+             tab: 'versions',
+             loading: false,
+             versionsData: {
+               count: this.versions.length,
+               components: this.versions.map(version => ({
+                 name: version.componentName,
+                 version: version.version,
+                 buildTime: version.buildTime
+               }))
+             },
+             lastUpdated: new Date().toISOString()
+           });
          }
          this.versionsLoading = false;
        } catch (error) {
          console.log(error);
          this.versionsLoading = false;
+
+         // Update context with error
+         this.updateContext({
+           view: 'logs',
+           tab: 'versions',
+           loading: false,
+           error: `Error loading versions: ${error}`
+         });
        }
      },
      getComponentIcon(componentName) {
@@ -495,6 +651,19 @@ let page = {
       },
     ];
     this.$emit("updatePage", bcItems);
+
+    // Initialize context when component is created
+    this.updateContext({
+      view: 'init',
+      pageType: 'Logs',
+      permissions: {
+        canViewSyslog: appData.checkPermission('@/','r'),
+        canViewFiles: appData.checkPermission('@/','r'),
+        canViewVersions: appData.checkPermission('@/','r')
+      },
+      lastInitialized: new Date().toISOString()
+    });
+
     this.headers = [
       /*{
         text: this.$t("ID"),
@@ -514,14 +683,19 @@ let page = {
   },
   watch: {
     tab: function (newVal) {
-      console.log(`tab: ${newVal}`);
-      if (newVal == 0) {
+      // Update context when tab changes
+      this.updateContext({
+        view: 'logs',
+        tab: newVal === 0 ? 'events' : newVal === 1 ? 'syslog' : newVal === 2 ? 'files' : 'versions',
+        lastTabChange: new Date().toISOString()
+      });
+
+      // Load data for the selected tab if needed
+      if (newVal === 0) {
         this.refreshEvents();
-      }
-      if (newVal == 2) {
+      } else if (newVal === 2) {
         this.refreshFiles();
-      }
-      if (newVal == 3) {
+      } else if (newVal === 3) {
         this.refreshVersions();
       }
       this.savePage();

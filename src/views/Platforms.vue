@@ -100,7 +100,7 @@
         <v-chip
           v-if="item.status == 'available'"
           class="ma-2"
-          
+
           text-color="white"
         >
           {{$t("Available")}}
@@ -112,7 +112,7 @@
         >
           {{$t("Disabled")}}
         </v-chip>
-        
+
       </template>
       <template v-slot:[`item.actions`]="{ item }">
              <v-icon v-if="item.status == 'running' || item.status == 'error' || item.status == 'revive'" small @click="stopCheck(item,$event)" class="mx-2"> mdi-stop </v-icon>
@@ -125,7 +125,7 @@
       v-model="dialog"
       persistent
       max-width="590"
-    >      
+    >
       <v-card>
         <v-card-title v-if="!isDisableCmd" >
           {{$t("Stop platform",{stopPlatID: stopPlatID})}}
@@ -182,8 +182,8 @@
       v-model="actionDialog"
       persistent
       max-width="590"
-    >      
-      <v-card>        
+    >
+      <v-card>
         <v-card-title >
           {{actionDialogTitle}}
         </v-card-title>
@@ -197,13 +197,13 @@
           >
             {{$t('Cancel')}}
           </v-btn>
-          <v-btn            
+          <v-btn
             color="green darken-1"
             text
             @click="actionDialogClick"
           >
           {{actionDialogBtn}}
-          </v-btn>          
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -242,102 +242,333 @@ let page = {
     actionDialogBtn: "",
     selectedActionType: "",
     isDisableCmd: false,
-    snackbarSave: false,    
+    snackbarSave: false,
     snackbarText: "",
     appData,
+    pageContext: {}, // Store context data for the Platforms page
   }),
   methods: {
+    // Add updateContext method to maintain context within the Platforms page
+    updateContext: function(contextData) {
+      // Preserve existing page context while adding new data
+      this.pageContext = {
+        ...this.pageContext,
+        ...contextData
+      };
+
+      // Always include the full pageContext when updating app state
+      this.$emit('updateAppState', {
+        componentName: this.$options.name || 'Platforms',
+        timestamp: new Date().toISOString(),
+        ...this.pageContext
+      });
+    },
+
     rowClick: function (val) {
       console.log(`rowClick: ${val.platID}`);
+
+      // Update context when clicking on a platform
+      this.updateContext({
+        view: 'platforms',
+        action: 'select_platform',
+        selectedPlatform: {
+          platID: val.platID,
+          status: val.status,
+          sessions: val.sessions,
+          availMem: val.availMem,
+          cpuLoad: val.cpuLoad,
+          ipAddress: val.platform_ip
+        }
+      });
+
       this.$router.push("/Platform/" + val.platID );
     },
+
     stopCheck: function (val,event) {
       event.stopPropagation();
       this.stopStatus = val.status;
       this.stopPlatID = val.platID;
       this.isDisableCmd = false;
       this.dialog = true;
+
+      // Update context when opening stop platform dialog
+      this.updateContext({
+        view: 'platforms',
+        action: 'prepare_stop_platform',
+        platform: {
+          platID: val.platID,
+          status: val.status
+        }
+      });
     },
+
     disableCheck: function (val,event) {
       event.stopPropagation();
       this.stopStatus = val.status;
       this.stopPlatID = val.platID;
       this.isDisableCmd = true;
       this.dialog = true;
+
+      // Update context when opening disable platform dialog
+      this.updateContext({
+        view: 'platforms',
+        action: 'prepare_disable_platform',
+        platform: {
+          platID: val.platID,
+          status: val.status
+        }
+      });
     },
+
     scheduleLongOperCheck: function(notifToken,title) {
       console.log("scheduleLongOperCheck: "+notifToken);
+
+      // Update context when checking long-running operation
+      this.updateContext({
+        view: 'platforms',
+        action: 'check_long_operation',
+        notifToken: notifToken,
+        operationTitle: title
+      });
+
       appUtils.get({
         url: "api/longOperations/"+notifToken,
       }).then((response) => {
           console.log(response.data);
           if (response.data.status == 50) {
             setTimeout(this.scheduleLongOperCheck,5000,notifToken,title);
+
+            // Update context with operation still in progress
+            this.updateContext({
+              view: 'platforms',
+              action: 'long_operation_in_progress',
+              notifToken: notifToken,
+              operationTitle: title
+            });
           } else if (response.data.status == 1) {
             console.log("response.data.status == 1");
             this.$notification.success(response.data.message, { title:title, infiniteTimer: true ,showCloseIcn : true});
+
+            // Update context with operation success
+            this.updateContext({
+              view: 'platforms',
+              action: 'long_operation_success',
+              notifToken: notifToken,
+              operationTitle: title,
+              message: response.data.message
+            });
           } else {
             console.log("response.data.status != 1");
             this.$notification.error(response.data.message, { title:title, infiniteTimer: true ,showCloseIcn : true});
+
+            // Update context with operation error
+            this.updateContext({
+              view: 'platforms',
+              action: 'long_operation_error',
+              notifToken: notifToken,
+              operationTitle: title,
+              message: response.data.message
+            });
           }
-      }).catch((error) => console.log(error));
+      }).catch((error) => {
+        console.log(error);
+
+        // Update context with error
+        this.updateContext({
+          view: 'platforms',
+          action: 'long_operation_error',
+          notifToken: notifToken,
+          operationTitle: title,
+          error: `Error: ${error}`
+        });
+      });
     },
+
     disableAndStopNow: function() {
       this.stop(false);
       this.disable();
+
+      // Update context when stopping and disabling platform
+      this.updateContext({
+        view: 'platforms',
+        action: 'stop_and_disable_platform',
+        platform: {
+          platID: this.stopPlatID,
+          status: this.stopStatus
+        }
+      });
     },
-    disableNow: function() {     
+
+    disableNow: function() {
       this.disable();
+
+      // Update context when disabling platform
+      this.updateContext({
+        view: 'platforms',
+        action: 'disable_platform',
+        platform: {
+          platID: this.stopPlatID,
+          status: this.stopStatus
+        }
+      });
     },
+
     disable: function () {
       this.dialog = false;
+
+      // Update context when disabling platform
+      this.updateContext({
+        view: 'platforms',
+        action: 'disable_platform_request',
+        platform: {
+          platID: this.stopPlatID,
+          status: this.stopStatus
+        }
+      });
+
       appUtils.get({
         url: `api/platforms/${this.stopPlatID}/disable`,
       }).then((response) => {
           console.log(response.data);
           if (response.data.status == 1) {
             this.snackbarText = this.$t("Disabled platform")+" "+this.stopPlatID;
-            this.snackbarSave = true;            
+            this.snackbarSave = true;
+
+            // Update context with success
+            this.updateContext({
+              view: 'platforms',
+              action: 'disable_platform_success',
+              platform: {
+                platID: this.stopPlatID
+              }
+            });
           } else {
             console.log(`status: ${response.data.status}`);
             this.snackbarText = this.$t("Error");
             this.snackbarSave = true;
+
+            // Update context with error
+            this.updateContext({
+              view: 'platforms',
+              action: 'disable_platform_error',
+              platform: {
+                platID: this.stopPlatID
+              },
+              error: `Failed with status ${response.data.status}`
+            });
           }
         })
-        .catch((error) => console.log(error))
+        .catch((error) => {
+          console.log(error);
+
+          // Update context with error
+          this.updateContext({
+            view: 'platforms',
+            action: 'disable_platform_error',
+            platform: {
+              platID: this.stopPlatID
+            },
+            error: `Error: ${error}`
+          });
+        })
         .finally(() => (this.loading = false));
     },
+
     enableClick: async function(item,event) {
       event.stopPropagation();
+
+      // Update context when enabling platform
+      this.updateContext({
+        view: 'platforms',
+        action: 'enable_platform',
+        platform: {
+          platID: item.platID,
+          status: item.status
+        }
+      });
+
       try {
         await this.enable(item.platID);
         this.snackbarText = this.$t("Enabled platform")+" "+item.platID;
         this.snackbarSave = true;
+
+        // Update context with success
+        this.updateContext({
+          view: 'platforms',
+          action: 'enable_platform_success',
+          platform: {
+            platID: item.platID
+          }
+        });
       } catch (err) {
         console.log(`Error: ${err}`);
         this.snackbarText = this.$t("Error");
         this.snackbarSave = true;
+
+        // Update context with error
+        this.updateContext({
+          view: 'platforms',
+          action: 'enable_platform_error',
+          platform: {
+            platID: item.platID
+          },
+          error: `Error: ${err}`
+        });
       }
     },
+
     enable: async function (platID) {
       this.dialog = false;
       await appUtils.get({
         url: `api/platforms/${platID}/enable`,
       });
     },
+
     stopGracefully: function() {
       //console.log(`stopGracefully`);
       this.stop(true);
+
+      // Update context when stopping platform gracefully
+      this.updateContext({
+        view: 'platforms',
+        action: 'stop_platform_gracefully',
+        platform: {
+          platID: this.stopPlatID,
+          status: this.stopStatus
+        }
+      });
     },
+
     stopNow: function() {
       //console.log(`stopNow`);
       this.stop(false);
-    },     
+
+      // Update context when stopping platform immediately
+      this.updateContext({
+        view: 'platforms',
+        action: 'stop_platform_immediately',
+        platform: {
+          platID: this.stopPlatID,
+          status: this.stopStatus
+        }
+      });
+    },
+
     stop: function(gracefully) {
-      
       this.dialog = false;
       let params = (gracefully ? "?gracefully=Y" : "?gracefully=N");
       console.log(`stop: ${this.stopPlatID}, gracefully: ${gracefully}`);
+
+      // Update context when stopping platform
+      this.updateContext({
+        view: 'platforms',
+        action: 'stop_platform_request',
+        platform: {
+          platID: this.stopPlatID,
+          gracefully: gracefully
+        }
+      });
+
       appUtils.delete({
         url: "api/platforms/"+this.stopPlatID+params,
       }).then((response) => {
@@ -345,6 +576,18 @@ let page = {
           if (response.data.status == 1) {
             this.snackbarText = this.$t("Stopping platform")+" "+this.stopPlatID;
             this.snackbarSave = true;
+
+            // Update context with success
+            this.updateContext({
+              view: 'platforms',
+              action: 'stop_platform_success',
+              platform: {
+                platID: this.stopPlatID,
+                gracefully: gracefully
+              },
+              notifToken: response.data.notifToken
+            });
+
             if (response.data.notifToken) {
               this.scheduleLongOperCheck(response.data.notifToken,this.$t("Stopping platform")+" "+this.stopPlatID)
             }
@@ -352,11 +595,36 @@ let page = {
             console.log(`status: ${response.data.status}`);
             this.snackbarText = this.$t("Error");
             this.snackbarSave = true;
+
+            // Update context with error
+            this.updateContext({
+              view: 'platforms',
+              action: 'stop_platform_error',
+              platform: {
+                platID: this.stopPlatID,
+                gracefully: gracefully
+              },
+              error: `Failed with status ${response.data.status}`
+            });
           }
         })
-        .catch((error) => console.log(error))
+        .catch((error) => {
+          console.log(error);
+
+          // Update context with error
+          this.updateContext({
+            view: 'platforms',
+            action: 'stop_platform_error',
+            platform: {
+              platID: this.stopPlatID,
+              gracefully: gracefully
+            },
+            error: `Error: ${error}`
+          });
+        })
         .finally(() => (this.loading = false));
     },
+
     canSelectedAction: function(action) {
       if (this.selectedPlatforms.length == 0) {
         return false;
@@ -379,10 +647,11 @@ let page = {
           if (item.status != 'not_available') {
             cnt++;
           }
-        } 
+        }
       });
       return cnt > 0;
     },
+
     selectedAction: function(action) {
       this.selectedActionType = action;
       if (action == "start") {
@@ -399,10 +668,39 @@ let page = {
         this.actionDialogBtn = this.$t("Disable");
       }
       this.actionDialog = true;
+
+      // Update context when preparing bulk action
+      this.updateContext({
+        view: 'platforms',
+        action: 'prepare_bulk_action',
+        bulkAction: {
+          type: action,
+          count: this.selectedPlatforms.length,
+          platforms: this.selectedPlatforms.map(platform => ({
+            platID: platform.platID,
+            status: platform.status
+          }))
+        }
+      });
     },
+
     actionDialogClick: function() {
       this.actionDialog = false;
       let action = this.selectedActionType;
+
+      // Update context when performing bulk action
+      this.updateContext({
+        view: 'platforms',
+        action: 'execute_bulk_action',
+        bulkAction: {
+          type: action,
+          platforms: this.selectedPlatforms.map(platform => ({
+            platID: platform.platID,
+            status: platform.status
+          }))
+        }
+      });
+
       this.selectedPlatforms.forEach(item => {
         if (action == "start") {
           if (item.status == "available" || item.status == "not_available") {
@@ -419,10 +717,17 @@ let page = {
           this.stopPlatID = item.platID;
           this.stop(false);
           this.disable();
-        } 
+        }
       });
     },
+
     startNew: function() {
+      // Update context when starting new platform
+      this.updateContext({
+        view: 'platforms',
+        action: 'start_new_platform'
+      });
+
       let starting = false;
       this.rows.forEach(item => {
         if (!starting && item.status == "available") {
@@ -433,11 +738,32 @@ let page = {
       if (!starting) {
         this.snackbarText = this.$t("Cannot find available platform");
         this.snackbarSave = true;
+
+        // Update context with error
+        this.updateContext({
+          view: 'platforms',
+          action: 'start_new_platform_error',
+          error: "Cannot find available platform"
+        });
       }
     },
+
     start: async function(item,event) {
-      event.stopPropagation();
-      try {        
+      if (event) {
+        event.stopPropagation();
+      }
+
+      // Update context when starting platform
+      this.updateContext({
+        view: 'platforms',
+        action: 'start_platform',
+        platform: {
+          platID: item.platID,
+          status: item.status
+        }
+      });
+
+      try {
         if (item.status == 'not_available') {
           await this.enable(item.platID);
         }
@@ -448,6 +774,17 @@ let page = {
         if (response.data.status == 1) {
           this.snackbarText = this.$t("Starting platform")+" "+item.platID;
           this.snackbarSave = true;
+
+          // Update context with success
+          this.updateContext({
+            view: 'platforms',
+            action: 'start_platform_success',
+            platform: {
+              platID: item.platID
+            },
+            notifToken: response.data.notifToken
+          });
+
           if (response.data.notifToken) {
             this.scheduleLongOperCheck(response.data.notifToken,this.$t("Starting platform")+" "+item.platID)
           }
@@ -455,33 +792,34 @@ let page = {
           console.log(`status: ${response.data.status}`);
           this.snackbarText = this.$t("Error");
           this.snackbarSave = true;
+
+          // Update context with error
+          this.updateContext({
+            view: 'platforms',
+            action: 'start_platform_error',
+            platform: {
+              platID: item.platID
+            },
+            error: `Failed with status ${response.data.status}`
+          });
         }
       } catch (err) {
         console.log(`Error: ${err}`);
         this.snackbarText = this.$t("Error");
         this.snackbarSave = true;
+
+        // Update context with error
+        this.updateContext({
+          view: 'platforms',
+          action: 'start_platform_error',
+          platform: {
+            platID: item.platID
+          },
+          error: `Error: ${err}`
+        });
       }
-      // appUtils
-      //   .put({
-      //     url: "api/platforms/"+item.platID,
-      //   })
-      //   .then((response) => {
-      //     console.log(response.data);
-      //     if (response.data.status == 1) {
-      //       this.snackbarText = this.$t("Starting platform")+" "+item.platID;
-      //       this.snackbarSave = true;
-      //       if (response.data.notifToken) {
-      //         this.scheduleLongOperCheck(response.data.notifToken,this.$t("Starting platform")+" "+item.platID)
-      //       }
-      //     } else {
-      //       console.log(`status: ${response.data.status}`);
-      //       this.snackbarText = this.$t("Error");
-      //       this.snackbarSave = true;
-      //     }
-      //   })
-      //   .catch((error) => console.log(error))
-      //   .finally(() => (this.loading = false));
     },
+
     printMem: function(bytes) {
       if (isNaN(bytes)) {
         return "";
@@ -500,11 +838,20 @@ let page = {
       }
       return `${gb.toFixed(1)} gb`;
     },
+
     refresh: function () {
       console.log("Platforms refresh. route: "+this.$route.name);
       if (this.$route.name != "Platforms") {
         return;
       }
+
+      // Update context when refreshing platforms
+      this.updateContext({
+        view: 'platforms',
+        action: 'refresh_platforms',
+        loading: true
+      });
+
       appUtils
         .get({
           url: "api/platforms",
@@ -518,13 +865,55 @@ let page = {
               plat.uptime = (plat.params  && plat.params.startTime ? moment(plat.params.startTime).fromNow() : "");
             }
             this.rows = response.data.platforms;
+
+            // Update context with platforms data
+            this.updateContext({
+              view: 'platforms',
+              action: 'platforms_loaded',
+              loading: false,
+              platformsData: {
+                count: this.rows.length,
+                running: this.rows.filter(platform => platform.status === 'running').length,
+                available: this.rows.filter(platform => platform.status === 'available').length,
+                disabled: this.rows.filter(platform => platform.status === 'not_available').length,
+                error: this.rows.filter(platform => platform.status === 'error' || platform.status === 'revive').length,
+                platforms: this.rows.map(platform => ({
+                  platID: platform.platID,
+                  status: platform.status,
+                  sessions: platform.sessions,
+                  availMem: platform.availMem,
+                  cpuLoad: platform.cpuLoad,
+                  ipAddress: platform.platform_ip
+                }))
+              },
+              lastUpdated: new Date().toISOString()
+            });
+
             setTimeout(this.refresh,5000);
           } else {
             console.log(`status: ${response.data.status}`);
             this.rows = [];
+
+            // Update context with error
+            this.updateContext({
+              view: 'platforms',
+              action: 'platforms_error',
+              loading: false,
+              error: `Failed to load platforms (status: ${response.data.status})`
+            });
           }
         })
-        .catch((error) => console.log(error))
+        .catch((error) => {
+          console.log(error);
+
+          // Update context with error
+          this.updateContext({
+            view: 'platforms',
+            action: 'platforms_error',
+            loading: false,
+            error: `Error loading platforms: ${error}`
+          });
+        })
         .finally(() => (this.loading = false));
     },
   },
@@ -575,12 +964,40 @@ let page = {
         text: this.$t("IP Address"),
         value: "platform_ip",
       },
-      
+
       { text: 'Actions', value: 'actions', sortable: false }
     ];
+
+    // Initialize context when component is created
+    this.updateContext({
+      view: 'init',
+      pageType: 'Platforms',
+      permissions: {
+        canManage: appData.checkPermission('@/','rw')
+      },
+      lastInitialized: new Date().toISOString()
+    });
+
     this.refresh();
-    //
   },
+  watch: {
+    selectedPlatforms: function(newVal) {
+      // Update context when platform selection changes
+      this.updateContext({
+        view: 'platforms',
+        action: 'selection_changed',
+        selectedPlatforms: newVal.map(platform => ({
+          platID: platform.platID,
+          status: platform.status
+        })),
+        selectedCount: newVal.length,
+        canStart: this.canSelectedAction('start'),
+        canStop: this.canSelectedAction('stop'),
+        canEnable: this.canSelectedAction('enable'),
+        canDisable: this.canSelectedAction('disable')
+      });
+    }
+  }
 };
 
 export default page;

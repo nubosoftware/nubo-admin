@@ -72,6 +72,20 @@
             <div v-if="sessionMetadata && sessionMetadata.analysis" class="panel-title px-3 mb-2">
               {{ sessionTitle }}
             </div>
+            <div v-if="session" class="px-3 mb-3">
+              <div class="d-flex align-center mt-2">
+                <v-icon small class="mr-1">mdi-laptop</v-icon>
+                <span class="subtitle-2">{{ $t('Device') }}: {{ session.deviceTitle }}</span>
+              </div>
+              <div class="d-flex align-center mt-1">
+                <v-icon small class="mr-1">mdi-clock-outline</v-icon>
+                <span class="subtitle-2">{{ $t('Duration') }}: {{ formatDuration(session) }}</span>
+              </div>
+              <div class="d-flex align-center mt-1">
+                <v-icon small class="mr-1">mdi-account</v-icon>
+                <span class="subtitle-2">{{ $t('User') }}: {{ session.email }}</span>
+              </div>
+            </div>
             <v-expansion-panels v-if="sessionMetadata && sessionMetadata.analysis" flat>
               <v-expansion-panel class="elevation-1 mb-2">
                 <v-expansion-panel-header class="px-4 py-2">
@@ -86,16 +100,18 @@
                 <v-expansion-panel-header class="px-4 py-2">
                   <div class="panel-title mb-0 d-flex align-center">
                     {{ $t('Potential Security Threats') }}
-                    <v-chip x-small color="error" class="ml-2" v-if="hasHighSeverityThreats">High</v-chip>
-                    <v-chip x-small color="warning" class="ml-2" v-else-if="hasMediumSeverityThreats">Medium</v-chip>
-                    <v-chip x-small color="info" class="ml-2" v-else>Low</v-chip>
+                    <v-chip x-small color="red" text-color="white" class="ml-2" v-if="hasHighCriticalThreats">Critical</v-chip>
+                    <v-chip x-small color="deep-orange" text-color="white" class="ml-2" v-else-if="hasHighSeverityThreats">High</v-chip>
+                    <v-chip x-small color="orange" text-color="white" class="ml-2" v-else-if="hasMediumSeverityThreats">Medium</v-chip>
+                    <v-chip x-small color="gray" text-color="black" class="ml-2" v-else>Low</v-chip>
                   </div>
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
-                  <div v-for="(threat, idx) in sessionMetadata.analysis.potentialSecurityThreats" :key="'threat-'+idx" class="mb-4 pa-2">
+                  <div v-for="(threat, idx) in sortedSecurityThreats" :key="'threat-'+idx" class="mb-4 pa-2">
                     <div class="d-flex align-center">
                       <v-chip x-small
                         :color="threatSeverityColor(threat.severity)"
+                        :text-color="threat.severity.toLowerCase() === 'low' ? 'black' : 'white'"
                         class="mr-2">
                         {{ threat.severity }}
                       </v-chip>
@@ -119,10 +135,11 @@
                   <div class="panel-title mb-0">{{ $t('Potential IT Issues') }}</div>
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
-                  <div v-for="(issue, idx) in sessionMetadata.analysis.potentialItIssues" :key="'issue-'+idx" class="mb-4 pa-2">
+                  <div v-for="(issue, idx) in sortedItIssues" :key="'issue-'+idx" class="mb-4 pa-2">
                     <div class="d-flex align-center">
                       <v-chip x-small
                         :color="threatSeverityColor(issue.severity)"
+                        :text-color="issue.severity.toLowerCase() === 'low' ? 'black' : 'white'"
                         class="mr-2">
                         {{ issue.severity }}
                       </v-chip>
@@ -458,7 +475,7 @@ import contextUpdater from "../mixins/contextUpdater";
 const moment = require("moment");
 
 export default {
-  name: "Session Monitor - Detail",
+  name: "SessionMonitor",
   mixins: [contextUpdater],
   data() {
     return {
@@ -477,6 +494,7 @@ export default {
       visibleEvents: [],
       visibleProcessingResults: [],
       sessionMetadata: null,
+      hasHighCriticalThreats: false,
       hasHighSeverityThreats: false,
       hasMediumSeverityThreats: false,
       lastFrameChangeTime: null,
@@ -494,6 +512,20 @@ export default {
     frameCounterDisplay() {
       return `Frame ${this.currentScreenshotIdx + 1} of ${this.screenshots.length}`;
     },
+    sortedSecurityThreats() {
+      if (!this.sessionMetadata?.analysis?.potentialSecurityThreats) return [];
+      return [...this.sessionMetadata.analysis.potentialSecurityThreats].sort((a, b) => {
+        const severityOrder = { 'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3 };
+        return severityOrder[a.severity] - severityOrder[b.severity];
+      });
+    },
+    sortedItIssues() {
+      if (!this.sessionMetadata?.analysis?.potentialItIssues) return [];
+      return [...this.sessionMetadata.analysis.potentialItIssues].sort((a, b) => {
+        const severityOrder = { 'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3 };
+        return severityOrder[a.severity] - severityOrder[b.severity];
+      });
+    }
   },
   methods: {
     async fetchSession() {
@@ -515,6 +547,7 @@ export default {
           this.parseActions(response.data.actions || []);
           this.parseProcessingResults(response.data.processing_results || []);
           this.parseMetadata(response.data.metadata || '{}');
+          this.updateBreadcrumb();
 
           // Update context with session data
           this.updateContext({
@@ -533,6 +566,7 @@ export default {
               duration: this.session.duration,
               securityThreats: this.sessionMetadata?.analysis?.potentialSecurityThreats || [],
               itIssues: this.sessionMetadata?.analysis?.potentialItIssues || [],
+              hasHighCriticalThreats: this.hasHighCriticalThreats,
               hasHighSeverityThreats: this.hasHighSeverityThreats,
               hasMediumSeverityThreats: this.hasMediumSeverityThreats
             },
@@ -610,6 +644,7 @@ export default {
           this.sessionMetadata = JSON.parse(metadataStr);
           console.log('Parsed metadata:', this.sessionMetadata);
           this.updateThreatSeverities();
+          this.updateBreadcrumb();
 
           // Update context with session analysis data
           if (this.sessionMetadata && this.sessionMetadata.analysis) {
@@ -620,6 +655,7 @@ export default {
               sessionSummary: this.sessionMetadata.analysis.sessionSummary || null,
               threatCount: (this.sessionMetadata.analysis.potentialSecurityThreats || []).length,
               issueCount: (this.sessionMetadata.analysis.potentialItIssues || []).length,
+              hasHighCriticalThreats: this.hasHighCriticalThreats,
               hasHighSeverityThreats: this.hasHighSeverityThreats,
               hasMediumSeverityThreats: this.hasMediumSeverityThreats,
               overallAssessment: this.sessionMetadata.analysis.overallAssessment || null
@@ -629,6 +665,7 @@ export default {
           this.sessionMetadata = metadataStr;
           console.log('Used object metadata:', this.sessionMetadata);
           this.updateThreatSeverities();
+          this.updateBreadcrumb();
 
           // Update context with session analysis data
           if (this.sessionMetadata && this.sessionMetadata.analysis) {
@@ -639,6 +676,7 @@ export default {
               sessionSummary: this.sessionMetadata.analysis.sessionSummary || null,
               threatCount: (this.sessionMetadata.analysis.potentialSecurityThreats || []).length,
               issueCount: (this.sessionMetadata.analysis.potentialItIssues || []).length,
+              hasHighCriticalThreats: this.hasHighCriticalThreats,
               hasHighSeverityThreats: this.hasHighSeverityThreats,
               hasMediumSeverityThreats: this.hasMediumSeverityThreats,
               overallAssessment: this.sessionMetadata.analysis.overallAssessment || null
@@ -671,10 +709,15 @@ export default {
     },
     updateThreatSeverities() {
       if (!this.sessionMetadata || !this.sessionMetadata.analysis || !this.sessionMetadata.analysis.potentialSecurityThreats) {
+        this.hasHighCriticalThreats = false;
         this.hasHighSeverityThreats = false;
         this.hasMediumSeverityThreats = false;
         return;
       }
+
+      this.hasHighCriticalThreats = this.sessionMetadata.analysis.potentialSecurityThreats.some(
+        threat => threat.severity === 'Critical'
+      );
 
       this.hasHighSeverityThreats = this.sessionMetadata.analysis.potentialSecurityThreats.some(
         threat => threat.severity === 'High'
@@ -712,6 +755,30 @@ export default {
     },
     formatTime(ts) {
       return moment(ts).format("YYYY-MM-DD HH:mm:ss");
+    },
+    formatDuration(item) {
+      if (!item.end_time || !item.start_time) return "0 seconds";
+      const seconds = moment(item.end_time).diff(moment(item.start_time), 'seconds');
+      if (!seconds) return "0 seconds";
+
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const remainingSeconds = seconds % 60;
+
+      let result = "";
+      if (hours > 0) {
+        result += `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
+      }
+      if (minutes > 0) {
+        if (result) result += ", ";
+        result += `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+      }
+      if (remainingSeconds > 0 || result === "") {
+        if (result) result += ", ";
+        result += `${remainingSeconds} ${remainingSeconds === 1 ? 'second' : 'seconds'}`;
+      }
+
+      return result;
     },
     togglePlay() {
       if (this.playing) {
@@ -916,9 +983,15 @@ export default {
       );
     },
     threatSeverityColor(severity) {
-      if (severity === 'High') return 'error';
-      if (severity === 'Medium') return 'warning';
-      return 'info';
+      if (!severity) return '';
+
+      switch(severity.toLowerCase()) {
+        case 'low': return 'gray';
+        case 'medium': return 'orange';
+        case 'high': return 'deep-orange';
+        case 'critical': return 'red';
+        default: return '';
+      }
     },
     toggleFullscreen() {
       this.isFullscreen = !this.isFullscreen;
@@ -943,6 +1016,33 @@ export default {
       this.$nextTick(() => {
         window.dispatchEvent(new Event('resize'));
       });
+    },
+    updateBreadcrumb() {
+      let title = this.sessionTitle;
+
+      // If we don't have a title from metadata but have a session, use email
+      if (title === this.$t('Session Details') && this.session && this.session.email) {
+        title = `${this.session.email} - ${this.formatTime(this.session.createdAt)}`;
+      }
+
+      const bcItems = [
+        {
+          text: this.appData.productName,
+          to: "/",
+          disabled: false,
+        },
+        {
+          text: this.$t("Session Monitor"),
+          to: "/SessionMonitor",
+          disabled: false,
+        },
+        {
+          text: title,
+          to: "#",
+          disabled: true,
+        }
+      ];
+      this.$emit("updatePage", bcItems);
     },
   },
   watch: {
@@ -974,6 +1074,7 @@ export default {
     this.visibleEvents = [];
     this.visibleProcessingResults = [];
     this.sessionMetadata = null;
+    this.hasHighCriticalThreats = false;
     this.hasHighSeverityThreats = false;
     this.hasMediumSeverityThreats = false;
     this.currentTimeDisplay = "";
