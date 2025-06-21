@@ -57,11 +57,24 @@
             </v-btn>
           </v-col>
         </v-row>
-        <v-row v-for="{key, name, dataType} in details.confDescriptions" :key="key">
+        <v-row v-for="{key, name, dataType, secretValue, enumValues} in details.confDescriptions" :key="key">
           <v-col class="py-2">
-            <v-text-field v-if="dataType == 'string'"
+            <v-text-field v-if="dataType == 'string' && !secretValue && !enumValues"
                     :label="name"
                     v-model="details.configuration[key]"
+                  />
+            <v-select v-if="dataType == 'string' && !secretValue && enumValues"
+                    :label="name"
+                    v-model="details.configuration[key]"
+                    :items="enumValues"
+                    :rules="[required]"
+                  />
+            <v-text-field v-if="dataType == 'string' && secretValue"
+                    :label="name"
+                    v-model="details.configuration[key]"
+                    type="password"
+                    :placeholder="originalSecretValues[key] === '***SECRET_VALUE_SET***' ? 'Enter new value to change' : 'Enter secret value'"
+                    @input="markSecretAsChanged(key)"
                   />
             <v-text-field v-if="dataType == 'number'"
                     :label="name"
@@ -241,6 +254,9 @@ let page = {
     uploadSelectedFile: null,
     uploadPluginDesc: {},
     configurationJson: {},
+    originalSecretValues: {},
+    changedSecretKeys: new Set(),
+    required: value => !!value || 'This field is required',
     numeric: value => {
       if (value == null || value == "") {
         return true;
@@ -547,6 +563,13 @@ let page = {
                 console.log(error);
               }
             }
+          } else if (element.dataType == "string" && element.secretValue) {
+            // Handle secret values
+            if (!this.changedSecretKeys.has(element.key)) {
+              // Secret value hasn't been changed, send the original value
+              this.details.configuration[element.key] = this.originalSecretValues[element.key];
+            }
+            // If it has been changed, the current value in details.configuration is already correct
           }
         });
       }
@@ -633,6 +656,10 @@ let page = {
             console.log(`status: ${response.data.status}`);
             this.details = response.data.plugin;
             this.details.activeText = this.details.active  ? this.$t("Enabled") : this.$t("Disabled");
+
+            // Reset changed secret keys tracking
+            this.changedSecretKeys.clear();
+
             if (this.details.confDescriptions) {
               this.details.confDescriptions.forEach((element) => {
                 if ( (element.dataType == "object") || (element.dataType == "array") ) {
@@ -645,6 +672,22 @@ let page = {
                     }
                   }
                   this.configurationJson[element.key] = JSON.stringify(obj, null, 2);
+                } else if (element.dataType == "string" && element.secretValue) {
+                  // Store the original secret value for comparison
+                  this.originalSecretValues[element.key] = this.details.configuration[element.key] || "";
+                  // Show visual indicator if there's a secret value set
+                  if (this.details.configuration[element.key] === "***SECRET_VALUE_SET***") {
+                    this.details.configuration[element.key] = "********";
+                  } else {
+                    this.details.configuration[element.key] = "";
+                  }
+                } else if (element.dataType == "string" && element.enumValues) {
+                  // For enum values, ensure the current value is valid or set to default
+                  let currentValue = this.details.configuration[element.key];
+                  if (!currentValue || !element.enumValues.includes(currentValue)) {
+                    // Set to default value if specified, otherwise first enum value
+                    this.details.configuration[element.key] = element.defaultValue || element.enumValues[0];
+                  }
                 }
               });
             }
@@ -718,6 +761,22 @@ let page = {
         },
       ];
       this.$emit("updatePage", bcItems);
+    },
+
+    markSecretAsChanged: function (key) {
+      // Mark this secret key as changed so we know to send the new value
+      this.changedSecretKeys.add(key);
+
+      // Update context when secret value is modified
+      this.updateContext({
+        view: 'plugin_details',
+        action: 'secret_value_changed',
+        plugin: {
+          id: this.id,
+          name: this.details.name
+        },
+        secretKey: key
+      });
     },
   },
   created: function () {

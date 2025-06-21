@@ -58,7 +58,7 @@
 
       <!-- Chatbot toggle button -->
       <v-btn
-        v-if="appData.isAuthenticated"
+        v-if="appData.isAuthenticated && appData.activePlugins.includes('session-monitor')"
         icon
         @click="toggleChatbot"
         class="mr-2"
@@ -116,7 +116,10 @@
     </v-main>
 
     <!-- Chatbot Sidebar Component -->
-    <chatbot-sidebar v-model="chatbotDrawer" />
+    <chatbot-sidebar
+      v-if="appData.activePlugins.includes('session-monitor')"
+      v-model="chatbotDrawer"
+    />
 
     <v-dialog v-model="networkErrorDialog" persistent max-width="400">
       <v-card>
@@ -252,6 +255,10 @@ export default {
             .then((response) => {
               if (response.data.status == 1) {
                 thisPage.checkLoginLoop(prevLoginToken);
+                if (response.data.activePlugins && Array.isArray(response.data.activePlugins)) {
+                  appData.activePlugins = response.data.activePlugins;
+                  appData.commit();
+                }
               } else {
                 console.log("Login Error");
                 console.log(response.data);
@@ -332,8 +339,10 @@ export default {
         if (!disalbeMenuItems.includes("Security")) {
           items.push({ title: this.$t("Security"), icon: "mdi-shield-account", link: "/Security" });
         }
-        if (!disalbeMenuItems.includes("SessionMonitor")) {
-          items.push({ title: this.$t("Session Monitor"), icon: "mdi-memory", link: "/SessionMonitor" });
+        if (appData.activePlugins.includes("session-monitor")) {
+          if (!disalbeMenuItems.includes("SessionMonitor")) {
+            items.push({ title: this.$t("Session Monitor"), icon: "mdi-memory", link: "/SessionMonitor" });
+          }
         }
       }
       if (appData.isEnterpriseEdition() && appData.checkPermission("/reports","r") && !disalbeMenuItems.includes("Reports")) {
@@ -356,6 +365,19 @@ export default {
       this.chatbotDrawer = !this.chatbotDrawer;
       // Save state to localStorage
       localStorage.setItem('chatbotOpen', this.chatbotDrawer ? 'true' : 'false');
+    }
+  },
+  watch: {
+    // Watch for changes in activePlugins to close chatbot if session-monitor is removed
+    'appData.activePlugins': {
+      handler(newPlugins) {
+        if (this.chatbotDrawer && !newPlugins.includes('session-monitor')) {
+          this.chatbotDrawer = false;
+          localStorage.setItem('chatbotOpen', 'false');
+        }
+        this.updatePermissions();
+      },
+      deep: true
     }
   },
   created: function () {

@@ -29,6 +29,7 @@ const appData = {
     orgs: [],
     deviceTypes: [],
     edition: "",
+    activePlugins: [],
     pluginsEnabled: false,
     productName: "",
     breadcrumbs: [],
@@ -56,7 +57,7 @@ const appData = {
         localStorage.setItem("productName", appData.productName);
         localStorage.setItem("deviceTypes", JSON.stringify(appData.deviceTypes));
         localStorage.setItem("permissions", JSON.stringify(appData.permissions));
-
+        localStorage.setItem("activePlugins", JSON.stringify(appData.activePlugins));
     },
     load: () => {
         console.log("Loading app data..");
@@ -96,6 +97,12 @@ const appData = {
         appData.siteAdmin = localStorage.getItem("siteAdmin");
         appData.siteAdminDomain = localStorage.getItem("siteAdminDomain");
         appData.edition = localStorage.getItem("edition");
+        let activePluginsStr = localStorage.getItem("activePlugins");
+        if (activePluginsStr && activePluginsStr != "") {
+            appData.activePlugins = JSON.parse(activePluginsStr);
+        } else {
+            appData.activePlugins = [];
+        }
         let deviceTypesStr = localStorage.getItem("deviceTypes");
         if (deviceTypesStr && deviceTypesStr != "") {
             try {

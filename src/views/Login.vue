@@ -390,6 +390,7 @@ export default {
                 appData.lastname = response.data.lastname;
                 appData.imageurl = response.data.imageurl;
                 appData.email = this.email;
+                appData.activePlugins = response.data.activePlugins || [];
                 appData.resetOrgs(response.data.orgs);
 
                 appData.siteAdmin = response.data.siteAdmin;

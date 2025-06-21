@@ -158,8 +158,8 @@
                         </v-toolbar>
                       </template>
 
-                        <template v-slot:[`item.createdAt`]="{ item }">
-                          {{ moment(item.createdAt).format("LLL") }}
+                        <template v-slot:[`item.start_time`]="{ item }">
+                          {{ moment(item.start_time).format("LLL") }}
                         </template>
                         <template v-slot:[`item.duration`]="{ item }">
                           {{ formatDuration(item) }}
@@ -428,24 +428,76 @@
 
                 <!-- Settings Tab -->
                 <v-tab-item key="settings" class="bg">
-                    <v-container>
-                        <v-row>
-                            <v-col cols="12">
-                                <v-card class="pa-4">
-                                    <v-card-title>{{ $t('Session Monitor Settings') }}</v-card-title>
-                                    <v-card-text>
-                                        <p class="text-center grey--text">{{ $t('Settings will be implemented in future updates') }}</p>
-                                    </v-card-text>
-                                </v-card>
-                            </v-col>
-                        </v-row>
-                    </v-container>
+                    <div class="bg-white">
+                        <div class="px-6 pt-6 pb-4">
+                            <div class="text-h6">{{ $t('Session Monitor Settings') }}</div>
+                        </div>
+
+                        <div class="px-6 py-3">
+                            <div class="mb-6">
+                                <v-textarea
+                                    v-model="settingsForm.securityAnalystCustomInstructions"
+                                    class="bg-white"
+                                    outlined
+                                    rows="8"
+                                    hide-details="auto"
+                                    placeholder="Security Analyst Custom Instructions"
+                                ></v-textarea>
+                                <div class="text-caption grey--text mt-1">
+                                    {{ $t('Additional instructions for the security analysis of sessions') }}
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <v-textarea
+                                    v-model="settingsForm.frameAnalyzerCustomInstructions"
+                                    class="bg-white"
+                                    outlined
+                                    rows="8"
+                                    hide-details="auto"
+                                    placeholder="Frame Analyzer Custom Instructions"
+                                ></v-textarea>
+                                <div class="text-caption grey--text mt-1">
+                                    {{ $t('Additional instructions for the frame analysis component') }}
+                                </div>
+                            </div>
+
+                            <div v-if="settingsForm.updatedAt" class="text-caption grey--text mb-4">
+                                {{ $t('Last updated') }}: {{ moment(settingsForm.updatedAt).format("LLL") }}
+                            </div>
+
+                            <div class="d-flex">
+                                <v-btn
+                                    color="error"
+                                    text
+                                    small
+                                    @click="resetSettings"
+                                    :loading="settingsLoading"
+                                    :disabled="!appData.checkPermission('/','w')"
+                                >
+                                    {{ $t('RESET TO DEFAULT') }}
+                                </v-btn>
+                                <v-spacer></v-spacer>
+                                <v-btn
+                                    color="primary"
+                                    dark
+                                    small
+                                    class="rounded-0 text-uppercase"
+                                    @click="saveSettings"
+                                    :loading="settingsLoading"
+                                    :disabled="!appData.checkPermission('/','w')"
+                                >
+                                    {{ $t('SAVE SETTINGS') }}
+                                </v-btn>
+                            </div>
+                        </div>
+                    </div>
                 </v-tab-item>
             </v-tabs-items>
         </v-card>
 
         <!-- Error Snackbar -->
-        <v-snackbar v-model="snackbarSave" :timeout="3000" color="error">
+        <v-snackbar v-model="snackbarSave" :timeout="3000" :color="snackbarColor">
             {{ snackbarText }}
             <template v-slot:action="{ attrs }">
                 <v-btn text v-bind="attrs" @click="snackbarSave = false">
@@ -566,6 +618,7 @@ let page = {
     alertToDelete: null,
     snackbarSave: false,
     snackbarText: "",
+    snackbarColor: "",
     alertForm: {
       title: "",
       condition_prompt: "",
@@ -590,7 +643,15 @@ let page = {
       sortBy: ['lastName'],
       sortDesc: [false]
     },
-    profileTotalItems: 0
+    profileTotalItems: 0,
+
+    // Settings related data
+    settingsLoading: false,
+    settingsForm: {
+      securityAnalystCustomInstructions: "",
+      frameAnalyzerCustomInstructions: "",
+      updatedAt: null
+    }
   }),
   methods: {
     savePage: function () {
@@ -679,7 +740,7 @@ let page = {
         selectedSession: {
           id: val.id,
           email: val.email,
-          createdAt: val.createdAt,
+          start_time: val.start_time,
           duration: this.formatDuration(val),
           sessionTitle: val.sessionTitle,
           deviceTitle: val.deviceTitle,
@@ -739,7 +800,7 @@ let page = {
               sessions: this.rows.map(session => ({
                 id: session.id,
                 email: session.email,
-                createdAt: session.createdAt,
+                start_time: session.start_time,
                 deviceTitle: session.deviceTitle,
                 status: session.status,
                 sessionTitle: session.sessionTitle,
@@ -890,6 +951,7 @@ Security Operations`,
       // Show errors if validation failed
       if (errors.length > 0) {
         this.snackbarText = errors.join(', ');
+        this.snackbarColor = "error";
         this.snackbarSave = true;
         return;
       }
@@ -907,12 +969,27 @@ Security Operations`,
               console.log("Alert updated successfully");
               this.refreshAlerts();
               this.closeAlertDialog();
+
+              // Show success message
+              this.snackbarText = this.$t("Alert updated successfully");
+              this.snackbarColor = "success";
+              this.snackbarSave = true;
             } else {
               console.error("Failed to update alert:", response.data);
+
+              // Show error message
+              this.snackbarText = this.$t("Failed to update alert");
+              this.snackbarColor = "error";
+              this.snackbarSave = true;
             }
           })
           .catch((error) => {
             console.error("Error updating alert:", error);
+
+            // Show error message
+            this.snackbarText = this.$t("Error updating alert");
+            this.snackbarColor = "error";
+            this.snackbarSave = true;
           });
       } else {
         // Create new alert
@@ -926,12 +1003,27 @@ Security Operations`,
               console.log("Alert created successfully");
               this.refreshAlerts();
               this.closeAlertDialog();
+
+              // Show success message
+              this.snackbarText = this.$t("Alert created successfully");
+              this.snackbarColor = "success";
+              this.snackbarSave = true;
             } else {
               console.error("Failed to create alert:", response.data);
+
+              // Show error message
+              this.snackbarText = this.$t("Failed to create alert");
+              this.snackbarColor = "error";
+              this.snackbarSave = true;
             }
           })
           .catch((error) => {
             console.error("Error creating alert:", error);
+
+            // Show error message
+            this.snackbarText = this.$t("Error creating alert");
+            this.snackbarColor = "error";
+            this.snackbarSave = true;
           });
       }
     },
@@ -1204,6 +1296,141 @@ Security Operations`,
       this.profileOptions = options;
       this.loadProfiles();
     },
+
+    saveSettings() {
+      this.settingsLoading = true;
+
+      appUtils
+        .req({
+          method: "PUT",
+          url: "api/monitor-settings",
+          data: this.settingsForm
+        })
+        .then((response) => {
+          console.log("Settings saved successfully", response.data);
+
+          // Update updatedAt if available in response
+          if (response.data && response.data.updatedAt) {
+            this.settingsForm.updatedAt = response.data.updatedAt;
+          } else {
+            // If not provided, use current time
+            this.settingsForm.updatedAt = new Date().toISOString();
+          }
+
+          // Show success message
+          this.snackbarText = this.$t("Settings saved successfully");
+          this.snackbarColor = "success";
+          this.snackbarSave = true;
+
+          // Update context
+          this.updateContext({
+            view: 'settings',
+            settings: {
+              hasSecurityAnalystInstructions: !!this.settingsForm.securityAnalystCustomInstructions,
+              hasFrameAnalyzerInstructions: !!this.settingsForm.frameAnalyzerCustomInstructions,
+              lastUpdated: this.settingsForm.updatedAt,
+              wasSaved: true
+            }
+          });
+        })
+        .catch((error) => {
+          console.error("Error saving settings:", error);
+
+          // Show error message
+          this.snackbarText = this.$t("Error saving settings");
+          this.snackbarColor = "error";
+          this.snackbarSave = true;
+        })
+        .finally(() => {
+          this.settingsLoading = false;
+        });
+    },
+
+    loadSettings() {
+      this.settingsLoading = true;
+
+      appUtils
+        .get({
+          url: "api/monitor-settings"
+        })
+        .then((response) => {
+          console.log("Settings loaded:", response.data);
+          if (response.data) {
+            this.settingsForm.securityAnalystCustomInstructions = response.data.securityAnalystCustomInstructions || "";
+            this.settingsForm.frameAnalyzerCustomInstructions = response.data.frameAnalyzerCustomInstructions || "";
+            this.settingsForm.updatedAt = response.data.updatedAt || null;
+
+            // Update context with settings
+            this.updateContext({
+              view: 'settings',
+              settings: {
+                hasSecurityAnalystInstructions: !!response.data.securityAnalystCustomInstructions,
+                hasFrameAnalyzerInstructions: !!response.data.frameAnalyzerCustomInstructions,
+                lastUpdated: response.data.updatedAt
+              }
+            });
+          }
+        })
+        .catch((error) => {
+          console.error("Error loading settings:", error);
+
+          // Show error message
+          this.snackbarText = this.$t("Error loading settings");
+          this.snackbarColor = "error";
+          this.snackbarSave = true;
+        })
+        .finally(() => {
+          this.settingsLoading = false;
+        });
+    },
+
+    resetSettings() {
+      // Ask for confirmation before resetting
+      if (!confirm(this.$t('Are you sure you want to reset all settings to default? This cannot be undone.'))) {
+        return;
+      }
+
+      this.settingsLoading = true;
+
+      appUtils
+        .req({
+          method: "DELETE",
+          url: "api/monitor-settings"
+        })
+        .then((response) => {
+          console.log("Settings reset successfully:", response.data);
+
+          // Reset form values
+          this.settingsForm.securityAnalystCustomInstructions = "";
+          this.settingsForm.frameAnalyzerCustomInstructions = "";
+
+          // Show success message
+          this.snackbarText = this.$t("Settings reset to default values");
+          this.snackbarColor = "success";
+          this.snackbarSave = true;
+
+          // Update context
+          this.updateContext({
+            view: 'settings',
+            settings: {
+              hasSecurityAnalystInstructions: false,
+              hasFrameAnalyzerInstructions: false,
+              wasReset: true
+            }
+          });
+        })
+        .catch((error) => {
+          console.error("Error resetting settings:", error);
+
+          // Show error message
+          this.snackbarText = this.$t("Error resetting settings");
+          this.snackbarColor = "error";
+          this.snackbarSave = true;
+        })
+        .finally(() => {
+          this.settingsLoading = false;
+        });
+    },
   },
   created: function () {
     let bcItems = [
@@ -1225,7 +1452,7 @@ Security Operations`,
         value: "ID",
       },*/
 
-      { text: this.$t("Time"), value: "createdAt" },
+      { text: this.$t("Time"), value: "start_time" },
       { text: this.$t("Duration"), value: "duration" },
       { text: this.$t("User"), value: "email" },
       { text: this.$t("Summary"), value: "sessionTitle" },
@@ -1287,6 +1514,10 @@ Security Operations`,
       // Load alerts data when switching to alerts tab
       if (newVal === 1) { // Alerts tab index
         this.refreshAlerts();
+      }
+      // Load settings data when switching to settings tab
+      else if (newVal === 2) { // Settings tab index
+        this.loadSettings();
       }
     },
 
