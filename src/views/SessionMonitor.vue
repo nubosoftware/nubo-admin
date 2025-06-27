@@ -9,6 +9,7 @@
                     <v-tabs v-model="tab" align-with-title>
                         <v-tabs-slider color="primary"></v-tabs-slider>
                         <v-tab key="list">{{ $t("Session List") }}</v-tab>
+                        <v-tab key="auth-keys">{{ $t("Auth Keys") }}</v-tab>
                         <v-tab key="alerts">{{ $t("Alerts") }}</v-tab>
                         <v-tab key="settings">{{ $t("Settings") }}</v-tab>
                     </v-tabs>
@@ -219,6 +220,87 @@
                     </v-data-table>
                 </v-tab-item>
 
+                <!-- Auth Keys Tab -->
+                <v-tab-item key="auth-keys" class="bg">
+                    <v-data-table
+                        color="bg"
+                        :headers="[
+                            { text: $t('Auth Key'), value: 'auth_key', width: '60%' },
+                            { text: $t('Created'), value: 'createdAt', width: '25%' },
+                            { text: $t('Actions'), value: 'actions', sortable: false, width: '15%' }
+                        ]"
+                        :items="authKeys"
+                        :loading="authKeysLoading"
+                        class="ma-4 bg"
+                        :items-per-page="10"
+                        :footer-props="{
+                            'items-per-page-options': [5, 10, 25, 50]
+                        }"
+                    >
+                        <template v-slot:top>
+                            <v-toolbar flat color="bg">
+                                <v-toolbar-title class="subtitle-1 font-weight-bold">{{ $t('API Authentication Keys') }}</v-toolbar-title>
+                                <v-spacer></v-spacer>
+                                <v-btn
+                                    color="primary"
+                                    small
+                                    @click="createAuthKey"
+                                    :loading="authKeysLoading"
+                                    :disabled="!appData.checkPermission('/','w')"
+                                >
+                                    <v-icon left small>mdi-plus</v-icon>
+                                    {{ $t('Add New Key') }}
+                                </v-btn>
+                            </v-toolbar>
+                        </template>
+
+                        <template v-slot:[`item.auth_key`]="{ item }">
+                            <div class="d-flex align-center">
+                                <code class="text-truncate mr-2" style="max-width: 300px;">{{ item.auth_key }}</code>
+                                <v-btn
+                                    icon
+                                    small
+                                    @click="copyAuthKey(item)"
+                                    :title="$t('Copy to clipboard')"
+                                >
+                                    <v-icon small>mdi-content-copy</v-icon>
+                                </v-btn>
+                            </div>
+                        </template>
+
+                        <template v-slot:[`item.createdAt`]="{ item }">
+                            {{ moment(item.createdAt).format("LLL") }}
+                        </template>
+
+                        <template v-slot:[`item.actions`]="{ item }">
+                            <v-btn
+                                icon
+                                small
+                                color="error"
+                                @click="deleteAuthKey(item)"
+                                :disabled="!appData.checkPermission('/','w')"
+                                :title="$t('Delete key')"
+                            >
+                                <v-icon small>mdi-delete</v-icon>
+                            </v-btn>
+                        </template>
+
+                        <template v-slot:loading>
+                            <v-skeleton-loader
+                                type="table-row@3"
+                                class="my-2"
+                            ></v-skeleton-loader>
+                        </template>
+
+                        <template v-slot:no-data>
+                            <div class="text-center py-4">
+                                <v-icon large color="grey lighten-1">mdi-key-off</v-icon>
+                                <p class="mt-2 grey--text">{{ $t('No auth keys found') }}</p>
+                            </div>
+                        </template>
+                    </v-data-table>
+                </v-tab-item>
+
                 <!-- Alerts Tab (formerly Notifications) -->
                 <v-tab-item key="alerts" class="bg">
                     <v-data-table
@@ -380,6 +462,8 @@
                         </v-card>
                     </v-dialog>
 
+
+
                     <!-- Profile selector dialog -->
                     <v-dialog v-model="profileSelectorDialog" max-width="800px">
                         <v-card>
@@ -490,11 +574,29 @@
                                     {{ $t('SAVE SETTINGS') }}
                                 </v-btn>
                             </div>
-                        </div>
+                                                </div>
                     </div>
                 </v-tab-item>
             </v-tabs-items>
         </v-card>
+
+        <!-- Auth Key Delete Confirmation Dialog -->
+        <v-dialog v-model="authKeyDeleteDialog" max-width="400">
+            <v-card>
+                <v-card-title class="headline">{{ $t('Delete Auth Key') }}</v-card-title>
+                <v-card-text>
+                    {{ $t('Are you sure you want to delete this authentication key?') }}
+                    <br>
+                    <code class="mt-2 d-block" v-if="authKeyToDelete">{{ authKeyToDelete.auth_key }}</code>
+                    <div class="mt-2 error--text">{{ $t('This action cannot be undone.') }}</div>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="grey darken-1" text @click="authKeyDeleteDialog = false">{{ $t('Cancel') }}</v-btn>
+                    <v-btn color="red darken-1" text @click="confirmDeleteAuthKey">{{ $t('Delete') }}</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
 
         <!-- Error Snackbar -->
         <v-snackbar v-model="snackbarSave" :timeout="3000" :color="snackbarColor">
@@ -651,7 +753,13 @@ let page = {
       securityAnalystCustomInstructions: "",
       frameAnalyzerCustomInstructions: "",
       updatedAt: null
-    }
+    },
+
+    // Auth keys related data
+    authKeys: [],
+    authKeysLoading: false,
+    authKeyDeleteDialog: false,
+    authKeyToDelete: null
   }),
   methods: {
     savePage: function () {
@@ -1431,6 +1539,156 @@ Security Operations`,
           this.settingsLoading = false;
         });
     },
+
+    loadAuthKeys() {
+      this.authKeysLoading = true;
+
+      appUtils
+        .get({
+          url: "api/monitor-keys"
+        })
+        .then((response) => {
+          console.log("Auth keys loaded:", response.data);
+          if (response.data.status == 1) {
+            this.authKeys = response.data.auth_keys || [];
+          } else {
+            console.error("Failed to load auth keys:", response.data);
+            this.snackbarText = this.$t("Failed to load auth keys");
+            this.snackbarColor = "error";
+            this.snackbarSave = true;
+          }
+        })
+        .catch((error) => {
+          console.error("Error loading auth keys:", error);
+          this.snackbarText = this.$t("Error loading auth keys");
+          this.snackbarColor = "error";
+          this.snackbarSave = true;
+        })
+        .finally(() => {
+          this.authKeysLoading = false;
+        });
+    },
+
+    createAuthKey() {
+      this.authKeysLoading = true;
+
+      appUtils
+        .post({
+          url: "api/monitor-keys",
+          data: {}
+        })
+        .then((response) => {
+          console.log("Auth key created:", response.data);
+          if (response.data.status == 1) {
+            // Reload auth keys to show the new one
+            this.loadAuthKeys();
+
+            // Show success message
+            this.snackbarText = this.$t("Auth key created successfully");
+            this.snackbarColor = "success";
+            this.snackbarSave = true;
+          } else {
+            console.error("Failed to create auth key:", response.data);
+            this.snackbarText = this.$t("Failed to create auth key");
+            this.snackbarColor = "error";
+            this.snackbarSave = true;
+          }
+        })
+        .catch((error) => {
+          console.error("Error creating auth key:", error);
+          this.snackbarText = this.$t("Error creating auth key");
+          this.snackbarColor = "error";
+          this.snackbarSave = true;
+        })
+        .finally(() => {
+          this.authKeysLoading = false;
+        });
+    },
+
+    deleteAuthKey(authKey) {
+      console.log("deleteAuthKey called with:", authKey);
+      this.authKeyToDelete = authKey;
+      this.authKeyDeleteDialog = true;
+      console.log("Dialog should be visible, authKeyDeleteDialog =", this.authKeyDeleteDialog);
+    },
+
+        confirmDeleteAuthKey() {
+      if (!this.authKeyToDelete) {
+        console.error("No auth key selected for deletion");
+        return;
+      }
+
+      console.log("Deleting auth key:", this.authKeyToDelete.auth_key);
+      this.authKeysLoading = true;
+
+      appUtils
+        .req({
+          method: "DELETE",
+          url: `api/monitor-keys/${this.authKeyToDelete.auth_key}`
+        })
+        .then((response) => {
+          console.log("Delete auth key response:", response.data);
+          if (response.data && response.data.status == 1) {
+            // Reload auth keys to reflect the deletion
+            this.loadAuthKeys();
+
+            // Show success message
+            this.snackbarText = this.$t("Auth key deleted successfully");
+            this.snackbarColor = "success";
+            this.snackbarSave = true;
+          } else {
+            console.error("Failed to delete auth key:", response.data);
+            this.snackbarText = response.data.error || this.$t("Failed to delete auth key");
+            this.snackbarColor = "error";
+            this.snackbarSave = true;
+          }
+        })
+        .catch((error) => {
+          console.error("Error deleting auth key:", error);
+          this.snackbarText = error.response?.data?.error || this.$t("Error deleting auth key");
+          this.snackbarColor = "error";
+          this.snackbarSave = true;
+        })
+        .finally(() => {
+          this.authKeysLoading = false;
+          this.authKeyDeleteDialog = false;
+          this.authKeyToDelete = null;
+        });
+    },
+
+    copyAuthKey(authKey) {
+      // Copy auth key to clipboard
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(authKey.auth_key).then(() => {
+          this.snackbarText = this.$t("Auth key copied to clipboard");
+          this.snackbarColor = "success";
+          this.snackbarSave = true;
+        }).catch((error) => {
+          console.error("Error copying to clipboard:", error);
+          this.snackbarText = this.$t("Failed to copy auth key");
+          this.snackbarColor = "error";
+          this.snackbarSave = true;
+        });
+      } else {
+        // Fallback for older browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = authKey.auth_key;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          this.snackbarText = this.$t("Auth key copied to clipboard");
+          this.snackbarColor = "success";
+          this.snackbarSave = true;
+        } catch (error) {
+          console.error("Error copying to clipboard:", error);
+          this.snackbarText = this.$t("Failed to copy auth key");
+          this.snackbarColor = "error";
+          this.snackbarSave = true;
+        }
+        document.body.removeChild(textArea);
+      }
+    },
   },
   created: function () {
     let bcItems = [
@@ -1500,8 +1758,12 @@ Security Operations`,
     });
 
     // Load initial data based on active tab
-    if (this.tab === 1) { // Alerts tab
+    if (this.tab === 1) { // Auth Keys tab
+      this.loadAuthKeys();
+    } else if (this.tab === 2) { // Alerts tab
       this.refreshAlerts();
+    } else if (this.tab === 3) { // Settings tab
+      this.loadSettings();
     } else {
       this.refresh(); // Default to loading sessions
     }
@@ -1511,12 +1773,16 @@ Security Operations`,
       console.log(`tab change to:`, newVal);
       this.savePage();
 
+      // Load auth keys data when switching to auth keys tab
+      if (newVal === 1) { // Auth Keys tab index
+        this.loadAuthKeys();
+      }
       // Load alerts data when switching to alerts tab
-      if (newVal === 1) { // Alerts tab index
+      else if (newVal === 2) { // Alerts tab index
         this.refreshAlerts();
       }
       // Load settings data when switching to settings tab
-      else if (newVal === 2) { // Settings tab index
+      else if (newVal === 3) { // Settings tab index
         this.loadSettings();
       }
     },
