@@ -409,5 +409,21 @@
     "Password cannot contain your email username": "Password cannot contain your email username",
     "Password cannot contain repeated characters": "Password cannot contain repeated characters",
     "Password cannot contain sequential characters": "Password cannot contain sequential characters",
-    "Password cannot contain sequential characters or keyboard patterns": "Password cannot contain sequential characters or keyboard patterns"
+    "Password cannot contain sequential characters or keyboard patterns": "Password cannot contain sequential characters or keyboard patterns",
+    "Data Reset": "Data Reset",
+    "Are you sure you want to reset data for this device?": "Are you sure you want to reset data for this device?",
+    "This will permanently delete all data stored for this device.": "This will permanently delete all data stored for this device.",
+    "Reset Data": "Reset Data",
+    "Device data reset successfully": "Device data reset successfully",
+    "Error resetting device data": "Error resetting device data",
+    "Are you sure you want to reset user storage data?": "Are you sure you want to reset user storage data?",
+    "This will permanently delete all general storage data for this user.": "This will permanently delete all general storage data for this user.",
+    "Reset Storage": "Reset Storage",
+    "User storage data reset successfully": "User storage data reset successfully",
+    "Error resetting user storage data": "Error resetting user storage data",
+    "Also remove all device storage data": "Also remove all device storage data",
+    "Profile and device data deleted": "Profile and device data deleted",
+    "Storage Size": "Storage Size",
+    "N/A": "N/A",
+    "Loading...": "Loading..."
 }

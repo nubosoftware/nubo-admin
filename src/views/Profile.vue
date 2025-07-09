@@ -39,13 +39,46 @@
         </v-list>
       </v-menu>
 
-      <v-dialog v-model="dialogDeleteProfile" max-width="500px" color="bg">
+      <v-dialog v-model="dialogDeleteProfile" max-width="700px" color="bg">
           <v-card color="bg">
             <v-card-subtitle class="headline">{{$t('Are you sure you want to delete profile',{profileName: details.firstname+' '+details.lastname })}}</v-card-subtitle>
+            <v-card-text>
+              <v-checkbox
+                v-model="deleteProfileDataRemove"
+                :label="$t('Also remove all device storage data')"
+                color="warning"
+              ></v-checkbox>
+            </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="warning"  @click="dialogDeleteProfile = false">{{$t('Cancel')}}</v-btn>
               <v-btn color="error"  @click="deleteProfile()">{{$t('OK')}}</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+      <v-dialog v-model="dialogUserDataReset" max-width="700px" color="bg">
+          <v-card color="bg">
+            <v-card-title class="headline">{{$t('Are you sure you want to reset general storage data?')}}</v-card-title>
+            <v-card-subtitle>{{$t('This will permanently delete all general storage data for this user (excluding device storage).')}}</v-card-subtitle>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="warning"  @click="dialogUserDataReset = false">{{$t('Cancel')}}</v-btn>
+              <v-btn color="error"  @click="userDataResetConfirm">{{$t('Reset General Storage')}}</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+      <v-dialog v-model="dialogTotalDataReset" max-width="700px" color="bg">
+          <v-card color="bg">
+            <v-card-title class="headline">{{$t('Are you sure you want to reset all storage data?')}}</v-card-title>
+            <v-card-subtitle>{{$t('This will permanently delete ALL storage data for this user, including general storage and all device storage.')}}</v-card-subtitle>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="warning"  @click="dialogTotalDataReset = false">{{$t('Cancel')}}</v-btn>
+              <v-btn color="error"  @click="totalDataResetConfirm">{{$t('Reset All Storage')}}</v-btn>
               <v-spacer></v-spacer>
             </v-card-actions>
           </v-card>
@@ -147,12 +180,48 @@
               </v-row>
               <v-row>
                 <v-col cols="12" sm="6" md="3">
+                  <v-text-field
+                    :label="$t('General Storage Size')"
+                    v-model="generalStorageSize"
+                    :loading="generalStorageLoading"
+                    readonly />
+                </v-col>
+                <v-col cols="12" sm="6" md="3" class="d-flex align-center">
+                  <v-btn
+                    color="warning"
+                    @click="userDataReset"
+                    v-if="!newProfile && appData.checkPermission('/profiles','w')"
+                  >
+                    {{$t('Reset General Storage')}}
+                  </v-btn>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" sm="6" md="3">
+                  <v-text-field
+                    :label="$t('Total Storage Size')"
+                    v-model="userStorageSize"
+                    :loading="userStorageLoading"
+                    readonly />
+                </v-col>
+                <v-col cols="12" sm="6" md="3" class="d-flex align-center">
+                  <v-btn
+                    color="error"
+                    @click="totalDataReset"
+                    v-if="!newProfile && appData.checkPermission('/profiles','w')"
+                  >
+                    {{$t('Reset All Storage')}}
+                  </v-btn>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" sm="6" md="3">
                   <v-checkbox
                     class="py-0 my-0"
                     v-model="details.isActive"
                     :label="$t('Enabled')"
                   ></v-checkbox>
-              </v-col>
+                </v-col>
               </v-row>
               <v-row>
                 <v-col cols="12" sm="6" md="3">
@@ -235,7 +304,7 @@
       <v-tab-item key="apps">
         <v-card flat color="bg">
           <v-card-title>{{$t("App List")}}</v-card-title>
-          <v-dialog v-model="dialogDelete" max-width="500px" color="bg">
+          <v-dialog v-model="dialogDelete" max-width="700px" color="bg">
           <v-card color="bg">
             <v-card-title class="headline">{{$t('Are you sure you want to delete',{deleteAppName: deleteAppItem.appName })}}</v-card-title>
             <v-card-actions>
@@ -274,13 +343,25 @@
       <v-tab-item key="devices">
         <v-card flat color="bg">
           <v-card-title>{{$t("Devices")}}</v-card-title>
-          <v-dialog v-model="dialogDeleteDevice" max-width="500px" color="bg">
+          <v-dialog v-model="dialogDeleteDevice" max-width="700px" color="bg">
           <v-card color="bg">
             <v-card-title class="headline">{{$t('Are you sure you want to delete device?')}}</v-card-title>
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="warning"  @click="dialogDeleteDevice = false;">{{$t('Cancel')}}</v-btn>
               <v-btn color="primary"  @click="deleteDeviceConfirm">{{$t('OK')}}</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+          <v-dialog v-model="dialogDataReset" max-width="700px" color="bg">
+          <v-card color="bg">
+            <v-card-title class="headline">{{$t('Are you sure you want to reset data for this device?')}}</v-card-title>
+            <v-card-subtitle>{{$t('This will permanently delete all data stored for this device.')}}</v-card-subtitle>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="warning"  @click="dialogDataReset = false;">{{$t('Cancel')}}</v-btn>
+              <v-btn color="error"  @click="dataResetConfirm">{{$t('Reset Data')}}</v-btn>
               <v-spacer></v-spacer>
             </v-card-actions>
           </v-card>
@@ -324,6 +405,20 @@
                 {{$t("Disabled")}}
               </v-chip>
             </template>
+            <template v-slot:[`item.storageSize`]="{ item }">
+              <div v-if="deviceStorageLoading">
+                <v-progress-circular
+                  indeterminate
+                  size="16"
+                  width="2"
+                  class="mr-2"
+                ></v-progress-circular>
+                {{$t("Loading...")}}
+              </div>
+              <div v-else>
+                {{ item.storageSize || $t("N/A") }}
+              </div>
+            </template>
             <template v-slot:[`item.actions`]="{ item }">
               <v-btn
               v-if="item.isOnline && appData.checkPermission('/profiles','w')"
@@ -364,6 +459,16 @@
               @click="deleteDevice(item)"
             >
               {{$t("Delete")}}
+            </v-btn>
+            <v-btn
+              v-if="appData.checkPermission('/profiles','w')"
+              small
+              color="warning"
+              dark
+              class="ma-1"
+              @click="dataReset(item)"
+            >
+              {{$t("Data Reset")}}
             </v-btn>
             </template>
           </v-data-table>
@@ -491,6 +596,16 @@ export default {
     addDeviceUID: "",
     dialogDeleteDevice: false,
     deleteDeviceItem: {},
+    dialogDataReset: false,
+    dataResetItem: {},
+    dialogUserDataReset: false,
+    dialogTotalDataReset: false,
+    deleteProfileDataRemove: false,
+    userStorageSize: "",
+    userStorageLoading: false,
+    generalStorageSize: "",
+    generalStorageLoading: false,
+    deviceStorageLoading: false,
     dialogMassAdd: false,
     massAddCount: 1,
     massAddLoading: false,
@@ -597,6 +712,148 @@ export default {
     deleteDevice: function(item) {
       this.dialogDeleteDevice  = true;
       this.deleteDeviceItem = item
+    },
+    dataReset: function(item) {
+      this.dialogDataReset = true;
+      this.dataResetItem = item;
+    },
+    dataResetConfirm: async function() {
+      try {
+        await appUtils.delete({
+          url: `api/storage/${encodeURIComponent(this.details.email)}/${encodeURIComponent(this.dataResetItem.IMEI)}`
+        });
+
+        this.dialogDataReset = false;
+        this.snackbarText = this.$t("Device data reset successfully");
+        this.snackbarSave = true;
+
+        // Refresh device storage sizes and total storage after device reset
+        this.loadDeviceStorageSizes();
+        this.loadUserStorageSize();
+
+        // Update context with data reset action
+        this.updateContext({
+          view: 'profile',
+          mode: 'view',
+          tab: this.tab,
+          action: 'data_reset',
+          success: true,
+          deviceId: this.dataResetItem.IMEI,
+          profileId: this.profileID,
+          lastUpdated: new Date().toISOString()
+        });
+      } catch (err) {
+        console.error(`Error resetting device data: ${err}`, err);
+        this.dialogDataReset = false;
+        this.snackbarText = this.$t("Error resetting device data");
+        this.snackbarSave = true;
+
+        // Update context with error
+        this.updateContext({
+          view: 'profile',
+          mode: 'view',
+          tab: this.tab,
+          action: 'data_reset_error',
+          success: false,
+          error: `Error resetting device data: ${err}`,
+          deviceId: this.dataResetItem.IMEI,
+          profileId: this.profileID,
+          lastUpdated: new Date().toISOString()
+        });
+      }
+    },
+    userDataReset: function() {
+      this.dialogUserDataReset = true;
+    },
+    userDataResetConfirm: async function() {
+      try {
+        await appUtils.delete({
+          url: `api/storage/${encodeURIComponent(this.details.email)}/general`
+        });
+
+        this.dialogUserDataReset = false;
+        this.snackbarText = this.$t("General storage data reset successfully");
+        this.snackbarSave = true;
+
+        // Reload storage sizes after reset
+        this.loadGeneralStorageSize();
+        this.loadUserStorageSize();
+
+        // Update context with user data reset action
+        this.updateContext({
+          view: 'profile',
+          mode: 'view',
+          tab: this.tab,
+          action: 'user_data_reset',
+          success: true,
+          profileId: this.profileID,
+          lastUpdated: new Date().toISOString()
+        });
+      } catch (err) {
+        console.error(`Error resetting general storage data: ${err}`, err);
+        this.dialogUserDataReset = false;
+        this.snackbarText = this.$t("Error resetting general storage data");
+        this.snackbarSave = true;
+
+        // Update context with error
+        this.updateContext({
+          view: 'profile',
+          mode: 'view',
+          tab: this.tab,
+          action: 'user_data_reset_error',
+          success: false,
+          error: `Error resetting general storage data: ${err}`,
+          profileId: this.profileID,
+          lastUpdated: new Date().toISOString()
+        });
+      }
+    },
+    totalDataReset: function() {
+      this.dialogTotalDataReset = true;
+    },
+    totalDataResetConfirm: async function() {
+      try {
+        await appUtils.delete({
+          url: `api/storage/${encodeURIComponent(this.details.email)}`
+        });
+
+        this.dialogTotalDataReset = false;
+        this.snackbarText = this.$t("All storage data reset successfully");
+        this.snackbarSave = true;
+
+        // Reload all storage sizes after total reset (general, total, and device storage)
+        this.loadGeneralStorageSize();
+        this.loadUserStorageSize();
+        this.loadDeviceStorageSizes();
+
+        // Update context with total data reset action
+        this.updateContext({
+          view: 'profile',
+          mode: 'view',
+          tab: this.tab,
+          action: 'total_data_reset',
+          success: true,
+          profileId: this.profileID,
+          lastUpdated: new Date().toISOString()
+        });
+      } catch (err) {
+        console.error(`Error resetting all storage data: ${err}`, err);
+        this.dialogTotalDataReset = false;
+        this.snackbarText = this.$t("Error resetting all storage data");
+        this.snackbarSave = true;
+
+        // Update context with error
+        this.updateContext({
+          view: 'profile',
+          mode: 'view',
+          tab: this.tab,
+          action: 'total_data_reset_error',
+          success: false,
+          error: `Error resetting all storage data: ${err}`,
+          profileId: this.profileID,
+          lastUpdated: new Date().toISOString()
+        });
+      }
     },
     deleteDeviceConfirm: async function() {
       try {
@@ -786,6 +1043,7 @@ export default {
             { text: this.$t("Platform"), value: "platform" },
             { text: this.$t("Gateway"), value: "gateway" },
             { text: this.$t("Local ID"), value: "localid" },
+            { text: this.$t("Storage Size"), value: "storageSize" },
             { text: 'Actions', value: 'actions', sortable: false },
           ];
 
@@ -817,6 +1075,9 @@ export default {
             tabData: this.getContextDataForCurrentTab(),
             lastUpdated: new Date().toISOString()
           });
+
+          // Load user storage size
+          this.loadUserStorageSize();
         } else {
           console.log(`status: ${response.data.status}`);
 
@@ -854,7 +1115,8 @@ export default {
           firstName: this.details.firstname,
           lastName: this.details.lastname,
           email: this.details.email,
-          isActive: this.details.isActive
+          isActive: this.details.isActive,
+          storageSize: this.userStorageSize
         };
       } else if (this.tab === 1) { // Activity tab
         tabData = {
@@ -883,7 +1145,8 @@ export default {
             name: device.deviceName,
             id: device.IMEI,
             isOnline: device.isOnline,
-            platform: device.platform
+            platform: device.platform,
+            storageSize: device.storageSize
           }))
         };
       } else if (this.tab === 4) { // Groups tab
@@ -1133,7 +1396,7 @@ export default {
         });
     },
 
-    deleteProfile: function () {
+    deleteProfile: async function () {
       console.log("deleteProfile");
 
       // Update context with deleting profile state
@@ -1142,54 +1405,55 @@ export default {
         mode: 'view',
         tab: this.tab,
         action: 'deleting_profile',
-        profileId: this.profileID
+        profileId: this.profileID,
+        dataRemove: this.deleteProfileDataRemove
       });
 
-      appUtils
-        .delete({
-          url:
-          "api/profiles/" +
-          encodeURIComponent(this.profileID),
-        })
-        .then((response) => {
-          console.log(response.data);
-          if (response.data.status == 1) {
-            this.saveLoading = false;
-            this.snackbarText = this.$t("Profile deleted");
-            this.snackbarSave = true;
+            try {
+        // If data removal is requested, delete all user storage first
+        if (this.deleteProfileDataRemove) {
+          console.log("Deleting all user storage data");
 
-            // Update context with success
-            this.updateContext({
-              view: 'profile',
-              mode: 'view',
-              tab: this.tab,
-              action: 'profile_deleted',
-              success: true,
-              profileId: this.profileID,
-              lastUpdated: new Date().toISOString()
+          try {
+            await appUtils.delete({
+              url: `api/storage/${encodeURIComponent(this.details.email)}`
             });
-
-            this.$router.push("/Profiles");
-          } else {
-            this.snackbarText = "Error";
-            this.snackbarSave = true;
-
-            // Update context with error
-            this.updateContext({
-              view: 'profile',
-              mode: 'view',
-              tab: this.tab,
-              action: 'delete_error',
-              success: false,
-              error: `Failed to delete profile (status: ${response.data.status})`,
-              profileId: this.profileID,
-              lastUpdated: new Date().toISOString()
-            });
+            console.log("All user storage data deleted successfully");
+          } catch (storageErr) {
+            console.error("Error deleting user storage:", storageErr);
+            // Continue with profile deletion even if storage deletion fails
           }
-        }).catch((err) => {
+        }
+
+        // Delete the profile
+        const response = await appUtils.delete({
+          url: "api/profiles/" + encodeURIComponent(this.profileID),
+        });
+
+        console.log(response.data);
+        if (response.data.status == 1) {
+          this.saveLoading = false;
+          this.snackbarText = this.deleteProfileDataRemove ?
+            this.$t("Profile and device data deleted") :
+            this.$t("Profile deleted");
+          this.snackbarSave = true;
+
+          // Update context with success
+          this.updateContext({
+            view: 'profile',
+            mode: 'view',
+            tab: this.tab,
+            action: 'profile_deleted',
+            success: true,
+            profileId: this.profileID,
+            dataRemoved: this.deleteProfileDataRemove,
+            lastUpdated: new Date().toISOString()
+          });
+
+          this.$router.push("/Profiles");
+        } else {
           this.snackbarText = "Error";
           this.snackbarSave = true;
-          console.log(err);
 
           // Update context with error
           this.updateContext({
@@ -1198,11 +1462,129 @@ export default {
             tab: this.tab,
             action: 'delete_error',
             success: false,
-            error: `Error deleting profile: ${err}`,
+            error: `Failed to delete profile (status: ${response.data.status})`,
             profileId: this.profileID,
             lastUpdated: new Date().toISOString()
           });
+        }
+      } catch (err) {
+        this.snackbarText = "Error";
+        this.snackbarSave = true;
+        console.log(err);
+
+        // Update context with error
+        this.updateContext({
+          view: 'profile',
+          mode: 'view',
+          tab: this.tab,
+          action: 'delete_error',
+          success: false,
+          error: `Error deleting profile: ${err}`,
+          profileId: this.profileID,
+          lastUpdated: new Date().toISOString()
         });
+      }
+
+      // Reset the checkbox for next time
+      this.deleteProfileDataRemove = false;
+    },
+    formatStorageSize: function(data) {
+      if (!data) return "0 B";
+
+      // Choose the most appropriate unit
+      if (data.sizeGB >= 1) {
+        return `${data.sizeGB.toFixed(2)} GB`;
+      } else if (data.sizeMB >= 1) {
+        return `${data.sizeMB.toFixed(2)} MB`;
+      } else if (data.sizeKB >= 1) {
+        return `${data.sizeKB.toFixed(0)} KB`;
+      } else {
+        return "0 B";
+      }
+    },
+    loadGeneralStorageSize: async function() {
+      if (this.newProfile) return;
+
+      this.generalStorageLoading = true;
+      try {
+        const response = await appUtils.get({
+          url: `api/storage/${encodeURIComponent(this.details.email)}/general`
+        });
+
+        if (response.data && response.data.status === 1 && response.data.data) {
+          this.generalStorageSize = this.formatStorageSize(response.data.data);
+        } else {
+          this.generalStorageSize = this.$t("N/A");
+        }
+      } catch (err) {
+        console.error("Error loading general storage size:", err);
+        this.generalStorageSize = this.$t("Error");
+      } finally {
+        this.generalStorageLoading = false;
+      }
+    },
+    loadUserStorageSize: async function() {
+      if (this.newProfile) return;
+
+      this.userStorageLoading = true;
+      try {
+        const response = await appUtils.get({
+          url: `api/storage/${encodeURIComponent(this.details.email)}`
+        });
+
+        if (response.data && response.data.status === 1 && response.data.data) {
+          this.userStorageSize = this.formatStorageSize(response.data.data);
+        } else {
+          this.userStorageSize = this.$t("N/A");
+        }
+      } catch (err) {
+        console.error("Error loading user storage size:", err);
+        this.userStorageSize = this.$t("Error");
+      } finally {
+        this.userStorageLoading = false;
+      }
+
+      // Also load general storage size
+      this.loadGeneralStorageSize();
+    },
+        loadDeviceStorageSizes: async function() {
+      if (this.newProfile || !this.devices || this.devices.length === 0) return;
+
+      this.deviceStorageLoading = true;
+      try {
+        // Get storage size for each device
+        const storagePromises = this.devices.map(async (device) => {
+          try {
+            const response = await appUtils.get({
+              url: `api/storage/${encodeURIComponent(this.details.email)}/${encodeURIComponent(device.IMEI)}`
+            });
+
+            if (response.data && response.data.status === 1 && response.data.data) {
+              return {
+                ...device,
+                storageSize: this.formatStorageSize(response.data.data)
+              };
+            } else {
+              return {
+                ...device,
+                storageSize: this.$t("N/A")
+              };
+            }
+          } catch (err) {
+            console.error(`Error loading storage for device ${device.IMEI}:`, err);
+            return {
+              ...device,
+              storageSize: this.$t("Error")
+            };
+          }
+        });
+
+        this.devices = await Promise.all(storagePromises);
+      } catch (err) {
+        console.error("Error loading device storage sizes:", err);
+      } finally {
+        this.deviceStorageLoading = false;
+      }
     },
   },
   created: function () {
@@ -1343,6 +1725,9 @@ export default {
             });
           })
           .finally(() => (this.logsLoading = false));
+      } else if (newVal == 3) {
+        // devices tab - load device storage sizes
+        this.loadDeviceStorageSizes();
       }
     },
   },

@@ -2,5 +2,21 @@
     "login": "התחברות",
     "Enter your password": "Enter your password",
     "Enter your email address": "Enter your email address",
-    "Forgot Password": "Forgot Password?"
+    "Forgot Password": "Forgot Password?",
+    "Data Reset": "איפוס נתונים",
+    "Are you sure you want to reset data for this device?": "האם אתה בטוח שברצונך לאפס נתונים עבור מכשיר זה?",
+    "This will permanently delete all data stored for this device.": "פעולה זו תמחק לצמיתות את כל הנתונים השמורים עבור מכשיר זה.",
+    "Reset Data": "איפוס נתונים",
+    "Device data reset successfully": "נתוני המכשיר אופסו בהצלחה",
+    "Error resetting device data": "שגיאה באיפוס נתוני המכשיר",
+    "Are you sure you want to reset user storage data?": "האם אתה בטוח שברצונך לאפס נתוני אחסון של המשתמש?",
+    "This will permanently delete all general storage data for this user.": "פעולה זו תמחק לצמיתות את כל נתוני האחסון הכלליים של משתמש זה.",
+    "Reset Storage": "איפוס אחסון",
+    "User storage data reset successfully": "נתוני אחסון המשתמש אופסו בהצלחה",
+    "Error resetting user storage data": "שגיאה באיפוס נתוני אחסון המשתמש",
+    "Also remove all device storage data": "גם הסר את כל נתוני אחסון המכשירים",
+    "Profile and device data deleted": "פרופיל ונתוני מכשירים נמחקו",
+    "Storage Size": "גודל אחסון",
+    "N/A": "לא זמין",
+    "Loading...": "טוען..."
 }
