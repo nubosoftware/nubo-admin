@@ -126,6 +126,28 @@
                         </li>
                       </ul>
                     </div>
+                    <div v-if="threat.mitreAttackPatterns && threat.mitreAttackPatterns.length" class="mt-2 ml-2">
+                      <div class="text-caption">MITRE ATT&CK Techniques:</div>
+                      <div class="mt-1">
+                        <v-chip
+                          v-for="(pattern, patternIdx) in threat.mitreAttackPatterns"
+                          :key="'pattern-'+idx+'-'+patternIdx"
+                          x-small
+                          outlined
+                          color="primary"
+                          class="mr-1 mb-1"
+                          :href="getMitreAttackUrl(pattern.techniqueId)"
+                          target="_blank"
+                          clickable
+                        >
+                          <v-icon x-small left>mdi-open-in-new</v-icon>
+                          {{ pattern.techniqueId }}: {{ pattern.techniqueName }}
+                        </v-chip>
+                      </div>
+                      <div class="text-caption mt-1 grey--text">
+                        Tactics: {{ threat.mitreAttackPatterns.map(p => p.tacticNames.join(', ')).join(' | ') }}
+                      </div>
+                    </div>
                   </div>
                 </v-expansion-panel-content>
               </v-expansion-panel>
@@ -992,6 +1014,18 @@ export default {
         case 'critical': return 'red';
         default: return '';
       }
+    },
+    getMitreAttackUrl(techniqueId) {
+      if (!techniqueId) return '#';
+      
+      // Handle sub-techniques (e.g., T1087.001)
+      if (techniqueId.includes('.')) {
+        const [mainTechnique, subTechnique] = techniqueId.split('.');
+        return `https://attack.mitre.org/techniques/${mainTechnique}/${subTechnique}/`;
+      }
+      
+      // Handle main techniques (e.g., T1087)
+      return `https://attack.mitre.org/techniques/${techniqueId}/`;
     },
     toggleFullscreen() {
       this.isFullscreen = !this.isFullscreen;
