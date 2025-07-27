@@ -108,14 +108,14 @@
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
                   <div v-for="(threat, idx) in sortedSecurityThreats" :key="'threat-'+idx" class="mb-4 pa-2">
-                    <div class="d-flex align-center">
+                    <div class="d-flex align-start">
                       <v-chip x-small
                         :color="threatSeverityColor(threat.severity)"
                         :text-color="threat.severity.toLowerCase() === 'low' ? 'black' : 'white'"
-                        class="mr-2">
+                        class="mr-2 flex-shrink-0">
                         {{ threat.severity }}
                       </v-chip>
-                      <div class="font-weight-bold">{{ threat.description }}</div>
+                      <div class="font-weight-bold flex-grow-1 threat-description">{{ threat.description }}</div>
                     </div>
                     <div class="mt-2 ml-2 wrap-text">{{ threat.justification }}</div>
                     <div v-if="threat.supportingActions && threat.supportingActions.length" class="mt-2 ml-2">
@@ -145,7 +145,7 @@
                         </v-chip>
                       </div>
                       <div class="text-caption mt-1 grey--text">
-                        Tactics: {{ threat.mitreAttackPatterns.map(p => p.tacticNames.join(', ')).join(' | ') }}
+                        Tactics: {{ getUniqueTactics(threat.mitreAttackPatterns).join(', ') }}
                       </div>
                     </div>
                   </div>
@@ -158,14 +158,14 @@
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
                   <div v-for="(issue, idx) in sortedItIssues" :key="'issue-'+idx" class="mb-4 pa-2">
-                    <div class="d-flex align-center">
+                    <div class="d-flex align-start">
                       <v-chip x-small
                         :color="threatSeverityColor(issue.severity)"
                         :text-color="issue.severity.toLowerCase() === 'low' ? 'black' : 'white'"
-                        class="mr-2">
+                        class="mr-2 flex-shrink-0">
                         {{ issue.severity }}
                       </v-chip>
-                      <div class="font-weight-bold">{{ issue.description }}</div>
+                      <div class="font-weight-bold flex-grow-1 threat-description">{{ issue.description }}</div>
                     </div>
                     <div class="mt-2 ml-2 wrap-text">{{ issue.justification }}</div>
                     <div v-if="issue.supportingActions && issue.supportingActions.length" class="mt-2 ml-2">
@@ -487,6 +487,16 @@
 
 .cctv-expand-button:hover {
   background: rgba(0, 0, 0, 0.8);
+}
+
+.threat-description {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+
+.flex-shrink-0 {
+  flex-shrink: 0 !important;
 }
 </style>
 
@@ -1026,6 +1036,22 @@ export default {
       
       // Handle main techniques (e.g., T1087)
       return `https://attack.mitre.org/techniques/${techniqueId}/`;
+    },
+    getUniqueTactics(mitreAttackPatterns) {
+      if (!mitreAttackPatterns || !Array.isArray(mitreAttackPatterns)) {
+        return [];
+      }
+      
+      // Collect all tactics from all patterns and remove duplicates
+      const allTactics = mitreAttackPatterns.reduce((tactics, pattern) => {
+        if (pattern.tacticNames && Array.isArray(pattern.tacticNames)) {
+          tactics.push(...pattern.tacticNames);
+        }
+        return tactics;
+      }, []);
+      
+      // Remove duplicates using Set and return as array
+      return [...new Set(allTactics)];
     },
     toggleFullscreen() {
       this.isFullscreen = !this.isFullscreen;
