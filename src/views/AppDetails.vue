@@ -473,10 +473,10 @@ let page = {
     },
 
     loadDetails: function () {
-      if (this.refreshTimeout) {
-          clearTimeout(this.refreshTimeout);
-          this.refreshTimeout = null;
-      }
+      // if (this.refreshTimeout) {
+      //     clearTimeout(this.refreshTimeout);
+      //     this.refreshTimeout = null;
+      // }
       appUtils
         .get({
           url:
@@ -561,7 +561,7 @@ let page = {
               lastUpdated: new Date().toISOString()
             });
 
-            this.refreshTimeout = setTimeout(this.loadDetails,5000);
+            // this.refreshTimeout = setTimeout(this.loadDetails,5000);
           } else {
             console.log(`status: ${response.data.status}`);
             this.$router.push("/Login");
@@ -868,10 +868,10 @@ let page = {
 
   beforeDestroy: function () {
     console.log('lifecycle: beforeDestroy');
-    if (this.refreshTimeout) {
-          clearTimeout(this.refreshTimeout);
-          this.refreshTimeout = null;
-    }
+    // if (this.refreshTimeout) {
+    //       clearTimeout(this.refreshTimeout);
+    //       this.refreshTimeout = null;
+    // }
   },
   watch: {
     tab: function (newVal) {
