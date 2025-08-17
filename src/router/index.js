@@ -209,6 +209,12 @@ const routes = [{
         name: 'SessionView',
         component: () => import('../views/sessionView.vue'),
     },
+    {
+        path: '/AIUsage',
+        name: 'AIUsage',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/AIUsage.vue'),
+    },
 ]
 
 

@@ -290,6 +290,14 @@ export default {
       if (appData.isAuthenticated) {
          items.push({ title: this.$t("Dashboard"), icon: "mdi-chart-bar" , link: "/" });
       }
+      if (appData.checkPermission("@/","rw") && appData.activePlugins.includes("session-monitor")) {
+        if (!disalbeMenuItems.includes("SessionMonitor")) {
+          items.push({ title: this.$t("Session Monitor"), icon: "mdi-memory", link: "/SessionMonitor" });
+        }
+        if (!disalbeMenuItems.includes("AIUsage")) {
+          items.push({ title: this.$t("AI Usage"), icon: "mdi-robot", link: "/AIUsage" });
+        }
+      }
       if (appData.checkPermission("@/","rw") && !disalbeMenuItems.includes("Organizations")) {
         items.push({ title: this.$t("Organizations"), icon: "mdi-domain", link: "/Orgs" });
       } else if (appData.checkPermission("/","rw") && !disalbeMenuItems.includes("Organizations")) {
@@ -339,11 +347,7 @@ export default {
         if (!disalbeMenuItems.includes("Security")) {
           items.push({ title: this.$t("Security"), icon: "mdi-shield-account", link: "/Security" });
         }
-        if (appData.activePlugins.includes("session-monitor")) {
-          if (!disalbeMenuItems.includes("SessionMonitor")) {
-            items.push({ title: this.$t("Session Monitor"), icon: "mdi-memory", link: "/SessionMonitor" });
-          }
-        }
+        
       }
       if (appData.isEnterpriseEdition() && appData.checkPermission("/reports","r") && !disalbeMenuItems.includes("Reports")) {
         items.push({ title: this.$t("Reports"), icon: "mdi-file-document-multiple-outline" , link: "/Reports"});
