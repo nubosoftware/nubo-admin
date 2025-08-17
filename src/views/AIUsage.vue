@@ -306,6 +306,17 @@
                                     style="max-width: 120px;"
                                     @change="refreshPolicyViolations"
                                 ></v-select>
+                                
+                                <v-select
+                                    v-model="violationFilters.isAuthorized"
+                                    :items="authorizationOptions"
+                                    :label="$t('Authorization')"
+                                    clearable
+                                    dense
+                                    class="mr-2"
+                                    style="max-width: 140px;"
+                                    @change="refreshPolicyViolations"
+                                ></v-select>
 
                                 <v-btn color="primary" small @click="refreshPolicyViolations" class="ml-2">
                                     <v-icon left small>mdi-refresh</v-icon>
@@ -314,25 +325,39 @@
                             </v-toolbar>
                         </template>
 
-                        <template v-slot:[`item.user`]="{ item }">
-                            {{ item.session ? item.session.email : 'N/A' }}
-                        </template>
-                        <template v-slot:[`item.device`]="{ item }">
-                            {{ item.session ? item.session.deviceTitle : 'N/A' }}
-                        </template>
-                        <template v-slot:[`item.detected_time`]="{ item }">
-                            {{ moment(item.detected_time).format("LLL") }}
+                        <template v-slot:[`item.detected_at`]="{ item }">
+                            <v-tooltip bottom>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <span v-bind="attrs" v-on="on">
+                                        {{ moment(item.detected_at).format("MMM DD, HH:mm") }}
+                                    </span>
+                                </template>
+                                <span>{{ moment(item.detected_at).format("LLLL") }}</span>
+                            </v-tooltip>
                         </template>
                         <template v-slot:[`item.violation_type`]="{ item }">
                             <v-chip
                                 small
-                                color="error"
+                                :color="getViolationTypeColor(item.violation_type)"
                                 text-color="white"
                                 class="violation-chip"
                             >
-                                <v-icon left small>mdi-alert</v-icon>
-                                {{ item.violation_type }}
+                                <v-icon left small>{{ getViolationTypeIcon(item.violation_type) }}</v-icon>
+                                {{ getViolationTypeDisplayName(item.violation_type) }}
                             </v-chip>
+                        </template>
+                        <template v-slot:[`item.service_name`]="{ item }">
+                            <v-chip
+                                small
+                                :color="getAIServiceColor(item.service_name)"
+                                text-color="white"
+                                class="service-chip"
+                            >
+                                {{ item.service_name }}
+                            </v-chip>
+                        </template>
+                        <template v-slot:[`item.user`]="{ item }">
+                            {{ item.session ? item.session.email : 'N/A' }}
                         </template>
                         <template v-slot:[`item.risk_level`]="{ item }">
                             <v-chip
@@ -342,8 +367,61 @@
                                 small
                                 class="font-weight-medium"
                             >
-                                {{ item.risk_level }}
+                                <v-icon left small>{{ getRiskLevelIcon(item.risk_level) }}</v-icon>
+                                {{ item.risk_level.toUpperCase() }}
                             </v-chip>
+                        </template>
+                        <template v-slot:[`item.is_authorized`]="{ item }">
+                            <v-chip
+                                small
+                                :color="item.is_authorized ? 'success' : 'error'"
+                                text-color="white"
+                                class="authorization-chip"
+                            >
+                                <v-icon left small>
+                                    {{ item.is_authorized ? 'mdi-check-circle' : 'mdi-close-circle' }}
+                                </v-icon>
+                                {{ item.is_authorized ? $t('Authorized') : $t('Unauthorized') }}
+                            </v-chip>
+                        </template>
+                        <template v-slot:[`item.evidence`]="{ item }">
+                            <v-tooltip bottom max-width="400px">
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-chip
+                                        v-bind="attrs"
+                                        v-on="on"
+                                        small
+                                        color="info"
+                                        text-color="white"
+                                        class="evidence-chip"
+                                    >
+                                        <v-icon left small>mdi-file-document-multiple</v-icon>
+                                        {{ getEvidenceCount(item.evidence) }} {{ $t('Evidence') }}
+                                    </v-chip>
+                                </template>
+                                <div>
+                                    <div v-for="(evidence, index) in getEvidenceArray(item.evidence)" 
+                                         :key="index" 
+                                         class="mb-1">
+                                        • {{ evidence }}
+                                    </div>
+                                </div>
+                            </v-tooltip>
+                        </template>
+                        <template v-slot:[`item.policy_violation_details`]="{ item }">
+                            <v-tooltip bottom max-width="500px">
+                                <template v-slot:activator="{ on, attrs }">
+                                    <span 
+                                        v-bind="attrs" 
+                                        v-on="on" 
+                                        class="text-truncate policy-details-text" 
+                                        style="max-width: 200px; display: inline-block; cursor: pointer;"
+                                    >
+                                        {{ item.policy_violation_details || 'No details available' }}
+                                    </span>
+                                </template>
+                                <span>{{ item.policy_violation_details || 'No details available' }}</span>
+                            </v-tooltip>
                         </template>
                         <template v-slot:[`item.session_id`]="{ item }">
                             <v-btn
@@ -354,6 +432,29 @@
                                 @click="viewSession(item.session_id)"
                             >
                                 {{ item.session_id.substring(0, 8) }}...
+                                <v-icon right small>mdi-open-in-new</v-icon>
+                            </v-btn>
+                            <span v-else class="text-caption grey--text">N/A</span>
+                        </template>
+                        <template v-slot:[`item.actions`]="{ item }">
+                            <v-btn
+                                icon
+                                small
+                                color="primary"
+                                @click="viewViolationDetails(item)"
+                                :title="$t('View Details')"
+                            >
+                                <v-icon small>mdi-eye</v-icon>
+                            </v-btn>
+                            <v-btn
+                                v-if="item.session_id"
+                                icon
+                                small
+                                color="secondary"
+                                @click="viewSession(item.session_id)"
+                                :title="$t('View Session')"
+                            >
+                                <v-icon small>mdi-open-in-new</v-icon>
                             </v-btn>
                         </template>
 
@@ -451,8 +552,25 @@
                         <template v-slot:[`item.device`]="{ item }">
                             {{ item.session ? item.session.deviceTitle : 'N/A' }}
                         </template>
-                        <template v-slot:[`item.analysis_time`]="{ item }">
-                            {{ moment(item.analysis_time).format("LLL") }}
+                        <template v-slot:[`item.detected_at`]="{ item }">
+                            <v-tooltip bottom>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <span v-bind="attrs" v-on="on">
+                                        {{ moment(item.detected_at).format("MMM DD, HH:mm") }}
+                                    </span>
+                                </template>
+                                <span>{{ moment(item.detected_at).format("LLLL") }}</span>
+                            </v-tooltip>
+                        </template>
+                        <template v-slot:[`item.prompt_summary`]="{ item }">
+                            <v-tooltip bottom max-width="400px">
+                                <template v-slot:activator="{ on, attrs }">
+                                    <span v-bind="attrs" v-on="on" class="text-truncate" style="max-width: 200px; display: inline-block;">
+                                        {{ item.prompt_summary || 'No summary available' }}
+                                    </span>
+                                </template>
+                                <span>{{ item.prompt_summary || 'No summary available' }}</span>
+                            </v-tooltip>
                         </template>
                         <template v-slot:[`item.risk_level`]="{ item }">
                             <v-chip
@@ -462,20 +580,21 @@
                                 small
                                 class="font-weight-medium"
                             >
-                                {{ item.risk_level }}
+                                <v-icon left small>{{ getRiskLevelIcon(item.risk_level) }}</v-icon>
+                                {{ item.risk_level.toUpperCase() }}
                             </v-chip>
                         </template>
                         <template v-slot:[`item.policy_compliance`]="{ item }">
                             <v-chip
                                 small
-                                :color="item.policy_compliance ? 'success' : 'error'"
+                                :color="getPolicyComplianceColor(item.policy_compliance)"
                                 text-color="white"
                                 class="compliance-chip"
                             >
                                 <v-icon left small>
-                                    {{ item.policy_compliance ? 'mdi-check-circle' : 'mdi-alert-circle' }}
+                                    {{ getPolicyComplianceIcon(item.policy_compliance) }}
                                 </v-icon>
-                                {{ item.policy_compliance ? $t('Compliant') : $t('Non-Compliant') }}
+                                {{ getPolicyComplianceText(item.policy_compliance) }}
                             </v-chip>
                         </template>
                         <template v-slot:[`item.contains_sensitive_data`]="{ item }">
@@ -489,16 +608,27 @@
                                 <v-icon left small>mdi-eye-off</v-icon>
                                 {{ $t('Sensitive') }}
                             </v-chip>
+                            <span v-else class="text-caption grey--text">{{ $t('Clean') }}</span>
                         </template>
-                        <template v-slot:[`item.session_id`]="{ item }">
+                        <template v-slot:[`item.actions`]="{ item }">
                             <v-btn
-                                v-if="item.session_id"
-                                text
+                                icon
                                 small
                                 color="primary"
-                                @click="viewSession(item.session_id)"
+                                @click="viewPromptAnalysisDetails(item)"
+                                :title="$t('View Details')"
                             >
-                                {{ item.session_id.substring(0, 8) }}...
+                                <v-icon small>mdi-eye</v-icon>
+                            </v-btn>
+                            <v-btn
+                                v-if="item.session_id"
+                                icon
+                                small
+                                color="secondary"
+                                @click="viewSession(item.session_id)"
+                                :title="$t('View Session')"
+                            >
+                                <v-icon small>mdi-open-in-new</v-icon>
                             </v-btn>
                         </template>
 
@@ -1215,6 +1345,435 @@
             </v-card>
         </v-dialog>
 
+        <!-- Prompt Analysis Details Dialog -->
+        <v-dialog v-model="promptDetailsDialog.show" max-width="900px" persistent scrollable>
+            <v-card>
+                <v-card-title class="headline">
+                    <v-icon left color="primary">mdi-text-search</v-icon>
+                    {{ $t('Prompt Analysis Details') }}
+                    <v-spacer></v-spacer>
+                    <v-btn icon @click="promptDetailsDialog.show = false">
+                        <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                </v-card-title>
+                
+                <v-card-text class="pa-0">
+                    <v-container class="py-4" v-if="promptDetailsDialog.item">
+                        <!-- Header Section with Status Chips -->
+                        <v-row class="mb-4">
+                            <v-col cols="12">
+                                <div class="d-flex flex-wrap align-center ga-2">
+                                    <v-chip
+                                        :color="getRiskLevelColor(promptDetailsDialog.item.risk_level)"
+                                        :text-color="promptDetailsDialog.item.risk_level && promptDetailsDialog.item.risk_level.toLowerCase() === 'low' ? 'black' : 'white'"
+                                        class="font-weight-medium mr-2"
+                                    >
+                                        <v-icon left small>{{ getRiskLevelIcon(promptDetailsDialog.item.risk_level) }}</v-icon>
+                                        {{ (promptDetailsDialog.item.risk_level && promptDetailsDialog.item.risk_level.toUpperCase()) || 'UNKNOWN' }} RISK
+                                    </v-chip>
+                                    
+                                    <v-chip
+                                        :color="getPolicyComplianceColor(promptDetailsDialog.item.policy_compliance)"
+                                        text-color="white"
+                                        class="mr-2"
+                                    >
+                                        <v-icon left small>{{ getPolicyComplianceIcon(promptDetailsDialog.item.policy_compliance) }}</v-icon>
+                                        {{ getPolicyComplianceText(promptDetailsDialog.item.policy_compliance) }}
+                                    </v-chip>
+                                    
+                                    <v-chip
+                                        v-if="promptDetailsDialog.item.contains_sensitive_data"
+                                        color="warning"
+                                        text-color="black"
+                                        class="mr-2"
+                                    >
+                                        <v-icon left small>mdi-eye-off</v-icon>
+                                        {{ $t('Contains Sensitive Data') }}
+                                    </v-chip>
+                                    
+                                    <v-chip
+                                        :color="getAIServiceColor(promptDetailsDialog.item.ai_service)"
+                                        text-color="white"
+                                        class="mr-2"
+                                    >
+                                        {{ promptDetailsDialog.item.ai_service || 'Unknown Service' }}
+                                    </v-chip>
+                                </div>
+                            </v-col>
+                        </v-row>
+
+                        <!-- Basic Information -->
+                        <v-row class="mb-4">
+                            <v-col cols="12" md="6">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-grey lighten-4">
+                                        <v-icon left small>mdi-information-outline</v-icon>
+                                        {{ $t('Basic Information') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Detected At') }}:</strong><br>
+                                            <span class="text-body-2">{{ moment(promptDetailsDialog.item.detected_at).format("LLLL") }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Prompt Type') }}:</strong><br>
+                                            <v-chip small color="blue-grey" text-color="white" class="text-capitalize">
+                                                {{ promptDetailsDialog.item.prompt_type || 'Unknown' }}
+                                            </v-chip>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Session ID') }}:</strong><br>
+                                            <v-btn
+                                                v-if="promptDetailsDialog.item.session_id"
+                                                text
+                                                small
+                                                color="primary"
+                                                @click="viewSession(promptDetailsDialog.item.session_id)"
+                                                class="pa-0"
+                                            >
+                                                {{ promptDetailsDialog.item.session_id }}
+                                                <v-icon right small>mdi-open-in-new</v-icon>
+                                            </v-btn>
+                                            <span v-else class="text-body-2 grey--text">N/A</span>
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                            <v-col cols="12" md="6">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-grey lighten-4">
+                                        <v-icon left small>mdi-account-outline</v-icon>
+                                        {{ $t('User Information') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="mb-2">
+                                            <strong>{{ $t('User') }}:</strong><br>
+                                            <span class="text-body-2">{{ (promptDetailsDialog.item.session && promptDetailsDialog.item.session.email) || 'N/A' }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Device') }}:</strong><br>
+                                            <span class="text-body-2">{{ (promptDetailsDialog.item.session && promptDetailsDialog.item.session.deviceTitle) || 'N/A' }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Domain') }}:</strong><br>
+                                            <span class="text-body-2">{{ promptDetailsDialog.item.maindomain || 'N/A' }}</span>
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+
+                        <!-- Prompt Summary -->
+                        <v-row class="mb-4">
+                            <v-col cols="12">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-primary white--text">
+                                        <v-icon left small color="white">mdi-text-box-outline</v-icon>
+                                        {{ $t('Prompt Summary') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="text-body-1 prompt-summary-text">
+                                            {{ promptDetailsDialog.item.prompt_summary || 'No summary available' }}
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+
+                        <!-- Risk Analysis -->
+                        <v-row class="mb-4">
+                            <v-col cols="12" md="6">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-orange lighten-4">
+                                        <v-icon left small>mdi-shield-alert-outline</v-icon>
+                                        {{ $t('Risk Factors') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div v-if="getRiskFactorsArray(promptDetailsDialog.item.risk_factors).length > 0">
+                                            <v-chip
+                                                v-for="(factor, index) in getRiskFactorsArray(promptDetailsDialog.item.risk_factors)"
+                                                :key="index"
+                                                small
+                                                color="orange"
+                                                text-color="white"
+                                                class="ma-1"
+                                            >
+                                                <v-icon left x-small>mdi-alert-circle</v-icon>
+                                                {{ factor }}
+                                            </v-chip>
+                                        </div>
+                                        <div v-else class="text-body-2 grey--text">
+                                            {{ $t('No specific risk factors identified') }}
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                            <v-col cols="12" md="6">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-blue lighten-4">
+                                        <v-icon left small>mdi-clock-outline</v-icon>
+                                        {{ $t('Timeline') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Created') }}:</strong><br>
+                                            <span class="text-body-2">{{ moment(promptDetailsDialog.item.createdAt).format("LLL") }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Updated') }}:</strong><br>
+                                            <span class="text-body-2">{{ moment(promptDetailsDialog.item.updatedAt).format("LLL") }}</span>
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+
+                        <!-- Detailed Reasoning -->
+                        <v-row class="mb-4">
+                            <v-col cols="12">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-indigo lighten-4">
+                                        <v-icon left small>mdi-brain</v-icon>
+                                        {{ $t('AI Analysis Reasoning') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="text-body-1 reasoning-text">
+                                            {{ promptDetailsDialog.item.reasoning || 'No detailed reasoning available' }}
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+                    </v-container>
+                </v-card-text>
+                
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        v-if="promptDetailsDialog.item.session_id"
+                        color="secondary"
+                        @click="viewSession(promptDetailsDialog.item.session_id)"
+                    >
+                        <v-icon left small>mdi-open-in-new</v-icon>
+                        {{ $t('View Full Session') }}
+                    </v-btn>
+                    <v-btn
+                        color="primary"
+                        @click="promptDetailsDialog.show = false"
+                    >
+                        {{ $t('Close') }}
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+        <!-- Policy Violation Details Dialog -->
+        <v-dialog v-model="violationDetailsDialog.show" max-width="900px" persistent scrollable>
+            <v-card>
+                <v-card-title class="headline">
+                    <v-icon left color="error">mdi-shield-alert</v-icon>
+                    {{ $t('Policy Violation Details') }}
+                    <v-spacer></v-spacer>
+                    <v-btn icon @click="violationDetailsDialog.show = false">
+                        <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                </v-card-title>
+                
+                <v-card-text class="pa-0">
+                    <v-container class="py-4" v-if="violationDetailsDialog.item">
+                        <!-- Header Section with Status Chips -->
+                        <v-row class="mb-4">
+                            <v-col cols="12">
+                                <div class="d-flex flex-wrap align-center ga-2">
+                                    <v-chip
+                                        :color="getViolationTypeColor(violationDetailsDialog.item.violation_type)"
+                                        text-color="white"
+                                        class="font-weight-medium mr-2"
+                                    >
+                                        <v-icon left small>{{ getViolationTypeIcon(violationDetailsDialog.item.violation_type) }}</v-icon>
+                                        {{ getViolationTypeDisplayName(violationDetailsDialog.item.violation_type) || 'UNKNOWN' }} VIOLATION
+                                    </v-chip>
+                                    
+                                    <v-chip
+                                        :color="getRiskLevelColor(violationDetailsDialog.item.risk_level)"
+                                        :text-color="violationDetailsDialog.item.risk_level && violationDetailsDialog.item.risk_level.toLowerCase() === 'low' ? 'black' : 'white'"
+                                        class="font-weight-medium mr-2"
+                                    >
+                                        <v-icon left small>{{ getRiskLevelIcon(violationDetailsDialog.item.risk_level) }}</v-icon>
+                                        {{ (violationDetailsDialog.item.risk_level && violationDetailsDialog.item.risk_level.toUpperCase()) || 'UNKNOWN' }} RISK
+                                    </v-chip>
+                                    
+                                    <v-chip
+                                        :color="violationDetailsDialog.item.is_authorized ? 'success' : 'error'"
+                                        text-color="white"
+                                        class="mr-2"
+                                    >
+                                        <v-icon left small>
+                                            {{ violationDetailsDialog.item.is_authorized ? 'mdi-check-circle' : 'mdi-close-circle' }}
+                                        </v-icon>
+                                        {{ violationDetailsDialog.item.is_authorized ? $t('Authorized') : $t('Unauthorized') }}
+                                    </v-chip>
+                                    
+                                    <v-chip
+                                        :color="getAIServiceColor(violationDetailsDialog.item.service_name)"
+                                        text-color="white"
+                                        class="mr-2"
+                                    >
+                                        {{ violationDetailsDialog.item.service_name || 'Unknown Service' }}
+                                    </v-chip>
+                                </div>
+                            </v-col>
+                        </v-row>
+
+                        <!-- Basic Information -->
+                        <v-row class="mb-4">
+                            <v-col cols="12" md="6">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-grey lighten-4">
+                                        <v-icon left small>mdi-information-outline</v-icon>
+                                        {{ $t('Basic Information') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Detected At') }}:</strong><br>
+                                            <span class="text-body-2">{{ moment(violationDetailsDialog.item.detected_at).format("LLLL") }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Service Name') }}:</strong><br>
+                                            <v-chip small :color="getAIServiceColor(violationDetailsDialog.item.service_name)" text-color="white">
+                                                {{ violationDetailsDialog.item.service_name || 'Unknown' }}
+                                            </v-chip>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Session ID') }}:</strong><br>
+                                            <v-btn
+                                                v-if="violationDetailsDialog.item.session_id"
+                                                text
+                                                small
+                                                color="primary"
+                                                @click="viewSession(violationDetailsDialog.item.session_id)"
+                                                class="pa-0"
+                                            >
+                                                {{ violationDetailsDialog.item.session_id }}
+                                                <v-icon right small>mdi-open-in-new</v-icon>
+                                            </v-btn>
+                                            <span v-else class="text-body-2 grey--text">N/A</span>
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                            <v-col cols="12" md="6">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-grey lighten-4">
+                                        <v-icon left small>mdi-account-outline</v-icon>
+                                        {{ $t('User Information') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="mb-2">
+                                            <strong>{{ $t('User') }}:</strong><br>
+                                            <span class="text-body-2">{{ (violationDetailsDialog.item.session && violationDetailsDialog.item.session.email) || 'N/A' }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Device') }}:</strong><br>
+                                            <span class="text-body-2">{{ (violationDetailsDialog.item.session && violationDetailsDialog.item.session.deviceTitle) || 'N/A' }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Domain') }}:</strong><br>
+                                            <span class="text-body-2">{{ violationDetailsDialog.item.maindomain || 'N/A' }}</span>
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+
+                        <!-- Policy Violation Details -->
+                        <v-row class="mb-4">
+                            <v-col cols="12">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-error white--text">
+                                        <v-icon left small color="white">mdi-shield-alert-outline</v-icon>
+                                        {{ $t('Policy Violation Details') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="text-body-1 violation-details-text">
+                                            {{ violationDetailsDialog.item.policy_violation_details || 'No detailed policy violation information available' }}
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+
+                        <!-- Evidence -->
+                        <v-row class="mb-4">
+                            <v-col cols="12" md="6">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-info white--text">
+                                        <v-icon left small color="white">mdi-file-document-multiple-outline</v-icon>
+                                        {{ $t('Evidence') }} ({{ getEvidenceCount(violationDetailsDialog.item.evidence) }})
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div v-if="getEvidenceArray(violationDetailsDialog.item.evidence).length > 0" class="evidence-list">
+                                            <div 
+                                                v-for="(evidence, index) in getEvidenceArray(violationDetailsDialog.item.evidence)" 
+                                                :key="index" 
+                                                class="evidence-item mb-2 pa-2 grey lighten-4 rounded"
+                                            >
+                                                <v-icon small color="info" class="mr-2">mdi-file-document</v-icon>
+                                                <span class="text-body-2">{{ evidence }}</span>
+                                            </div>
+                                        </div>
+                                        <div v-else class="text-body-2 grey--text">
+                                            {{ $t('No evidence available') }}
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                            <v-col cols="12" md="6">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-blue lighten-4">
+                                        <v-icon left small>mdi-clock-outline</v-icon>
+                                        {{ $t('Timeline') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Detected At') }}:</strong><br>
+                                            <span class="text-body-2">{{ moment(violationDetailsDialog.item.detected_at).format("LLL") }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Created') }}:</strong><br>
+                                            <span class="text-body-2">{{ moment(violationDetailsDialog.item.createdAt).format("LLL") }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Updated') }}:</strong><br>
+                                            <span class="text-body-2">{{ moment(violationDetailsDialog.item.updatedAt).format("LLL") }}</span>
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+                    </v-container>
+                </v-card-text>
+                
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        v-if="violationDetailsDialog.item.session_id"
+                        color="secondary"
+                        @click="viewSession(violationDetailsDialog.item.session_id)"
+                    >
+                        <v-icon left small>mdi-open-in-new</v-icon>
+                        {{ $t('View Full Session') }}
+                    </v-btn>
+                    <v-btn
+                        color="primary"
+                        @click="violationDetailsDialog.show = false"
+                    >
+                        {{ $t('Close') }}
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
         <!-- Error Snackbar -->
         <v-snackbar v-model="snackbar" :timeout="3000" :color="snackbarColor">
             {{ snackbarText }}
@@ -1337,7 +1896,8 @@ let page = {
     violationFilters: {
       violationType: null,
       serviceName: null,
-      riskLevel: null
+      riskLevel: null,
+      isAuthorized: null
     },
 
     // AI Prompt Analysis tab
@@ -1553,11 +2113,27 @@ let page = {
       { text: 'Built-in', value: true },
       { text: 'Custom', value: false }
     ],
+    authorizationOptions: [
+      { text: 'Authorized', value: true },
+      { text: 'Unauthorized', value: false }
+    ],
 
     // Snackbar
     snackbar: false,
     snackbarText: "",
-    snackbarColor: "info"
+    snackbarColor: "info",
+
+    // Prompt Analysis Details Dialog
+    promptDetailsDialog: {
+      show: false,
+      item: {}
+    },
+
+    // Policy Violation Details Dialog
+    violationDetailsDialog: {
+      show: false,
+      item: {}
+    }
   }),
 
   methods: {
@@ -1675,6 +2251,151 @@ let page = {
       if (confidence >= 80) return 'success';
       if (confidence >= 60) return 'warning';
       return 'error';
+    },
+
+    // New helper methods for prompt analysis
+    getRiskLevelIcon(riskLevel) {
+      if (!riskLevel) return '';
+      switch(riskLevel.toLowerCase()) {
+        case 'low': return 'mdi-shield-check';
+        case 'medium': return 'mdi-shield-outline';
+        case 'high': return 'mdi-shield-alert';
+        case 'critical': return 'mdi-shield-off';
+        default: return 'mdi-shield';
+      }
+    },
+
+    getPolicyComplianceColor(compliance) {
+      if (!compliance) return 'grey';
+      switch(compliance.toLowerCase()) {
+        case 'compliant': return 'success';
+        case 'violation': return 'error';
+        case 'needs_review': return 'warning';
+        case 'unknown': return 'grey';
+        default: return 'grey';
+      }
+    },
+
+    getPolicyComplianceIcon(compliance) {
+      if (!compliance) return 'mdi-help-circle';
+      switch(compliance.toLowerCase()) {
+        case 'compliant': return 'mdi-check-circle';
+        case 'violation': return 'mdi-alert-circle';
+        case 'needs_review': return 'mdi-clock-alert';
+        case 'unknown': return 'mdi-help-circle';
+        default: return 'mdi-help-circle';
+      }
+    },
+
+    getPolicyComplianceText(compliance) {
+      if (!compliance) return 'Unknown';
+      switch(compliance.toLowerCase()) {
+        case 'compliant': return 'Compliant';
+        case 'violation': return 'Violation';
+        case 'needs_review': return 'Needs Review';
+        case 'unknown': return 'Unknown';
+        default: return compliance;
+      }
+    },
+
+    // Prompt Analysis Details Modal
+    viewPromptAnalysisDetails(item) {
+      this.promptDetailsDialog.show = true;
+      this.promptDetailsDialog.item = { ...item };
+    },
+
+    // Helper method to parse risk factors JSON array
+    getRiskFactorsArray(riskFactors) {
+      try {
+        if (typeof riskFactors === 'string') {
+          return JSON.parse(riskFactors);
+        }
+        if (Array.isArray(riskFactors)) {
+          return riskFactors;
+        }
+        return [];
+      } catch (e) {
+        console.error('Error parsing risk factors:', e);
+        return [];
+      }
+    },
+
+    // Policy Violation helper methods
+    getViolationTypeColor(violationType) {
+      if (!violationType) return 'grey';
+      const colorMap = {
+        'shadow_ai': 'deep-orange',
+        'unauthorized_service': 'red',
+        'data_exposure': 'purple',
+        'policy_breach': 'error',
+        'unauthorized access': 'red',
+        'data leakage': 'purple',
+        'policy violation': 'error',
+        'suspicious activity': 'warning',
+        'compliance breach': 'deep-orange',
+        'other': 'grey'
+      };
+      return colorMap[violationType.toLowerCase()] || 'error';
+    },
+
+    getViolationTypeIcon(violationType) {
+      if (!violationType) return 'mdi-alert';
+      const iconMap = {
+        'shadow_ai': 'mdi-robot-angry',
+        'unauthorized_service': 'mdi-shield-off',
+        'data_exposure': 'mdi-database-alert',
+        'policy_breach': 'mdi-gavel',
+        'unauthorized access': 'mdi-shield-off',
+        'data leakage': 'mdi-database-alert',
+        'policy violation': 'mdi-gavel',
+        'suspicious activity': 'mdi-eye-alert',
+        'compliance breach': 'mdi-alert-octagon',
+        'other': 'mdi-alert'
+      };
+      return iconMap[violationType.toLowerCase()] || 'mdi-alert';
+    },
+
+    getViolationTypeDisplayName(violationType) {
+      if (!violationType) return 'Unknown';
+      const displayMap = {
+        'shadow_ai': 'Shadow AI',
+        'unauthorized_service': 'Unauthorized Service',
+        'data_exposure': 'Data Exposure',
+        'policy_breach': 'Policy Breach',
+        'unauthorized access': 'Unauthorized Access',
+        'data leakage': 'Data Leakage',
+        'policy violation': 'Policy Violation',
+        'suspicious activity': 'Suspicious Activity',
+        'compliance breach': 'Compliance Breach',
+        'other': 'Other'
+      };
+      return displayMap[violationType.toLowerCase()] || violationType;
+    },
+
+    // Evidence parsing methods
+    getEvidenceArray(evidence) {
+      try {
+        if (typeof evidence === 'string') {
+          return JSON.parse(evidence);
+        }
+        if (Array.isArray(evidence)) {
+          return evidence;
+        }
+        return [];
+      } catch (e) {
+        console.error('Error parsing evidence:', e);
+        return [];
+      }
+    },
+
+    getEvidenceCount(evidence) {
+      return this.getEvidenceArray(evidence).length;
+    },
+
+    // Policy Violation Details Modal
+    viewViolationDetails(item) {
+      this.violationDetailsDialog.show = true;
+      this.violationDetailsDialog.item = { ...item };
     },
 
     // Date range methods
@@ -2086,7 +2807,7 @@ let page = {
           method: "DELETE",
           url: "api/ai-monitor-settings"
         })
-        .then((response) => {
+        .then(() => {
           // Reset form values to defaults
           this.settingsForm = {
             monitoringEnabled: true,
@@ -2434,25 +3155,28 @@ let page = {
     ];
 
     this.violationHeaders = [
-      { text: this.$t("Violation Type"), value: "violation_type" },
-      { text: this.$t("Service Name"), value: "service_name" },
-      { text: this.$t("User"), value: "user" },
-      { text: this.$t("Device"), value: "device" },
-      { text: this.$t("Detected Time"), value: "detected_time" },
-      { text: this.$t("Risk Level"), value: "risk_level" },
-      { text: this.$t("Session ID"), value: "session_id" }
+      { text: this.$t("Detected"), value: "detected_at", width: "10%" },
+      { text: this.$t("Violation Type"), value: "violation_type", width: "12%" },
+      { text: this.$t("Service Name"), value: "service_name", width: "10%" },
+      { text: this.$t("User"), value: "user", width: "10%" },
+      { text: this.$t("Risk Level"), value: "risk_level", width: "8%" },
+      { text: this.$t("Authorization"), value: "is_authorized", width: "10%" },
+      { text: this.$t("Evidence"), value: "evidence", width: "8%" },
+      { text: this.$t("Policy Details"), value: "policy_violation_details", width: "15%" },
+      { text: this.$t("Session"), value: "session_id", width: "8%" },
+      { text: this.$t("Actions"), value: "actions", sortable: false, width: "9%" }
     ];
 
     this.promptAnalysisHeaders = [
-      { text: this.$t("AI Service"), value: "ai_service" },
-      { text: this.$t("User"), value: "user" },
-      { text: this.$t("Device"), value: "device" },
-      { text: this.$t("Prompt Type"), value: "prompt_type" },
-      { text: this.$t("Risk Level"), value: "risk_level" },
-      { text: this.$t("Policy Compliance"), value: "policy_compliance" },
-      { text: this.$t("Sensitive Data"), value: "contains_sensitive_data" },
-      { text: this.$t("Analysis Time"), value: "analysis_time" },
-      { text: this.$t("Session ID"), value: "session_id" }
+      { text: this.$t("Detected"), value: "detected_at", width: "12%" },
+      { text: this.$t("AI Service"), value: "ai_service", width: "10%" },
+      { text: this.$t("User"), value: "user", width: "12%" },
+      { text: this.$t("Prompt Summary"), value: "prompt_summary", width: "25%" },
+      { text: this.$t("Type"), value: "prompt_type", width: "10%" },
+      { text: this.$t("Risk"), value: "risk_level", width: "10%" },
+      { text: this.$t("Compliance"), value: "policy_compliance", width: "11%" },
+      { text: this.$t("Sensitive"), value: "contains_sensitive_data", width: "8%" },
+      { text: this.$t("Actions"), value: "actions", sortable: false, width: "12%" }
     ];
 
     this.sensitiveExposureHeaders = [
