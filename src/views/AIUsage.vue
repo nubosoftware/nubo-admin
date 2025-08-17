@@ -229,8 +229,81 @@
                                 text-color="white"
                                 class="service-chip"
                             >
+                                <v-icon left small>{{ getAIServiceIcon(item.ai_service_name) }}</v-icon>
                                 {{ item.ai_service_name }}
                             </v-chip>
+                        </template>
+                        <template v-slot:[`item.detection_confidence`]="{ item }">
+                            <div class="d-flex align-center">
+                                <v-progress-linear
+                                    :value="parseFloat(item.detection_confidence || 0) * 100"
+                                    :color="getConfidenceColor(parseFloat(item.detection_confidence || 0) * 100)"
+                                    height="8"
+                                    rounded
+                                    class="mr-2"
+                                    style="width: 60px;"
+                                ></v-progress-linear>
+                                <span class="text-caption">{{ Math.round((parseFloat(item.detection_confidence || 0) * 100)) }}%</span>
+                            </div>
+                        </template>
+                        <template v-slot:[`item.interaction_count`]="{ item }">
+                            <v-tooltip bottom>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-chip
+                                        v-bind="attrs"
+                                        v-on="on"
+                                        small
+                                        :color="getInteractionCountColor(item.interaction_count)"
+                                        text-color="white"
+                                        class="interaction-chip"
+                                    >
+                                        <v-icon left small>mdi-pulse</v-icon>
+                                        {{ item.interaction_count || 0 }}
+                                    </v-chip>
+                                </template>
+                                <span>{{ item.interaction_count || 0 }} interactions detected</span>
+                            </v-tooltip>
+                        </template>
+                        <template v-slot:[`item.service_type`]="{ item }">
+                            <v-chip
+                                small
+                                :color="getServiceTypeColor(item.service_type)"
+                                text-color="white"
+                                class="service-type-chip"
+                            >
+                                <v-icon left small>{{ getServiceTypeIcon(item.service_type) }}</v-icon>
+                                {{ item.service_type }}
+                            </v-chip>
+                        </template>
+                        <template v-slot:[`item.actions`]="{ item }">
+                            <v-btn
+                                icon
+                                small
+                                color="primary"
+                                @click="viewUsageSessionDetails(item)"
+                                :title="$t('View Details')"
+                            >
+                                <v-icon small>mdi-eye</v-icon>
+                            </v-btn>
+                            <v-btn
+                                v-if="item.session_id"
+                                icon
+                                small
+                                color="secondary"
+                                @click="viewSession(item.session_id)"
+                                :title="$t('View Full Session')"
+                            >
+                                <v-icon small>mdi-open-in-new</v-icon>
+                            </v-btn>
+                            <v-btn
+                                icon
+                                small
+                                color="info"
+                                @click="exportSessionData(item)"
+                                :title="$t('Export Session Data')"
+                            >
+                                <v-icon small>mdi-download</v-icon>
+                            </v-btn>
                         </template>
 
                         <template v-slot:loading>
@@ -1774,6 +1847,316 @@
             </v-card>
         </v-dialog>
 
+        <!-- Usage Session Details Dialog -->
+        <v-dialog v-model="usageSessionDetailsDialog.show" max-width="1000px" persistent scrollable>
+            <v-card>
+                <v-card-title class="headline">
+                    <v-icon left color="primary">mdi-robot-outline</v-icon>
+                    {{ $t('AI Usage Session Details') }}
+                    <v-spacer></v-spacer>
+                    <v-btn icon @click="usageSessionDetailsDialog.show = false">
+                        <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                </v-card-title>
+                
+                <v-card-text class="pa-0">
+                    <v-container class="py-4" v-if="usageSessionDetailsDialog.item">
+                        <!-- Header Section with Status Chips -->
+                        <v-row class="mb-4">
+                            <v-col cols="12">
+                                <div class="d-flex flex-wrap align-center ga-2">
+                                    <v-chip
+                                        :color="getAIServiceColor(usageSessionDetailsDialog.item.ai_service_name)"
+                                        text-color="white"
+                                        class="font-weight-medium mr-2"
+                                    >
+                                        <v-icon left small>{{ getAIServiceIcon(usageSessionDetailsDialog.item.ai_service_name) }}</v-icon>
+                                        {{ usageSessionDetailsDialog.item.ai_service_name || 'Unknown Service' }}
+                                    </v-chip>
+                                    
+                                    <v-chip
+                                        :color="getRiskLevelColor(usageSessionDetailsDialog.item.risk_level)"
+                                        :text-color="usageSessionDetailsDialog.item.risk_level && usageSessionDetailsDialog.item.risk_level.toLowerCase() === 'low' ? 'black' : 'white'"
+                                        class="font-weight-medium mr-2"
+                                    >
+                                        <v-icon left small>{{ getRiskLevelIcon(usageSessionDetailsDialog.item.risk_level) }}</v-icon>
+                                        {{ (usageSessionDetailsDialog.item.risk_level && usageSessionDetailsDialog.item.risk_level.toUpperCase()) || 'UNKNOWN' }} RISK
+                                    </v-chip>
+                                    
+                                    <v-chip
+                                        :color="getServiceTypeColor(usageSessionDetailsDialog.item.service_type)"
+                                        text-color="white"
+                                        class="mr-2"
+                                    >
+                                        <v-icon left small>{{ getServiceTypeIcon(usageSessionDetailsDialog.item.service_type) }}</v-icon>
+                                        {{ usageSessionDetailsDialog.item.service_type || 'Unknown Type' }}
+                                    </v-chip>
+                                    
+                                    <v-chip
+                                        :color="getInteractionCountColor(usageSessionDetailsDialog.item.interaction_count)"
+                                        text-color="white"
+                                        class="mr-2"
+                                    >
+                                        <v-icon left small>mdi-pulse</v-icon>
+                                        {{ usageSessionDetailsDialog.item.interaction_count || 0 }} Interactions
+                                    </v-chip>
+                                </div>
+                            </v-col>
+                        </v-row>
+
+                        <!-- Basic Information -->
+                        <v-row class="mb-4">
+                            <v-col cols="12" md="6">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-grey lighten-4">
+                                        <v-icon left small>mdi-information-outline</v-icon>
+                                        {{ $t('Session Information') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Session ID') }}:</strong><br>
+                                            <v-btn
+                                                v-if="usageSessionDetailsDialog.item.session_id"
+                                                text
+                                                small
+                                                color="primary"
+                                                @click="viewSession(usageSessionDetailsDialog.item.session_id)"
+                                                class="pa-0"
+                                            >
+                                                {{ usageSessionDetailsDialog.item.session_id }}
+                                                <v-icon right small>mdi-open-in-new</v-icon>
+                                            </v-btn>
+                                            <span v-else class="text-body-2 grey--text">N/A</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Service URL') }}:</strong><br>
+                                            <a 
+                                                v-if="usageSessionDetailsDialog.item.service_url"
+                                                :href="usageSessionDetailsDialog.item.service_url" 
+                                                target="_blank" 
+                                                class="text-body-2 primary--text"
+                                            >
+                                                {{ usageSessionDetailsDialog.item.service_url }}
+                                                <v-icon small>mdi-open-in-new</v-icon>
+                                            </a>
+                                            <span v-else class="text-body-2 grey--text">N/A</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Detection Method') }}:</strong><br>
+                                            <v-chip small color="info" text-color="white">
+                                                {{ usageSessionDetailsDialog.item.detection_method || 'Unknown' }}
+                                            </v-chip>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Detection Confidence') }}:</strong><br>
+                                            <div class="d-flex align-center">
+                                                <v-progress-linear
+                                                    :value="parseFloat(usageSessionDetailsDialog.item.detection_confidence || 0) * 100"
+                                                    :color="getConfidenceColor(parseFloat(usageSessionDetailsDialog.item.detection_confidence || 0) * 100)"
+                                                    height="12"
+                                                    rounded
+                                                    class="mr-2"
+                                                    style="width: 100px;"
+                                                ></v-progress-linear>
+                                                <span class="text-body-2">{{ Math.round((parseFloat(usageSessionDetailsDialog.item.detection_confidence || 0) * 100)) }}%</span>
+                                            </div>
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                            <v-col cols="12" md="6">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-grey lighten-4">
+                                        <v-icon left small>mdi-account-outline</v-icon>
+                                        {{ $t('User Information') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="mb-2">
+                                            <strong>{{ $t('User') }}:</strong><br>
+                                            <span class="text-body-2">{{ (usageSessionDetailsDialog.item.session && usageSessionDetailsDialog.item.session.email) || 'N/A' }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Device') }}:</strong><br>
+                                            <span class="text-body-2">{{ (usageSessionDetailsDialog.item.session && usageSessionDetailsDialog.item.session.deviceTitle) || 'N/A' }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Device ID') }}:</strong><br>
+                                            <span class="text-body-2">{{ (usageSessionDetailsDialog.item.session && usageSessionDetailsDialog.item.session.deviceId) || 'N/A' }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Domain') }}:</strong><br>
+                                            <span class="text-body-2">{{ usageSessionDetailsDialog.item.maindomain || 'N/A' }}</span>
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+
+                        <!-- Session Timeline -->
+                        <v-row class="mb-4">
+                            <v-col cols="12" md="6">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-blue lighten-4">
+                                        <v-icon left small>mdi-clock-outline</v-icon>
+                                        {{ $t('Session Timeline') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="mb-2">
+                                            <strong>{{ $t('First Detected') }}:</strong><br>
+                                            <span class="text-body-2">{{ moment(usageSessionDetailsDialog.item.first_detected).format("LLLL") }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Last Detected') }}:</strong><br>
+                                            <span class="text-body-2">{{ moment(usageSessionDetailsDialog.item.last_detected).format("LLLL") }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Session Duration') }}:</strong><br>
+                                            <v-chip small color="success" text-color="white">
+                                                <v-icon left small>mdi-timer</v-icon>
+                                                {{ calculateSessionDuration(usageSessionDetailsDialog.item) }}
+                                            </v-chip>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Total Interactions') }}:</strong><br>
+                                            <v-chip small :color="getInteractionCountColor(usageSessionDetailsDialog.item.interaction_count)" text-color="white">
+                                                <v-icon left small>mdi-pulse</v-icon>
+                                                {{ usageSessionDetailsDialog.item.interaction_count || 0 }}
+                                            </v-chip>
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                            <v-col cols="12" md="6">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-green lighten-4">
+                                        <v-icon left small>mdi-database-outline</v-icon>
+                                        {{ $t('Record Information') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Record ID') }}:</strong><br>
+                                            <span class="text-body-2 font-weight-mono">{{ usageSessionDetailsDialog.item.id || 'N/A' }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Created') }}:</strong><br>
+                                            <span class="text-body-2">{{ moment(usageSessionDetailsDialog.item.createdAt).format("LLL") }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Last Updated') }}:</strong><br>
+                                            <span class="text-body-2">{{ moment(usageSessionDetailsDialog.item.updatedAt).format("LLL") }}</span>
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+
+                        <!-- Risk Analysis -->
+                        <v-row class="mb-4">
+                            <v-col cols="12">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-orange lighten-4">
+                                        <v-icon left small>mdi-shield-alert-outline</v-icon>
+                                        {{ $t('Risk Factors') }} ({{ getRiskFactorsArray(usageSessionDetailsDialog.item.risk_factors).length }})
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div v-if="getRiskFactorsArray(usageSessionDetailsDialog.item.risk_factors).length > 0" class="risk-factors-list">
+                                            <div 
+                                                v-for="(factor, index) in getRiskFactorsArray(usageSessionDetailsDialog.item.risk_factors)" 
+                                                :key="index" 
+                                                class="risk-factor-item mb-3 pa-3 orange lighten-5 rounded"
+                                            >
+                                                <div class="d-flex align-start">
+                                                    <v-icon small color="orange darken-2" class="mt-1 mr-2">mdi-alert-circle</v-icon>
+                                                    <div class="flex-grow-1">
+                                                        <div class="text-body-2 font-weight-medium mb-1">
+                                                            Risk Factor #{{ index + 1 }}
+                                                        </div>
+                                                        <div class="text-body-2">
+                                                            {{ factor }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div v-else class="text-center py-4">
+                                            <v-icon large color="grey lighten-1">mdi-shield-check</v-icon>
+                                            <p class="mt-2 grey--text text-body-2">{{ $t('No specific risk factors identified') }}</p>
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+
+                        <!-- Session Activity Summary -->
+                        <v-row class="mb-4">
+                            <v-col cols="12">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-indigo lighten-4">
+                                        <v-icon left small>mdi-chart-line</v-icon>
+                                        {{ $t('Activity Summary') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <v-row>
+                                            <v-col cols="12" sm="6" md="3">
+                                                <div class="text-center">
+                                                    <div class="text-h4 primary--text">{{ usageSessionDetailsDialog.item.interaction_count || 0 }}</div>
+                                                    <div class="text-caption grey--text">{{ $t('Total Interactions') }}</div>
+                                                </div>
+                                            </v-col>
+                                            <v-col cols="12" sm="6" md="3">
+                                                <div class="text-center">
+                                                    <div class="text-h4 success--text">{{ Math.round((parseFloat(usageSessionDetailsDialog.item.detection_confidence || 0) * 100)) }}%</div>
+                                                    <div class="text-caption grey--text">{{ $t('Detection Confidence') }}</div>
+                                                </div>
+                                            </v-col>
+                                            <v-col cols="12" sm="6" md="3">
+                                                <div class="text-center">
+                                                    <div class="text-h4 orange--text">{{ getRiskFactorsArray(usageSessionDetailsDialog.item.risk_factors).length }}</div>
+                                                    <div class="text-caption grey--text">{{ $t('Risk Factors') }}</div>
+                                                </div>
+                                            </v-col>
+                                            <v-col cols="12" sm="6" md="3">
+                                                <div class="text-center">
+                                                    <div class="text-h4 info--text">{{ calculateSessionDuration(usageSessionDetailsDialog.item) }}</div>
+                                                    <div class="text-caption grey--text">{{ $t('Duration') }}</div>
+                                                </div>
+                                            </v-col>
+                                        </v-row>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+                    </v-container>
+                </v-card-text>
+                
+                <v-card-actions>
+                    <v-btn
+                        color="info"
+                        @click="exportSessionData(usageSessionDetailsDialog.item)"
+                        :title="$t('Export Session Data')"
+                    >
+                        <v-icon left small>mdi-download</v-icon>
+                        {{ $t('Export Data') }}
+                    </v-btn>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        v-if="usageSessionDetailsDialog.item.session_id"
+                        color="secondary"
+                        @click="viewSession(usageSessionDetailsDialog.item.session_id)"
+                    >
+                        <v-icon left small>mdi-open-in-new</v-icon>
+                        {{ $t('View Full Session') }}
+                    </v-btn>
+                    <v-btn
+                        color="primary"
+                        @click="usageSessionDetailsDialog.show = false"
+                    >
+                        {{ $t('Close') }}
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
         <!-- Error Snackbar -->
         <v-snackbar v-model="snackbar" :timeout="3000" :color="snackbarColor">
             {{ snackbarText }}
@@ -2131,6 +2514,12 @@ let page = {
 
     // Policy Violation Details Dialog
     violationDetailsDialog: {
+      show: false,
+      item: {}
+    },
+
+    // Usage Session Details Dialog
+    usageSessionDetailsDialog: {
       show: false,
       item: {}
     }
@@ -3123,6 +3512,138 @@ let page = {
     viewSession(sessionId) {
       // Navigate to session view if available
       this.$router.push({ name: 'SessionView', params: { id: sessionId } });
+    },
+
+    // New helper methods for enhanced UI
+    getAIServiceIcon(serviceName) {
+      if (!serviceName) return 'mdi-robot';
+      const serviceMap = {
+        'openai': 'mdi-brain',
+        'gpt': 'mdi-brain',
+        'chatgpt': 'mdi-brain',
+        'claude': 'mdi-robot-happy',
+        'anthropic': 'mdi-robot-happy',
+        'gemini': 'mdi-google',
+        'google': 'mdi-google',
+        'copilot': 'mdi-microsoft',
+        'microsoft': 'mdi-microsoft',
+        'bedrock': 'mdi-aws',
+        'azure': 'mdi-microsoft-azure',
+        'deepseek': 'mdi-magnify',
+        'perplexity': 'mdi-magnify-expand',
+        'grok': 'mdi-robot-excited',
+        'other': 'mdi-robot'
+      };
+      
+      const lowerName = serviceName.toLowerCase();
+      for (const [key, icon] of Object.entries(serviceMap)) {
+        if (lowerName.includes(key)) {
+          return icon;
+        }
+      }
+      return 'mdi-robot';
+    },
+
+    getServiceTypeColor(serviceType) {
+      if (!serviceType) return 'grey';
+      const colorMap = {
+        'web': 'blue',
+        'desktop': 'green',
+        'api': 'purple',
+        'browser_extension': 'orange',
+        'mobile': 'teal',
+        'text generation': 'indigo',
+        'code generation': 'green',
+        'image generation': 'purple',
+        'document analysis': 'blue-grey',
+        'translation': 'orange',
+        'summarization': 'cyan',
+        'chat': 'blue',
+        'other': 'grey'
+      };
+      return colorMap[serviceType.toLowerCase()] || 'grey';
+    },
+
+    getServiceTypeIcon(serviceType) {
+      if (!serviceType) return 'mdi-cog';
+      const iconMap = {
+        'web': 'mdi-web',
+        'desktop': 'mdi-desktop-tower',
+        'api': 'mdi-api',
+        'browser_extension': 'mdi-puzzle',
+        'mobile': 'mdi-cellphone',
+        'text generation': 'mdi-text',
+        'code generation': 'mdi-code-braces',
+        'image generation': 'mdi-image',
+        'document analysis': 'mdi-file-document-outline',
+        'translation': 'mdi-translate',
+        'summarization': 'mdi-text-box-outline',
+        'chat': 'mdi-chat',
+        'other': 'mdi-cog'
+      };
+      return iconMap[serviceType.toLowerCase()] || 'mdi-cog';
+    },
+
+    getInteractionCountColor(count) {
+      if (!count || count === 0) return 'grey';
+      if (count === 1) return 'info';
+      if (count <= 5) return 'success';
+      if (count <= 20) return 'warning';
+      return 'error';
+    },
+
+    // Usage Session Details Modal
+    viewUsageSessionDetails(item) {
+      this.usageSessionDetailsDialog.show = true;
+      this.usageSessionDetailsDialog.item = { ...item };
+    },
+
+    // Export functionality
+    exportSessionData(item) {
+      try {
+        // Create comprehensive export data
+        const exportData = {
+          session_info: {
+            id: item.id,
+            session_id: item.session_id,
+            ai_service_name: item.ai_service_name,
+            service_type: item.service_type,
+            service_url: item.service_url,
+            detection_method: item.detection_method,
+            detection_confidence: item.detection_confidence,
+            first_detected: item.first_detected,
+            last_detected: item.last_detected,
+            interaction_count: item.interaction_count,
+            risk_level: item.risk_level,
+            maindomain: item.maindomain
+          },
+          user_info: item.session ? {
+            email: item.session.email,
+            device_id: item.session.deviceId,
+            device_title: item.session.deviceTitle
+          } : null,
+          risk_factors: this.getRiskFactorsArray(item.risk_factors),
+          metadata: {
+            exported_at: new Date().toISOString(),
+            exported_by: appData.user?.email || 'System'
+          }
+        };
+
+        // Create and download file
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const exportFileDefaultName = `ai-session-${item.session_id || item.id}-${moment().format('YYYY-MM-DD-HH-mm-ss')}.json`;
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+        
+        this.showSuccess(this.$t('Session data exported successfully'));
+      } catch (error) {
+        this.showError(`Export failed: ${error.message}`);
+      }
     }
   },
 
@@ -3144,14 +3665,17 @@ let page = {
 
     // Setup headers for each tab
     this.usageSessionHeaders = [
-      { text: this.$t("Session ID"), value: "session_id", width: "10%" },
-      { text: this.$t("User"), value: "user" },
-      { text: this.$t("Device"), value: "device" },
-      { text: this.$t("AI Service"), value: "ai_service_name" },
-      { text: this.$t("Service Type"), value: "service_type" },
-      { text: this.$t("First Detected"), value: "first_detected" },
-      { text: this.$t("Duration"), value: "duration" },
-      { text: this.$t("Risk Level"), value: "risk_level" }
+      { text: this.$t("Session ID"), value: "session_id", width: "8%" },
+      { text: this.$t("User"), value: "user", width: "10%" },
+      { text: this.$t("Device"), value: "device", width: "10%" },
+      { text: this.$t("AI Service"), value: "ai_service_name", width: "12%" },
+      { text: this.$t("Service Type"), value: "service_type", width: "10%" },
+      { text: this.$t("Confidence"), value: "detection_confidence", width: "8%" },
+      { text: this.$t("Interactions"), value: "interaction_count", width: "8%" },
+      { text: this.$t("First Detected"), value: "first_detected", width: "12%" },
+      { text: this.$t("Duration"), value: "duration", width: "8%" },
+      { text: this.$t("Risk Level"), value: "risk_level", width: "8%" },
+      { text: this.$t("Actions"), value: "actions", sortable: false, width: "10%" }
     ];
 
     this.violationHeaders = [
