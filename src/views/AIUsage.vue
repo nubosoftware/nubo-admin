@@ -206,7 +206,14 @@
                             {{ item.session ? item.session.deviceTitle : 'N/A' }}
                         </template>
                         <template v-slot:[`item.first_detected`]="{ item }">
-                            {{ moment(item.first_detected).format("LLL") }}
+                            <v-tooltip bottom>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <span v-bind="attrs" v-on="on">
+                                        {{ moment(item.first_detected).format("MMM DD, HH:mm") }}
+                                    </span>
+                                </template>
+                                <span>{{ moment(item.first_detected).format("LLLL") }}</span>
+                            </v-tooltip>
                         </template>
                         <template v-slot:[`item.duration`]="{ item }">
                             {{ calculateSessionDuration(item) }}
@@ -232,19 +239,6 @@
                                 <v-icon left small>{{ getAIServiceIcon(item.ai_service_name) }}</v-icon>
                                 {{ item.ai_service_name }}
                             </v-chip>
-                        </template>
-                        <template v-slot:[`item.detection_confidence`]="{ item }">
-                            <div class="d-flex align-center">
-                                <v-progress-linear
-                                    :value="parseFloat(item.detection_confidence || 0) * 100"
-                                    :color="getConfidenceColor(parseFloat(item.detection_confidence || 0) * 100)"
-                                    height="8"
-                                    rounded
-                                    class="mr-2"
-                                    style="width: 60px;"
-                                ></v-progress-linear>
-                                <span class="text-caption">{{ Math.round((parseFloat(item.detection_confidence || 0) * 100)) }}%</span>
-                            </div>
                         </template>
                         <template v-slot:[`item.interaction_count`]="{ item }">
                             <v-tooltip bottom>
@@ -274,6 +268,19 @@
                                 <v-icon left small>{{ getServiceTypeIcon(item.service_type) }}</v-icon>
                                 {{ item.service_type }}
                             </v-chip>
+                        </template>
+                        <template v-slot:[`item.session_id`]="{ item }">
+                            <v-btn
+                                v-if="item.session_id"
+                                text
+                                small
+                                color="primary"
+                                @click="viewSession(item.session_id)"
+                            >
+                                {{ item.session_id.substring(0, 8) }}...
+                                <v-icon right small>mdi-open-in-new</v-icon>
+                            </v-btn>
+                            <span v-else class="text-caption grey--text">N/A</span>
                         </template>
                         <template v-slot:[`item.actions`]="{ item }">
                             <v-btn
@@ -821,8 +828,15 @@
                             </v-toolbar>
                         </template>
 
-                        <template v-slot:[`item.detected_time`]="{ item }">
-                            {{ moment(item.detected_time).format("LLL") }}
+                        <template v-slot:[`item.detected_at`]="{ item }">
+                            <v-tooltip bottom>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <span v-bind="attrs" v-on="on">
+                                        {{ moment(item.detected_at).format("MMM DD, HH:mm") }}
+                                    </span>
+                                </template>
+                                <span>{{ moment(item.detected_at).format("LLLL") }}</span>
+                            </v-tooltip>
                         </template>
                         <template v-slot:[`item.data_type`]="{ item }">
                             <v-chip
@@ -832,7 +846,28 @@
                                 class="data-type-chip"
                             >
                                 <v-icon left small>{{ getDataTypeIcon(item.data_type) }}</v-icon>
-                                {{ item.data_type }}
+                                {{ getDataTypeDisplayName(item.data_type) }}
+                            </v-chip>
+                        </template>
+                        <template v-slot:[`item.ai_service`]="{ item }">
+                            <v-chip
+                                small
+                                :color="getAIServiceColor(item.ai_service)"
+                                text-color="white"
+                                class="service-chip"
+                            >
+                                {{ item.ai_service }}
+                            </v-chip>
+                        </template>
+                        <template v-slot:[`item.exposure_method`]="{ item }">
+                            <v-chip
+                                small
+                                :color="getExposureMethodColor(item.exposure_method)"
+                                text-color="white"
+                                class="exposure-method-chip"
+                            >
+                                <v-icon left small>{{ getExposureMethodIcon(item.exposure_method) }}</v-icon>
+                                {{ getExposureMethodDisplayName(item.exposure_method) }}
                             </v-chip>
                         </template>
                         <template v-slot:[`item.risk_level`]="{ item }">
@@ -843,20 +878,21 @@
                                 small
                                 class="font-weight-medium"
                             >
-                                {{ item.risk_level }}
+                                <v-icon left small>{{ getRiskLevelIcon(item.risk_level) }}</v-icon>
+                                {{ item.risk_level.toUpperCase() }}
                             </v-chip>
                         </template>
                         <template v-slot:[`item.confidence`]="{ item }">
                             <div class="d-flex align-center">
                                 <v-progress-linear
-                                    :value="item.confidence"
-                                    :color="getConfidenceColor(item.confidence)"
-                                    height="10"
+                                    :value="Math.round(parseFloat(item.confidence || 0) * 100)"
+                                    :color="getConfidenceColor(Math.round(parseFloat(item.confidence || 0) * 100))"
+                                    height="12"
                                     rounded
                                     class="mr-2"
-                                    style="width: 80px;"
+                                    style="width: 100px;"
                                 ></v-progress-linear>
-                                <span class="text-caption">{{ item.confidence }}%</span>
+                                <span class="text-caption font-weight-medium">{{ Math.round(parseFloat(item.confidence || 0) * 100) }}%</span>
                             </div>
                         </template>
                         <template v-slot:[`item.session_id`]="{ item }">
@@ -868,6 +904,29 @@
                                 @click="viewSession(item.session_id)"
                             >
                                 {{ item.session_id.substring(0, 8) }}...
+                                <v-icon right small>mdi-open-in-new</v-icon>
+                            </v-btn>
+                            <span v-else class="text-caption grey--text">N/A</span>
+                        </template>
+                        <template v-slot:[`item.actions`]="{ item }">
+                            <v-btn
+                                icon
+                                small
+                                color="primary"
+                                @click="viewSensitiveExposureDetails(item)"
+                                :title="$t('View Details')"
+                            >
+                                <v-icon small>mdi-eye</v-icon>
+                            </v-btn>
+                            <v-btn
+                                v-if="item.session_id"
+                                icon
+                                small
+                                color="secondary"
+                                @click="viewSession(item.session_id)"
+                                :title="$t('View Session')"
+                            >
+                                <v-icon small>mdi-open-in-new</v-icon>
                             </v-btn>
                         </template>
 
@@ -1847,6 +1906,285 @@
             </v-card>
         </v-dialog>
 
+        <!-- Sensitive Exposure Details Dialog -->
+        <v-dialog v-model="sensitiveExposureDetailsDialog.show" max-width="900px" persistent scrollable>
+            <v-card>
+                <v-card-title class="headline">
+                    <v-icon left color="warning">mdi-eye-off</v-icon>
+                    {{ $t('Sensitive Exposure Details') }}
+                    <v-spacer></v-spacer>
+                    <v-btn icon @click="sensitiveExposureDetailsDialog.show = false">
+                        <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                </v-card-title>
+                
+                <v-card-text class="pa-0">
+                    <v-container class="py-4" v-if="sensitiveExposureDetailsDialog.item">
+                        <!-- Header Section with Status Chips -->
+                        <v-row class="mb-4">
+                            <v-col cols="12">
+                                <div class="d-flex flex-wrap align-center ga-2">
+                                    <v-chip
+                                        :color="getDataTypeColor(sensitiveExposureDetailsDialog.item.data_type)"
+                                        text-color="white"
+                                        class="font-weight-medium mr-2"
+                                    >
+                                        <v-icon left small>{{ getDataTypeIcon(sensitiveExposureDetailsDialog.item.data_type) }}</v-icon>
+                                        {{ getDataTypeDisplayName(sensitiveExposureDetailsDialog.item.data_type) || 'UNKNOWN' }} DATA
+                                    </v-chip>
+                                    
+                                    <v-chip
+                                        :color="getRiskLevelColor(sensitiveExposureDetailsDialog.item.risk_level)"
+                                        :text-color="getRiskLevelTextColor(sensitiveExposureDetailsDialog.item.risk_level)"
+                                        class="font-weight-medium mr-2"
+                                    >
+                                        <v-icon left small>{{ getRiskLevelIcon(sensitiveExposureDetailsDialog.item.risk_level) }}</v-icon>
+                                        {{ getRiskLevelDisplayText(sensitiveExposureDetailsDialog.item.risk_level) }} RISK
+                                    </v-chip>
+                                    
+                                    <v-chip
+                                        :color="getExposureMethodColor(sensitiveExposureDetailsDialog.item.exposure_method)"
+                                        text-color="white"
+                                        class="mr-2"
+                                    >
+                                        <v-icon left small>{{ getExposureMethodIcon(sensitiveExposureDetailsDialog.item.exposure_method) }}</v-icon>
+                                        {{ getExposureMethodDisplayName(sensitiveExposureDetailsDialog.item.exposure_method) }}
+                                    </v-chip>
+                                    
+                                    <v-chip
+                                        :color="getAIServiceColor(sensitiveExposureDetailsDialog.item.ai_service)"
+                                        text-color="white"
+                                        class="mr-2"
+                                    >
+                                        {{ sensitiveExposureDetailsDialog.item.ai_service || 'Unknown Service' }}
+                                    </v-chip>
+                                </div>
+                            </v-col>
+                        </v-row>
+
+                        <!-- Basic Information -->
+                        <v-row class="mb-4">
+                            <v-col cols="12" md="6">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-grey lighten-4">
+                                        <v-icon left small>mdi-information-outline</v-icon>
+                                        {{ $t('Exposure Information') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Detected At') }}:</strong><br>
+                                            <span class="text-body-2">{{ moment(sensitiveExposureDetailsDialog.item.detected_at).format("LLLL") }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('AI Service') }}:</strong><br>
+                                            <v-chip small :color="getAIServiceColor(sensitiveExposureDetailsDialog.item.ai_service)" text-color="white">
+                                                {{ sensitiveExposureDetailsDialog.item.ai_service || 'Unknown' }}
+                                            </v-chip>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Session ID') }}:</strong><br>
+                                            <v-btn
+                                                v-if="sensitiveExposureDetailsDialog.item.session_id"
+                                                text
+                                                small
+                                                color="primary"
+                                                @click="viewSession(sensitiveExposureDetailsDialog.item.session_id)"
+                                                class="pa-0"
+                                            >
+                                                {{ sensitiveExposureDetailsDialog.item.session_id }}
+                                                <v-icon right small>mdi-open-in-new</v-icon>
+                                            </v-btn>
+                                            <span v-else class="text-body-2 grey--text">N/A</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Content Hash') }}:</strong><br>
+                                            <span class="text-body-2 font-weight-mono">{{ sensitiveExposureDetailsDialog.item.content_hash || 'N/A' }}</span>
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                            <v-col cols="12" md="6">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-grey lighten-4">
+                                        <v-icon left small>mdi-account-outline</v-icon>
+                                        {{ $t('User Information') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="mb-2">
+                                            <strong>{{ $t('User') }}:</strong><br>
+                                            <span class="text-body-2">{{ (sensitiveExposureDetailsDialog.item.session && sensitiveExposureDetailsDialog.item.session.email) || 'N/A' }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Device') }}:</strong><br>
+                                            <span class="text-body-2">{{ (sensitiveExposureDetailsDialog.item.session && sensitiveExposureDetailsDialog.item.session.deviceTitle) || 'N/A' }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Domain') }}:</strong><br>
+                                            <span class="text-body-2">{{ sensitiveExposureDetailsDialog.item.maindomain || 'N/A' }}</span>
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+
+                        <!-- Exposure Analysis -->
+                        <v-row class="mb-4">
+                            <v-col cols="12" md="8">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-warning white--text">
+                                        <v-icon left small color="white">mdi-eye-off-outline</v-icon>
+                                        {{ $t('Exposure Analysis') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="mb-3">
+                                            <strong>{{ $t('Data Type') }}:</strong><br>
+                                            <v-chip :color="getDataTypeColor(sensitiveExposureDetailsDialog.item.data_type)" text-color="white" class="mt-1">
+                                                <v-icon left small>{{ getDataTypeIcon(sensitiveExposureDetailsDialog.item.data_type) }}</v-icon>
+                                                {{ getDataTypeDisplayName(sensitiveExposureDetailsDialog.item.data_type) }}
+                                            </v-chip>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong>{{ $t('Exposure Method') }}:</strong><br>
+                                            <v-chip :color="getExposureMethodColor(sensitiveExposureDetailsDialog.item.exposure_method)" text-color="white" class="mt-1">
+                                                <v-icon left small>{{ getExposureMethodIcon(sensitiveExposureDetailsDialog.item.exposure_method) }}</v-icon>
+                                                {{ getExposureMethodDisplayName(sensitiveExposureDetailsDialog.item.exposure_method) }}
+                                            </v-chip>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong>{{ $t('Risk Level') }}:</strong><br>
+                                            <v-chip 
+                                                :color="getRiskLevelColor(sensitiveExposureDetailsDialog.item.risk_level)" 
+                                                :text-color="getRiskLevelTextColor(sensitiveExposureDetailsDialog.item.risk_level)"
+                                                class="mt-1"
+                                            >
+                                                <v-icon left small>{{ getRiskLevelIcon(sensitiveExposureDetailsDialog.item.risk_level) }}</v-icon>
+                                                {{ getRiskLevelDisplayText(sensitiveExposureDetailsDialog.item.risk_level) }}
+                                            </v-chip>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Detection Confidence') }}:</strong><br>
+                                            <div class="d-flex align-center mt-2">
+                                                <v-progress-linear
+                                                    :value="Math.round(parseFloat(sensitiveExposureDetailsDialog.item.confidence || 0) * 100)"
+                                                    :color="getConfidenceColor(Math.round(parseFloat(sensitiveExposureDetailsDialog.item.confidence || 0) * 100))"
+                                                    height="16"
+                                                    rounded
+                                                    class="mr-3"
+                                                    style="width: 150px;"
+                                                ></v-progress-linear>
+                                                <span class="text-h6 font-weight-bold">{{ Math.round(parseFloat(sensitiveExposureDetailsDialog.item.confidence || 0) * 100) }}%</span>
+                                            </div>
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                            <v-col cols="12" md="4">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-blue lighten-4">
+                                        <v-icon left small>mdi-clock-outline</v-icon>
+                                        {{ $t('Timeline') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Detected At') }}:</strong><br>
+                                            <span class="text-body-2">{{ moment(sensitiveExposureDetailsDialog.item.detected_at).format("LLL") }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Created') }}:</strong><br>
+                                            <span class="text-body-2">{{ moment(sensitiveExposureDetailsDialog.item.createdAt).format("LLL") }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>{{ $t('Updated') }}:</strong><br>
+                                            <span class="text-body-2">{{ moment(sensitiveExposureDetailsDialog.item.updatedAt).format("LLL") }}</span>
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+
+                        <!-- Mitigation Suggestions -->
+                        <v-row class="mb-4">
+                            <v-col cols="12">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-success white--text">
+                                        <v-icon left small color="white">mdi-shield-check-outline</v-icon>
+                                        {{ $t('Mitigation Suggestions') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <div class="text-body-1 mitigation-text">
+                                            {{ sensitiveExposureDetailsDialog.item.mitigation_suggested || 'No specific mitigation suggestions available for this exposure type.' }}
+                                        </div>
+                                        <v-divider class="my-3"></v-divider>
+                                        <div class="text-body-2 grey--text">
+                                            <strong>{{ $t('General Recommendations') }}:</strong>
+                                            <ul class="mt-2">
+                                                <li>Review and remove sensitive data from AI service inputs</li>
+                                                <li>Implement data loss prevention (DLP) policies</li>
+                                                <li>Train users on secure AI usage practices</li>
+                                                <li>Monitor AI service usage patterns regularly</li>
+                                            </ul>
+                                        </div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+
+                        <!-- Additional Details -->
+                        <v-row class="mb-4">
+                            <v-col cols="12">
+                                <v-card flat outlined>
+                                    <v-card-title class="text-subtitle-1 py-2 bg-indigo lighten-4">
+                                        <v-icon left small>mdi-information-variant</v-icon>
+                                        {{ $t('Additional Details') }}
+                                    </v-card-title>
+                                    <v-card-text class="pa-3">
+                                        <v-row>
+                                            <v-col cols="12" sm="4">
+                                                <div class="text-center">
+                                                    <div class="text-h4 warning--text">{{ Math.round(parseFloat(sensitiveExposureDetailsDialog.item.confidence || 0) * 100) }}%</div>
+                                                    <div class="text-caption grey--text">{{ $t('Detection Confidence') }}</div>
+                                                </div>
+                                            </v-col>
+                                            <v-col cols="12" sm="4">
+                                                <div class="text-center">
+                                                    <div class="text-h4 error--text">{{ getRiskLevelDisplayText(sensitiveExposureDetailsDialog.item.risk_level) }}</div>
+                                                    <div class="text-caption grey--text">{{ $t('Risk Level') }}</div>
+                                                </div>
+                                            </v-col>
+                                            <v-col cols="12" sm="4">
+                                                <div class="text-center">
+                                                    <div class="text-h4 info--text">{{ getDataTypeDisplayName(sensitiveExposureDetailsDialog.item.data_type) }}</div>
+                                                    <div class="text-caption grey--text">{{ $t('Data Type') }}</div>
+                                                </div>
+                                            </v-col>
+                                        </v-row>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+                    </v-container>
+                </v-card-text>
+                
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        v-if="sensitiveExposureDetailsDialog.item.session_id"
+                        color="secondary"
+                        @click="viewSession(sensitiveExposureDetailsDialog.item.session_id)"
+                    >
+                        <v-icon left small>mdi-open-in-new</v-icon>
+                        {{ $t('View Full Session') }}
+                    </v-btn>
+                    <v-btn
+                        color="primary"
+                        @click="sensitiveExposureDetailsDialog.show = false"
+                    >
+                        {{ $t('Close') }}
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
         <!-- Usage Session Details Dialog -->
         <v-dialog v-model="usageSessionDetailsDialog.show" max-width="1000px" persistent scrollable>
             <v-card>
@@ -2431,20 +2769,20 @@ let page = {
       { text: 'Non-Compliant', value: false }
     ],
     dataTypeOptions: [
-      'Personal Information',
-      'Financial Data',
-      'Medical Records',
-      'Credentials',
-      'Business Secrets',
-      'Legal Documents',
-      'Other'
+      { text: 'Credentials', value: 'credentials' },
+      { text: 'API Keys', value: 'api_keys' },
+      { text: 'Source Code', value: 'source_code' },
+      { text: 'Personal Data', value: 'personal_data' },
+      { text: 'Financial Data', value: 'financial_data' },
+      { text: 'Health Data', value: 'health_data' },
+      { text: 'Proprietary Info', value: 'proprietary_info' },
+      { text: 'Other', value: 'other' }
     ],
     exposureMethodOptions: [
-      'Prompt Injection',
-      'Response Extraction',
-      'Model Inference',
-      'Data Exfiltration',
-      'Other'
+      { text: 'Prompt', value: 'prompt' },
+      { text: 'File Upload', value: 'file_upload' },
+      { text: 'Screen Share', value: 'screen_share' },
+      { text: 'Copy Paste', value: 'copy_paste' }
     ],
     allAvailableServices: [
       'OpenAI GPT',
@@ -2520,6 +2858,12 @@ let page = {
 
     // Usage Session Details Dialog
     usageSessionDetailsDialog: {
+      show: false,
+      item: {}
+    },
+
+    // Sensitive Exposure Details Dialog
+    sensitiveExposureDetailsDialog: {
       show: false,
       item: {}
     }
@@ -2625,15 +2969,60 @@ let page = {
 
     getDataTypeIcon(dataType) {
       const iconMap = {
-        'Personal Information': 'mdi-account',
-        'Financial Data': 'mdi-currency-usd',
-        'Medical Records': 'mdi-medical-bag',
-        'Credentials': 'mdi-key',
-        'Business Secrets': 'mdi-briefcase',
-        'Legal Documents': 'mdi-gavel',
-        'Other': 'mdi-file'
+        'credentials': 'mdi-key',
+        'api_keys': 'mdi-key-variant',
+        'source_code': 'mdi-code-braces',
+        'personal_data': 'mdi-account',
+        'financial_data': 'mdi-currency-usd',
+        'health_data': 'mdi-medical-bag',
+        'proprietary_info': 'mdi-briefcase',
+        'other': 'mdi-file'
       };
       return iconMap[dataType] || 'mdi-file';
+    },
+
+    getDataTypeDisplayName(dataType) {
+      const displayMap = {
+        'credentials': 'Credentials',
+        'api_keys': 'API Keys',
+        'source_code': 'Source Code',
+        'personal_data': 'Personal Data',
+        'financial_data': 'Financial Data',
+        'health_data': 'Health Data',
+        'proprietary_info': 'Proprietary Info',
+        'other': 'Other'
+      };
+      return displayMap[dataType] || dataType;
+    },
+
+    getExposureMethodColor(method) {
+      const colorMap = {
+        'prompt': 'blue',
+        'file_upload': 'orange',
+        'screen_share': 'purple',
+        'copy_paste': 'teal'
+      };
+      return colorMap[method] || 'grey';
+    },
+
+    getExposureMethodIcon(method) {
+      const iconMap = {
+        'prompt': 'mdi-message-text',
+        'file_upload': 'mdi-file-upload',
+        'screen_share': 'mdi-monitor-share',
+        'copy_paste': 'mdi-content-copy'
+      };
+      return iconMap[method] || 'mdi-help-circle';
+    },
+
+    getExposureMethodDisplayName(method) {
+      const displayMap = {
+        'prompt': 'Prompt',
+        'file_upload': 'File Upload',
+        'screen_share': 'Screen Share',
+        'copy_paste': 'Copy Paste'
+      };
+      return displayMap[method] || method;
     },
 
     getConfidenceColor(confidence) {
@@ -3103,8 +3492,8 @@ let page = {
         ai_service: this.sensitiveExposureFilters.aiService,
         exposure_method: this.sensitiveExposureFilters.exposureMethod,
         risk_level: this.sensitiveExposureFilters.riskLevel,
-        confidence_min: this.sensitiveExposureFilters.confidenceRange[0],
-        confidence_max: this.sensitiveExposureFilters.confidenceRange[1]
+        min_confidence: this.sensitiveExposureFilters.confidenceRange[0] / 100,
+        max_confidence: this.sensitiveExposureFilters.confidenceRange[1] / 100
       };
 
       appUtils
@@ -3514,6 +3903,16 @@ let page = {
       this.$router.push({ name: 'SessionView', params: { id: sessionId } });
     },
 
+    // Missing helper methods for template expressions
+    getRiskLevelTextColor(riskLevel) {
+      if (!riskLevel) return 'white';
+      return riskLevel.toLowerCase() === 'low' ? 'black' : 'white';
+    },
+
+    getRiskLevelDisplayText(riskLevel) {
+      return (riskLevel && riskLevel.toUpperCase()) || 'UNKNOWN';
+    },
+
     // New helper methods for enhanced UI
     getAIServiceIcon(serviceName) {
       if (!serviceName) return 'mdi-robot';
@@ -3598,6 +3997,12 @@ let page = {
       this.usageSessionDetailsDialog.item = { ...item };
     },
 
+    // Sensitive Exposure Details Modal
+    viewSensitiveExposureDetails(item) {
+      this.sensitiveExposureDetailsDialog.show = true;
+      this.sensitiveExposureDetailsDialog.item = { ...item };
+    },
+
     // Export functionality
     exportSessionData(item) {
       try {
@@ -3665,16 +4070,15 @@ let page = {
 
     // Setup headers for each tab
     this.usageSessionHeaders = [
-      { text: this.$t("Session ID"), value: "session_id", width: "8%" },
+      { text: this.$t("Detected"), value: "first_detected", width: "10%" },
       { text: this.$t("User"), value: "user", width: "10%" },
       { text: this.$t("Device"), value: "device", width: "10%" },
       { text: this.$t("AI Service"), value: "ai_service_name", width: "12%" },
       { text: this.$t("Service Type"), value: "service_type", width: "10%" },
-      { text: this.$t("Confidence"), value: "detection_confidence", width: "8%" },
       { text: this.$t("Interactions"), value: "interaction_count", width: "8%" },
-      { text: this.$t("First Detected"), value: "first_detected", width: "12%" },
       { text: this.$t("Duration"), value: "duration", width: "8%" },
       { text: this.$t("Risk Level"), value: "risk_level", width: "8%" },
+      { text: this.$t("Session"), value: "session_id", width: "8%" },
       { text: this.$t("Actions"), value: "actions", sortable: false, width: "10%" }
     ];
 
@@ -3704,13 +4108,14 @@ let page = {
     ];
 
     this.sensitiveExposureHeaders = [
-      { text: this.$t("Data Type"), value: "data_type" },
-      { text: this.$t("AI Service"), value: "ai_service" },
-      { text: this.$t("Exposure Method"), value: "exposure_method" },
-      { text: this.$t("Risk Level"), value: "risk_level" },
-      { text: this.$t("Confidence"), value: "confidence" },
-      { text: this.$t("Detected Time"), value: "detected_time" },
-      { text: this.$t("Session ID"), value: "session_id" }
+      { text: this.$t("Detected"), value: "detected_at", width: "12%" },
+      { text: this.$t("Data Type"), value: "data_type", width: "12%" },
+      { text: this.$t("AI Service"), value: "ai_service", width: "12%" },
+      { text: this.$t("Exposure Method"), value: "exposure_method", width: "12%" },
+      { text: this.$t("Risk Level"), value: "risk_level", width: "10%" },
+      { text: this.$t("Confidence"), value: "confidence", width: "10%" },
+      { text: this.$t("Session"), value: "session_id", width: "10%" },
+      { text: this.$t("Actions"), value: "actions", sortable: false, width: "12%" }
     ];
 
     this.serviceRegistryHeaders = [
@@ -3726,6 +4131,17 @@ let page = {
 
     // Load saved page data
     appUtils.loadPageData(page.name, this);
+
+    // Clean up any old saved data that might have "detected_time" instead of "detected_at"
+    if (this.sensitiveExposureOptions && this.sensitiveExposureOptions.sortBy) {
+      if (Array.isArray(this.sensitiveExposureOptions.sortBy)) {
+        this.sensitiveExposureOptions.sortBy = this.sensitiveExposureOptions.sortBy.map(field => 
+          field === 'detected_time' ? 'detected_at' : field
+        );
+      } else if (this.sensitiveExposureOptions.sortBy === 'detected_time') {
+        this.sensitiveExposureOptions.sortBy = 'detected_at';
+      }
+    }
 
     // Load dynamic service names for filters
     this.loadAIServiceOptions();
