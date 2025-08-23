@@ -1462,7 +1462,7 @@ Security Operations`,
           url: "api/monitor-settings"
         })
         .then((response) => {
-          console.log("Settings loaded:", response.data);
+          // console.log("Settings loaded:", response.data);
           if (response.data) {
             this.settingsForm.securityAnalystCustomInstructions = response.data.securityAnalystCustomInstructions || "";
             this.settingsForm.frameAnalyzerCustomInstructions = response.data.frameAnalyzerCustomInstructions || "";
@@ -1770,7 +1770,7 @@ Security Operations`,
   },
   watch: {
     tab: function (newVal) {
-      console.log(`tab change to:`, newVal);
+      // console.log(`tab change to:`, newVal);
       this.savePage();
 
       // Load auth keys data when switching to auth keys tab
@@ -1804,7 +1804,7 @@ Security Operations`,
     },
 
     selectedDateRange: function (newVal) {
-      console.log(`selectedDateRange: ${newVal}`);
+      // console.log(`selectedDateRange: ${newVal}`);
       this.savePage();
     },
 

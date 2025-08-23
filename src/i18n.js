@@ -12,12 +12,12 @@ function loadLocaleMessages () {
     const matched = key.match(/([A-Za-z0-9-_]+)\./i)
     if (matched && matched.length > 1) {
       const locale = matched[1]
-      messages[locale] = locales(key)
+      messages[locale] = locales(key)     
     }
   })
   
   if (plugins.customLocales) {
-    console.log(`loadLocaleMessages. customLocales: ${Object.keys(plugins.customLocales).length}`);
+    // console.log(`loadLocaleMessages. customLocales: ${Object.keys(plugins.customLocales).length}`);
     for (const locale in plugins.customLocales) {     
         console.log(`loadLocaleMessages. custom locale: ${locale}`)
         if (messages[locale]) {
@@ -30,7 +30,7 @@ function loadLocaleMessages () {
   }
 
   if (window.customLocales) {
-    console.log(`loadLocaleMessages. customLocales: ${Object.keys(window.customLocales).length}`);
+    // console.log(`loadLocaleMessages. customLocales: ${Object.keys(window.customLocales).length}`);
     for (const locale in window.customLocales) {     
         console.log(`loadLocaleMessages. custom locale: ${locale}`)
         if (messages[locale]) {
@@ -48,5 +48,6 @@ function loadLocaleMessages () {
 export default new VueI18n({
   locale: process.env.VUE_APP_I18N_LOCALE || 'en',
   fallbackLocale: process.env.VUE_APP_I18N_FALLBACK_LOCALE || 'en',
+  silentFallbackWarn: true, // Disable fallback warnings
   messages: loadLocaleMessages()
 })

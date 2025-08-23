@@ -1122,181 +1122,146 @@
                     <div class="bg-white">
                         <div class="px-6 pt-6 pb-4">
                             <div class="text-h6">{{ $t('AI Monitor Settings') }}</div>
-                        </div>
-
-                        <div class="px-6 py-3">
-                            <!-- Monitoring Enable/Disable -->
-                            <div class="mb-6">
-                                <v-switch
-                                    v-model="settingsForm.monitoringEnabled"
-                                    :label="$t('Enable AI Usage Monitoring')"
-                                    class="mb-4"
-                                ></v-switch>
-                                <div class="text-caption grey--text">
-                                    {{ $t('Enable or disable AI usage monitoring across the system') }}
-                                </div>
-                            </div>
-
-                            <!-- Allowed AI Services -->
-                            <div class="mb-6">
-                                <v-combobox
-                                    v-model="settingsForm.allowedServices"
-                                    :items="allAvailableServices"
-                                    :label="$t('Allowed AI Services')"
-                                    multiple
-                                    chips
-                                    deletable-chips
-                                    class="bg-white"
-                                    outlined
-                                    hide-details="auto"
-                                ></v-combobox>
-                                <div class="text-caption grey--text mt-1">
-                                    {{ $t('List of AI services that are allowed to be used. Users can only access these services.') }}
-                                </div>
-                            </div>
-
-                            <!-- Risk Threshold Levels -->
-                            <div class="mb-6">
-                                <div class="text-subtitle-1 mb-3">{{ $t('Risk Threshold Levels') }}</div>
-                                <v-row>
-                                    <v-col cols="12" md="6">
-                                        <v-slider
-                                            v-model="settingsForm.riskThresholds.low"
-                                            :label="$t('Low Risk Threshold')"
-                                            :max="100"
-                                            :min="0"
-                                            thumb-label
-                                            class="align-center"
-                                        ></v-slider>
-                                    </v-col>
-                                    <v-col cols="12" md="6">
-                                        <v-slider
-                                            v-model="settingsForm.riskThresholds.medium"
-                                            :label="$t('Medium Risk Threshold')"
-                                            :max="100"
-                                            :min="0"
-                                            thumb-label
-                                            class="align-center"
-                                        ></v-slider>
-                                    </v-col>
-                                    <v-col cols="12" md="6">
-                                        <v-slider
-                                            v-model="settingsForm.riskThresholds.high"
-                                            :label="$t('High Risk Threshold')"
-                                            :max="100"
-                                            :min="0"
-                                            thumb-label
-                                            class="align-center"
-                                        ></v-slider>
-                                    </v-col>
-                                    <v-col cols="12" md="6">
-                                        <v-slider
-                                            v-model="settingsForm.riskThresholds.critical"
-                                            :label="$t('Critical Risk Threshold')"
-                                            :max="100"
-                                            :min="0"
-                                            thumb-label
-                                            class="align-center"
-                                        ></v-slider>
-                                    </v-col>
-                                </v-row>
-                            </div>
-
-                            <!-- Sensitive Data Patterns -->
-                            <div class="mb-6">
-                                <v-textarea
-                                    v-model="settingsForm.sensitiveDataPatterns"
-                                    :label="$t('Sensitive Data Patterns')"
-                                    rows="4"
-                                    class="bg-white"
-                                    outlined
-                                    hide-details="auto"
-                                    placeholder="Enter regex patterns, one per line"
-                                ></v-textarea>
-                                <div class="text-caption grey--text mt-1">
-                                    {{ $t('Regular expression patterns to identify sensitive data in AI prompts and responses') }}
-                                </div>
-                            </div>
-
-                            <!-- Notification Settings -->
-                            <div class="mb-6">
-                                <div class="text-subtitle-1 mb-3">{{ $t('Notification Settings') }}</div>
-                                <v-switch
-                                    v-model="settingsForm.notificationSettings.emailEnabled"
-                                    :label="$t('Enable Email Notifications')"
-                                    class="mb-2"
-                                ></v-switch>
-                                <v-switch
-                                    v-model="settingsForm.notificationSettings.smsEnabled"
-                                    :label="$t('Enable SMS Notifications')"
-                                    class="mb-2"
-                                ></v-switch>
-                                <v-text-field
-                                    v-model="settingsForm.notificationSettings.recipients"
-                                    :label="$t('Notification Recipients (comma separated)')"
-                                    class="bg-white"
-                                    outlined
-                                    hide-details="auto"
-                                ></v-text-field>
-                            </div>
-
-                            <!-- Dynamic Service Learning -->
-                            <div class="mb-6">
-                                <v-switch
-                                    v-model="settingsForm.dynamicLearning"
-                                    :label="$t('Enable Dynamic Service Learning')"
-                                    class="mb-4"
-                                ></v-switch>
-                                <div class="text-caption grey--text">
-                                    {{ $t('Allow the system to automatically detect and learn about new AI services') }}
-                                </div>
-                            </div>
-
-                            <!-- Custom Analysis Instructions -->
-                            <div class="mb-6">
-                                <v-textarea
-                                    v-model="settingsForm.customInstructions"
-                                    :label="$t('Custom Analysis Instructions')"
-                                    rows="8"
-                                    class="bg-white"
-                                    outlined
-                                    hide-details="auto"
-                                    placeholder="Additional instructions for AI usage analysis"
-                                ></v-textarea>
-                                <div class="text-caption grey--text mt-1">
-                                    {{ $t('Additional instructions for the AI usage analysis component') }}
-                                </div>
-                            </div>
-
-                            <div v-if="settingsForm.updatedAt" class="text-caption grey--text mb-4">
-                                {{ $t('Last updated') }}: {{ moment(settingsForm.updatedAt).format("LLL") }}
-                            </div>
-
-                            <div class="d-flex">
-                                <v-btn
-                                    color="error"
-                                    text
-                                    small
-                                    @click="resetSettings"
-                                    :loading="settingsLoading"
-                                    :disabled="!appData.checkPermission('/','w')"
-                                >
-                                    {{ $t('RESET TO DEFAULT') }}
-                                </v-btn>
-                                <v-spacer></v-spacer>
-                                <v-btn
-                                    color="primary"
-                                    dark
-                                    small
-                                    class="rounded-0 text-uppercase"
-                                    @click="saveSettings"
-                                    :loading="settingsLoading"
-                                    :disabled="!appData.checkPermission('/','w')"
-                                >
-                                    {{ $t('SAVE SETTINGS') }}
-                                </v-btn>
+                            <div class="text-subtitle-2 grey--text mt-2">
+                                {{ $t('Configure basic AI usage monitoring settings') }}
                             </div>
                         </div>
+
+                        <v-container class="px-6 py-4">
+                            <v-row justify="center">
+                                <v-col cols="12" md="8" lg="6">
+                                    <v-card flat outlined class="pa-6">
+                                        <!-- Monitoring Enable/Disable -->
+                                        <div class="mb-8">
+                                            <div class="text-center mb-4">
+                                            <v-icon 
+                                                :color="settingsForm.aiMonitoringEnabled ? 'success' : 'grey'" 
+                                                size="48"
+                                                class="mb-2"
+                                            >
+                                                {{ settingsForm.aiMonitoringEnabled ? 'mdi-shield-check' : 'mdi-shield-off' }}
+                                            </v-icon>
+                                                <div class="text-h6 mb-2">
+                                                    {{ $t('System Monitoring') }}
+                                                </div>
+                                            </div>
+                                            
+                                            <v-switch
+                                                v-model="settingsForm.aiMonitoringEnabled"
+                                                :label="$t('Enable AI Usage Monitoring')"
+                                                class="d-flex justify-center mb-3"
+                                                color="primary"
+                                                inset
+                                            ></v-switch>
+                                            
+                                            <v-alert
+                                                :type="settingsForm.aiMonitoringEnabled ? 'info' : 'warning'"
+                                                text
+                                                class="mb-0"
+                                            >
+                                                <div class="text-body-2">
+                                                    {{ settingsForm.aiMonitoringEnabled 
+                                                        ? $t('AI usage monitoring is active. All AI interactions will be tracked and analyzed.') 
+                                                        : $t('AI usage monitoring is disabled. No AI interactions will be tracked.') 
+                                                    }}
+                                                </div>
+                                            </v-alert>
+                                        </div>
+
+                                        <v-divider class="my-6"></v-divider>
+
+                                        <!-- Dynamic Service Learning -->
+                                        <div class="mb-8">
+                                            <div class="text-center mb-4">
+                                                <v-icon 
+                                                    :color="settingsForm.dynamicServiceLearning ? 'primary' : 'grey'" 
+                                                    size="32"
+                                                    class="mb-2"
+                                                >
+                                                    {{ settingsForm.dynamicServiceLearning ? 'mdi-brain' : 'mdi-brain-freeze' }}
+                                                </v-icon>
+                                                <div class="text-h6 mb-2">
+                                                    {{ $t('Intelligent Learning') }}
+                                                </div>
+                                            </div>
+
+                                            <v-switch
+                                                v-model="settingsForm.dynamicServiceLearning"
+                                                :label="$t('Enable Dynamic Service Learning')"
+                                                class="d-flex justify-center mb-3"
+                                                color="primary"
+                                                inset
+                                            ></v-switch>
+
+                                            <v-alert
+                                                :type="settingsForm.dynamicServiceLearning ? 'success' : 'info'"
+                                                text
+                                                class="mb-0"
+                                            >
+                                                <div class="text-body-2">
+                                                    {{ settingsForm.dynamicServiceLearning 
+                                                        ? $t('The system will automatically detect and learn about new AI services as they are used.') 
+                                                        : $t('Dynamic learning is disabled. Only pre-configured AI services will be monitored.') 
+                                                    }}
+                                                </div>
+                                            </v-alert>
+                                        </div>
+
+                                        <v-divider class="my-6"></v-divider>
+
+                                        <!-- Custom Analysis Instructions -->
+                                        <div class="mb-6">
+                                            <div class="text-center mb-4">
+                                                <v-icon color="indigo" size="32" class="mb-2">
+                                                    mdi-file-document-edit-outline
+                                                </v-icon>
+                                                <div class="text-h6 mb-2">
+                                                    {{ $t('Custom Analysis Instructions') }}
+                                                </div>
+                                                <div class="text-body-2 grey--text">
+                                                    {{ $t('Provide additional instructions for the AI usage analysis component') }}
+                                                </div>
+                                            </div>
+
+                                            <v-textarea
+                                                v-model="settingsForm.aiAnalysisCustomInstructions"
+                                                :label="$t('Analysis Instructions')"
+                                                rows="6"
+                                                outlined
+                                                hide-details="auto"
+                                                placeholder="Enter custom instructions for analyzing AI usage patterns..."
+                                                class="mt-4"
+                                            ></v-textarea>
+                                        </div>                                       
+
+                                        <!-- Action Buttons -->
+                                        <div class="d-flex justify-space-between pt-4">
+                                            <v-btn
+                                                color="error"
+                                                outlined
+                                                @click="resetSettings"
+                                                :loading="settingsLoading"
+                                                :disabled="!appData.checkPermission('/','w')"
+                                            >
+                                                <v-icon left small>mdi-restore</v-icon>
+                                                {{ $t('Reset to Default') }}
+                                            </v-btn>
+                                            
+                                            <v-btn
+                                                color="primary"
+                                                large
+                                                @click="saveSettings"
+                                                :loading="settingsLoading"
+                                                :disabled="!appData.checkPermission('/','w')"
+                                            >
+                                                <v-icon left>mdi-content-save</v-icon>
+                                                {{ $t('Save Settings') }}
+                                            </v-btn>
+                                        </div>
+                                    </v-card>
+                                </v-col>
+                            </v-row>
+                        </v-container>
                     </div>
                 </v-tab-item>
             </v-tabs-items>
@@ -2701,23 +2666,9 @@ let page = {
     // Settings
     settingsLoading: false,
     settingsForm: {
-      monitoringEnabled: true,
-      allowedServices: [],
-      riskThresholds: {
-        low: 25,
-        medium: 50,
-        high: 75,
-        critical: 90
-      },
-      sensitiveDataPatterns: "",
-      notificationSettings: {
-        emailEnabled: true,
-        smsEnabled: false,
-        recipients: ""
-      },
-      dynamicLearning: true,
-      customInstructions: "",
-      updatedAt: null
+      aiMonitoringEnabled: true,
+      dynamicServiceLearning: true,
+      aiAnalysisCustomInstructions: "",     
     },
 
     // Filter options
@@ -3532,11 +3483,11 @@ let page = {
           url: "api/ai-monitor-settings"
         })
         .then((response) => {
+        //   console.log("Settings loaded:", response.data);
           if (response.data) {
             this.settingsForm = {
               ...this.settingsForm,
-              ...response.data,
-              updatedAt: response.data.updatedAt || null
+              ...response.data,            
             };
           }
         })
@@ -3551,6 +3502,7 @@ let page = {
     saveSettings() {
       this.settingsLoading = true;
 
+      console.log("Settings to save:", this.settingsForm);
       appUtils
         .req({
           method: "PUT",
@@ -3577,44 +3529,12 @@ let page = {
       if (!confirm(this.$t('Are you sure you want to reset all settings to default? This cannot be undone.'))) {
         return;
       }
-
-      this.settingsLoading = true;
-
-      appUtils
-        .req({
-          method: "DELETE",
-          url: "api/ai-monitor-settings"
-        })
-        .then(() => {
-          // Reset form values to defaults
-          this.settingsForm = {
-            monitoringEnabled: true,
-            allowedServices: [],
-            riskThresholds: {
-              low: 25,
-              medium: 50,
-              high: 75,
-              critical: 90
-            },
-            sensitiveDataPatterns: "",
-            notificationSettings: {
-              emailEnabled: true,
-              smsEnabled: false,
-              recipients: ""
-            },
-            dynamicLearning: true,
-            customInstructions: "",
-            updatedAt: null
-          };
-
-          this.showSuccess(this.$t("Settings reset to default values"));
-        })
-        .catch((error) => {
-          this.showError(`Error resetting settings: ${error.message}`);
-        })
-        .finally(() => {
-          this.settingsLoading = false;
-        });
+      this.settingsForm = {
+        aiMonitoringEnabled: true,
+        dynamicServiceLearning: true,
+        aiAnalysisCustomInstructions: ""       
+      };
+      this.saveSettings();     
     },
 
     // AI Service Registry methods
@@ -4178,7 +4098,7 @@ let page = {
 
   watch: {
     tab: function (newVal) {
-      console.log(`tab change to:`, newVal);
+    //   console.log(`tab change to:`, newVal);
       this.savePage();
       this.refreshCurrentTab();
     },
@@ -4201,7 +4121,7 @@ let page = {
     },
 
     selectedDateRange: function (newVal) {
-      console.log(`selectedDateRange: ${newVal}`);
+    //   console.log(`selectedDateRange: ${newVal}`);
       this.savePage();
     },
 
