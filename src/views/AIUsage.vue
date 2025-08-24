@@ -4097,8 +4097,7 @@ let page = {
   },
 
   watch: {
-    tab: function (newVal) {
-    //   console.log(`tab change to:`, newVal);
+    tab: function () {
       this.savePage();
       this.refreshCurrentTab();
     },
@@ -4120,8 +4119,7 @@ let page = {
       }
     },
 
-    selectedDateRange: function (newVal) {
-    //   console.log(`selectedDateRange: ${newVal}`);
+    selectedDateRange: function () {
       this.savePage();
     },
 

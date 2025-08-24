@@ -1770,7 +1770,6 @@ Security Operations`,
   },
   watch: {
     tab: function (newVal) {
-      // console.log(`tab change to:`, newVal);
       this.savePage();
 
       // Load auth keys data when switching to auth keys tab
@@ -1803,8 +1802,7 @@ Security Operations`,
       }
     },
 
-    selectedDateRange: function (newVal) {
-      // console.log(`selectedDateRange: ${newVal}`);
+    selectedDateRange: function () {
       this.savePage();
     },
 
