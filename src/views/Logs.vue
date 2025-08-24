@@ -1134,8 +1134,6 @@ let page = {
             // For server-side pagination, set a reasonable total or use the current results length
             // Since the API doesn't provide total count, we'll use a large number to enable pagination
             // If we get fewer results than the limit, we know we're at the end
-            const currentResultsCount = this.eventsRows.length;
-            const currentLimit = this.eventsOptions.itemsPerPage || 10;
             this.eventsTotalItems = response.data.total || 0;
 
 
