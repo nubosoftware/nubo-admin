@@ -549,5 +549,17 @@
     "AI Assistant": "AI Assistant",
     "Welcome to the AI Assistant": "Welcome to the AI Assistant",
     "How can I help you with Nubo Admin today?": "How can I help you with Nubo Admin today?",
-    "Type a message...": "Type a message..."
+    "Type a message...": "Type a message...",
+    "Event Details": "Event Details",
+    "Event Information": "Event Information",
+    "Event ID": "Event ID",
+    "Level": "Level",
+    "User Email": "User Email",
+    "Timestamp": "Timestamp",
+    "Relative Time": "Relative Time",
+    "Additional Information": "Additional Information",
+    "Export Event Data": "Export Event Data",
+    "System Events": "System Events",
+    "No events found for the selected criteria": "No events found for the selected criteria",
+    "Event data exported successfully": "Event data exported successfully"
 }
