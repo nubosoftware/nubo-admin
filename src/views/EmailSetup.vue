@@ -39,6 +39,31 @@
                 </v-col>
               </v-row>
 
+              <v-row v-if="emailStatus">
+                <v-col>
+                  <v-radio-group v-model="groupFilterMode" :label="$t('Apply Exchange to')">
+                    <v-radio :label="$t('All users')" value="all"></v-radio>
+                    <v-radio :label="$t('Only users in selected groups')" value="include"></v-radio>
+                    <v-radio :label="$t('All users except those in selected groups')" value="exclude"></v-radio>
+                  </v-radio-group>
+                </v-col>
+              </v-row>
+
+              <v-row v-if="emailStatus && groupFilterMode !== 'all'">
+                <v-col>
+                  <v-autocomplete
+                    v-model="groupFilterGroups"
+                    :items="availableGroups"
+                    :label="$t('Select groups')"
+                    multiple
+                    chips
+                    deletable-chips
+                    item-text="text"
+                    item-value="value"
+                  ></v-autocomplete>
+                </v-col>
+              </v-row>
+
               <v-row>
                 <v-col cols="12" sm="6" md="3">
                   <v-btn
@@ -80,10 +105,25 @@ let page = {
     options: {},
     snackbarSave: false,
     snackbarText: "",
+    groupFilterMode: "all",
+    groupFilterGroups: [],
+    availableGroups: [],
     appData
   }),
   methods: {
-    
+    loadGroups: function() {
+      appUtils
+        .get({ url: "api/groups" })
+        .then(response => {
+          if (response.data.status == 1 && response.data.groups) {
+            this.availableGroups = response.data.groups.map(g => ({
+              text: g.adDomain ? (g.groupName + " (" + g.adDomain + ")") : g.groupName,
+              value: g.adDomain ? (g.groupName + "#" + g.adDomain) : g.groupName
+            }));
+          }
+        })
+        .catch(error => console.log(error));
+    },
 
     refresh: function() {
       appUtils
@@ -102,9 +142,13 @@ let page = {
             this.sslType = (response.data.sslType == "1" ? true : false);
             this.port = response.data.port;
             this.emailStatus = true;
+            this.groupFilterMode = response.data.groupFilterMode || "all";
+            this.groupFilterGroups = response.data.groupFilterGroups || [];
           } else if (response.data.status == 0) {
             this.serverUrl = "";
             this.emailStatus = false;
+            this.groupFilterMode = "all";
+            this.groupFilterGroups = [];
           } else {
             console.log(`status: ${response.data.status}`);
             this.$router.push("/Login");
@@ -122,6 +166,8 @@ let page = {
               serverUrl: this.serverUrl,
               port: this.port,
               sslType: (this.sslType ? "1" : "0"),
+              groupFilterMode: this.groupFilterMode,
+              groupFilterGroups: this.groupFilterGroups,
             }
           })
           .then(response => {
@@ -140,6 +186,8 @@ let page = {
           .catch(error => console.log(error))
           .finally(() => (this.loading = false));
       } else {
+        this.groupFilterMode = "all";
+        this.groupFilterGroups = [];
         appUtils
           .delete({
             url: "api/email",
@@ -177,7 +225,8 @@ let page = {
       }
     ];
     this.$emit("updatePage", bcItems);
-    
+
+    this.loadGroups();
     this.refresh();
   }
 };
