@@ -561,5 +561,10 @@
     "Export Event Data": "Export Event Data",
     "System Events": "System Events",
     "No events found for the selected criteria": "No events found for the selected criteria",
-    "Event data exported successfully": "Event data exported successfully"
+    "Event data exported successfully": "Event data exported successfully",
+    "Performed by": "Performed by",
+    "Subject": "Subject",
+    "Session Expired": "Session Expired",
+    "Your session has timed out due to inactivity. Please log in again.": "Your session has timed out due to inactivity. Please log in again.",
+    "Log In": "Log In"
 }

@@ -137,6 +137,23 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="sessionTimeoutDialog" persistent max-width="400">
+      <v-card>
+        <v-card-title class="text-h5">
+          {{ $t('Session Expired') }}
+        </v-card-title>
+        <v-card-text>
+          {{ $t('Your session has timed out due to inactivity. Please log in again.') }}
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" @click="onSessionTimeoutConfirm">
+            {{ $t('Log In') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 <style scoped>
@@ -163,6 +180,7 @@ export default {
     ],
     appData,
     networkErrorDialog: false,
+    sessionTimeoutDialog: false,
     currentLoginToken: '',
     // Chatbot related data
     chatbotDrawer: false
@@ -260,11 +278,14 @@ export default {
                   appData.commit();
                 }
               } else {
-                console.log("Login Error");
+                console.log("Login Error - session expired");
                 console.log(response.data);
+                // Report the timeout for the audit log BEFORE clearing identity (email/domain still known).
+                thisPage.reportSessionTimeout();
                 appData.adminLoginToken = "";
                 appData.isAuthenticated = false;
-                thisPage.$router.push("/Login");
+                // Show the popup instead of a silent redirect; navigation happens on confirm.
+                thisPage.sessionTimeoutDialog = true;
               }
             }).catch((error) => {
               console.log("Login HTTP Error");
@@ -362,6 +383,26 @@ export default {
     retryConnection() {
       this.networkErrorDialog = false;
       this.checkLoginLoop(this.currentLoginToken, true);
+    },
+    reportSessionTimeout: function () {
+      // Identity is read from in-memory appData; the server session is already gone.
+      // This endpoint lives under /api/auth and does NOT require a valid token.
+      try {
+        const email = appData.email;
+        const domain = appData.mainDomain;
+        if (email && domain) {
+          appUtils.get({
+            url: "api/auth/sessionTimeout?email=" +
+              encodeURIComponent(email) + "&domain=" + encodeURIComponent(domain),
+          }).catch((e) => { console.log("reportSessionTimeout failed", e); });
+        }
+      } catch (e) {
+        console.log("reportSessionTimeout error", e);
+      }
+    },
+    onSessionTimeoutConfirm: function () {
+      this.sessionTimeoutDialog = false;
+      this.$router.push("/Login");
     },
 
     // Chatbot toggle method

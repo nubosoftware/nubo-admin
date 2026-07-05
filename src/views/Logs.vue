@@ -1168,6 +1168,7 @@ let page = {
                 recentEvents: this.eventsRows.slice(0, 5).map(event => ({
                   time: event.time,
                   type: event.eventTypeStr,
+                  actor: event.actor,
                   user: event.email,
                   info: event.extrainfo
                 }))
@@ -1740,7 +1741,8 @@ let page = {
       { text: this.$t("Event Type"), value: "eventTypeStr", width: "18%", sortable: false },
       { text: this.$t("Category"), value: "categoryStr", width: "15%", sortable: false },
       { text: this.$t("Level"), value: "level", width: "8%", sortable: true },
-      { text: this.$t("User"), value: "email", width: "12%", sortable: true },
+      { text: this.$t("Performed by"), value: "actor", width: "12%", sortable: true },
+      { text: this.$t("Subject"), value: "email", width: "12%", sortable: true },
       { text: this.$t("Information"), value: "extrainfo", width: "25%", sortable: false },
       { text: this.$t("Actions"), value: "actions", sortable: false, width: "10%" }
     ];

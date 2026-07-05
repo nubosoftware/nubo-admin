@@ -18,5 +18,10 @@
     "Profile and device data deleted": "פרופיל ונתוני מכשירים נמחקו",
     "Storage Size": "גודל אחסון",
     "N/A": "לא זמין",
-    "Loading...": "טוען..."
+    "Loading...": "טוען...",
+    "Performed by": "בוצע על ידי",
+    "Subject": "נושא",
+    "Session Expired": "פג תוקף החיבור",
+    "Your session has timed out due to inactivity. Please log in again.": "החיבור הסתיים עקב חוסר פעילות. יש להתחבר מחדש.",
+    "Log In": "התחברות"
 }
